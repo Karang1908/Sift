@@ -2,18 +2,27 @@
 __pycache__/
 *.pyc
 
-# Local per-user storage (uploads, parsed cache, presets, templates)
-uploads/
-parsed_cache/
-presets/
-export_templates/
-export_presets/
+# Local per-user storage (exclude contents but track .gitkeep)
+uploads/*
+!uploads/.gitkeep
+parsed_cache/*
+!parsed_cache/.gitkeep
+presets/*
+!presets/.gitkeep
+export_templates/*
+!export_templates/.gitkeep
+export_presets/*
+!export_presets/.gitkeep
 
-# Permanent audit trails and archives
-audit_uploads/
-audit_analysis/
-audit_exports/
-logs/
+# Permanent audit trails and archives (exclude contents but track .gitkeep)
+audit_uploads/*
+!audit_uploads/.gitkeep
+audit_analysis/*
+!audit_analysis/.gitkeep
+audit_exports/*
+!audit_exports/.gitkeep
+logs/*
+!logs/.gitkeep
 
 # Launcher output logs
 *.log
