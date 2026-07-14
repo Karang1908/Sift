@@ -14,6 +14,8 @@ import httpx
 from typing import Optional
 from fastapi import FastAPI, UploadFile, File, HTTPException, Response, Cookie, Depends
 from fastapi.responses import StreamingResponse, RedirectResponse, FileResponse
+from fastapi.openapi.docs import get_swagger_ui_html, get_redoc_html
+from fastapi.openapi.utils import get_openapi
 import io
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
@@ -25,7 +27,7 @@ import audit_log
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("docparser")
 
-app = FastAPI(title="Sift")
+app = FastAPI(title="Sift", docs_url=None, redoc_url=None, openapi_url=None)
 
 # CORS middleware. allow_credentials is deliberately NOT set here: this app
 # now issues a session cookie (see Authentication below), and
@@ -255,6 +257,31 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 @app.get("/")
 def read_root():
     return RedirectResponse(url="/static/index.html")
+
+
+@app.get("/openapi.json", include_in_schema=False)
+async def get_openapi_spec(user: str = Depends(get_current_user)):
+    return get_openapi(
+        title=app.title,
+        version=app.version,
+        routes=app.routes,
+    )
+
+
+@app.get("/docs", include_in_schema=False)
+async def get_swagger_documentation(user: str = Depends(get_current_user)):
+    return get_swagger_ui_html(
+        openapi_url="/openapi.json",
+        title=app.title + " - Swagger UI",
+    )
+
+
+@app.get("/redoc", include_in_schema=False)
+async def get_redoc_documentation(user: str = Depends(get_current_user)):
+    return get_redoc_html(
+        openapi_url="/openapi.json",
+        title=app.title + " - ReDoc",
+    )
 
 
 @app.post("/api/login")

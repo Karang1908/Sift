@@ -1204,7 +1204,7 @@ flowchart TD
                 <tr><td><code>GET</code></td><td><code>/api/admin/uploads</code></td><td>✓ admin</td><td>Archived uploads, list + download</td></tr>
                 <tr><td><code>GET</code></td><td><code>/api/admin/analysis</code></td><td>✓ admin</td><td>Archived analyses, list + detail</td></tr>
                 <tr><td><code>GET</code></td><td><code>/api/admin/exports</code></td><td>✓ admin</td><td>Archived exports, list + download</td></tr>
-                <tr><td><code>GET</code></td><td><code>/docs</code> · <code>/redoc</code></td><td><span class="badge warn">none</span></td><td>FastAPI auto-generated, not gated</td></tr>
+                <tr><td><code>GET</code></td><td><code>/docs</code> · <code>/redoc</code></td><td>✓</td><td>FastAPI auto-generated, gated behind active session</td></tr>
             </tbody>
         </table>
 
@@ -1226,7 +1226,7 @@ flowchart TD
                 <tr><td>Admin authz</td><td><span class="badge good">✅ explicit</span></td><td><code>get_current_admin</code> 403s non-admin accounts</td></tr>
                 <tr><td>Path traversal</td><td><span class="badge good">✅ guarded</span></td><td><code>os.path.basename()</code> + regex validation</td></tr>
                 <tr><td>LLM code exec</td><td><span class="badge warn">⚠️ defense-in-depth</span></td><td>AST allowlist + subprocess rlimits, not a real sandbox</td></tr>
-                <tr><td>API discovery</td><td><span class="badge warn">⚠️ minor</span></td><td><code>/docs</code> and <code>/redoc</code> reachable without login</td></tr>
+                <tr><td>API discovery</td><td><span class="badge good">✅ gated</span></td><td><code>/docs</code>, <code>/redoc</code>, and <code>/openapi.json</code> require active user session</td></tr>
                 <tr><td>Audit integrity</td><td><span class="badge good">✅ verified</span></td><td><code>asyncio.shield()</code> survives client disconnects</td></tr>
                 <tr><td>Retention</td><td><span class="badge info-b">ℹ️ by design</span></td><td>Archive grows forever — no pruning policy yet</td></tr>
             </tbody>
