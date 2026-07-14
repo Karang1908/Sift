@@ -90,13 +90,14 @@
             font-weight: 400;
             color: var(--color-cocoa-ink);
             letter-spacing: -0.3px;
-            text-transform: lowercase;
         }
         .sidebar-brand h1 span {
             color: var(--color-marker-orange);
             font-style: italic;
         }
         .sidebar-brand p {
+            text-transform: uppercase;
+            letter-spacing: 1px;
             font-size: 13px;
             color: var(--color-shadow-mist);
             margin-top: 4px;
@@ -187,7 +188,6 @@
             font-size: 36px;
             font-weight: 400;
             color: var(--color-cocoa-ink);
-            text-transform: lowercase;
             margin: 72px 0 8px;
             padding-top: 32px;
             line-height: 1.2;
@@ -207,7 +207,6 @@
             font-size: 24px;
             font-weight: 400;
             color: var(--color-cocoa-ink);
-            text-transform: lowercase;
             margin: 36px 0 8px;
             line-height: 1.3;
         }
@@ -282,8 +281,6 @@
             color: var(--color-cocoa-ink);
             padding: 10px 14px;
             font-size: 13px;
-            text-transform: lowercase;
-            letter-spacing: 0.3px;
         }
         td {
             padding: 10px 14px;
@@ -385,7 +382,6 @@
             font-family: var(--font-display);
             font-size: 18px;
             font-weight: 400;
-            text-transform: lowercase;
         }
         .feature-card p {
             font-size: 14px;
@@ -427,7 +423,6 @@
             font-size: 56px;
             font-weight: 400;
             color: var(--color-cocoa-ink);
-            text-transform: lowercase;
             line-height: 1.12;
             margin-bottom: 16px;
         }
@@ -489,7 +484,6 @@
             font-family: var(--font-display);
             font-size: 20px;
             color: var(--color-cream-paper);
-            text-transform: lowercase;
             margin: 0;
         }
         .footer-band .footer-sub {
@@ -525,63 +519,63 @@
 <!-- ═══════════════ SIDEBAR ═══════════════ -->
 <aside class="sidebar">
     <div class="sidebar-brand">
-        <h1><span>s</span>ift</h1>
-        <p>documentation</p>
+        <h1><span>S</span>ift</h1>
+        <p>Documentation</p>
     </div>
     <nav>
-        <div class="nav-group">overview</div>
-        <a href="#overview">what is sift</a>
-        <a href="#features">features</a>
-        <a href="#quick-facts">quick facts</a>
+        <div class="nav-group">Overview</div>
+        <a href="#overview">What is Sift</a>
+        <a href="#features">Features</a>
+        <a href="#quick-facts">Quick Facts</a>
 
-        <div class="nav-group">architecture</div>
-        <a href="#component-architecture">components</a>
-        <a href="#network-flow">network flow</a>
-        <a href="#data-isolation">data isolation</a>
+        <div class="nav-group">Architecture</div>
+        <a href="#component-architecture">Components</a>
+        <a href="#network-flow">Network Flow</a>
+        <a href="#data-isolation">Data Isolation</a>
 
-        <div class="nav-group">request flows</div>
-        <a href="#auth-flow">authentication</a>
-        <a href="#upload-flow">file upload</a>
-        <a href="#analysis-flow">analysis (sse)</a>
-        <a href="#export-flow">document export</a>
+        <div class="nav-group">Request Flows</div>
+        <a href="#auth-flow">Authentication</a>
+        <a href="#upload-flow">File Upload</a>
+        <a href="#analysis-flow">Analysis (SSE)</a>
+        <a href="#export-flow">Document Export</a>
 
-        <div class="nav-group">administration</div>
-        <a href="#audit-trail">audit trail</a>
-        <a href="#startup-flow">startup</a>
+        <div class="nav-group">Administration</div>
+        <a href="#audit-trail">Audit Trail</a>
+        <a href="#startup-flow">Startup</a>
 
-        <div class="nav-group">reference</div>
-        <a href="#api-surface">api surface</a>
-        <a href="#security">security</a>
-        <a href="#module-map">module map</a>
+        <div class="nav-group">Reference</div>
+        <a href="#api-surface">API Surface</a>
+        <a href="#security">Security</a>
+        <a href="#module-map">Module Map</a>
     </nav>
 </aside>
 
 <!-- ═══════════════ MAIN ═══════════════ -->
 <div class="main">
     <header class="topbar">
-        <div class="breadcrumb">sift / <span>docs</span></div>
-        <span class="version-pill">july 2026</span>
+        <div class="breadcrumb">Sift / <span>Docs</span></div>
+        <span class="version-pill">July 2026</span>
     </header>
 
     <div class="content">
 
         <!-- ── HERO ── -->
         <div class="hero">
-            <h1>understand how<br>sift works</h1>
+            <h1>Understand How<br>Sift Works</h1>
             <p class="subtitle">
                 A complete technical reference for the document analysis dashboard — architecture,
                 request flows, security model, and every API endpoint.
             </p>
             <div class="hero-caption">
                 <span class="sticker" style="--r:-8deg">⚡</span>
-                everything in one page
+                Everything in one page
                 <span class="sticker" style="--r:12deg">📄</span>
             </div>
             <div class="hero-divider"></div>
         </div>
 
         <!-- ── 1. OVERVIEW ── -->
-        <h2 id="overview">what is sift</h2>
+        <h2 id="overview">What is Sift</h2>
         <div class="section-rule"></div>
 
         <p>
@@ -609,54 +603,54 @@
         </div>
 
         <!-- ── FEATURES ── -->
-        <h2 id="features">features</h2>
+        <h2 id="features">Features</h2>
         <div class="section-rule"></div>
 
         <div class="feature-grid">
             <div class="feature-card">
                 <div class="icon">📄</div>
-                <h4>multi-format parsing</h4>
+                <h4>Multi-Format Parsing</h4>
                 <p>Upload PDF, DOCX, XLSX, PPTX, images (via OCR), RTF, ODT, and plain text. All files are parsed server-side into cached text for instant analysis.</p>
             </div>
             <div class="feature-card">
                 <div class="icon">🤖</div>
-                <h4>ai-powered analysis</h4>
+                <h4>AI-Powered Analysis</h4>
                 <p>Run natural-language queries against your uploaded documents via a local Ollama instance. Results stream in real-time via Server-Sent Events.</p>
             </div>
             <div class="feature-card">
                 <div class="icon">📊</div>
-                <h4>formatted export</h4>
+                <h4>Formatted Export</h4>
                 <p>Export analysis results to Excel, PDF, or Word. Two pipelines: an AI script generator and a template-based clone pipeline for precise formatting.</p>
             </div>
             <div class="feature-card">
                 <div class="icon">🔒</div>
-                <h4>per-user isolation</h4>
+                <h4>Per-User Isolation</h4>
                 <p>Every user's uploads, caches, presets, and templates live in their own filesystem namespace. No shared pools, no cross-user data leaks.</p>
             </div>
             <div class="feature-card">
                 <div class="icon">📋</div>
-                <h4>permanent audit trail</h4>
+                <h4>Permanent Audit Trail</h4>
                 <p>Every upload, analysis, and export is archived permanently. Deleting from the workspace never touches the archive. Admins see everything.</p>
             </div>
             <div class="feature-card">
                 <div class="icon">✨</div>
-                <h4>prompt enhancement</h4>
+                <h4>Prompt Enhancement</h4>
                 <p>Refine your analysis prompts and export instructions with one-click AI rewriting before running them — better input, better output.</p>
             </div>
             <div class="feature-card">
                 <div class="icon">💾</div>
-                <h4>presets system</h4>
+                <h4>Presets System</h4>
                 <p>Save and reuse frequently-used analysis prompts and export instructions as named presets. Separate systems for analysis and export workflows.</p>
             </div>
             <div class="feature-card">
                 <div class="icon">🖥️</div>
-                <h4>one-click launcher</h4>
+                <h4>One-Click Launcher</h4>
                 <p>Double-click <code>start_mac.command</code> or <code>start_windows.bat</code>. Handles Ollama, dependencies, the server, and opens your browser.</p>
             </div>
         </div>
 
         <!-- ── QUICK FACTS ── -->
-        <h2 id="quick-facts">quick facts</h2>
+        <h2 id="quick-facts">Quick Facts</h2>
         <div class="section-rule"></div>
 
         <table>
@@ -678,7 +672,7 @@
         <hr>
 
         <!-- ── COMPONENT ARCHITECTURE ── -->
-        <h2 id="component-architecture">component architecture</h2>
+        <h2 id="component-architecture">Component Architecture</h2>
         <div class="section-rule"></div>
 
         <p>
@@ -732,7 +726,7 @@ graph TB
         <hr>
 
         <!-- ── NETWORK FLOW ── -->
-        <h2 id="network-flow">network flow</h2>
+        <h2 id="network-flow">Network Flow</h2>
         <div class="section-rule"></div>
 
         <p>
@@ -773,9 +767,9 @@ flowchart LR
             </pre>
         </div>
 
-        <h3>what this means</h3>
+        <h3>What This Means</h3>
         <table>
-            <thead><tr><th>hop</th><th>protocol</th><th>encrypted?</th><th>notes</th></tr></thead>
+            <thead><tr><th>Hop</th><th>Protocol</th><th>Encrypted?</th><th>Notes</th></tr></thead>
             <tbody>
                 <tr><td>① page load</td><td>HTTP</td><td><span class="badge bad">no</span></td><td>No TLS in this stack</td></tr>
                 <tr><td>② login</td><td>HTTP</td><td><span class="badge bad">no</span></td><td>Credentials travel in cleartext on the LAN</td></tr>
@@ -794,7 +788,7 @@ flowchart LR
         <hr>
 
         <!-- ── AUTH FLOW ── -->
-        <h2 id="auth-flow">authentication &amp; sessions</h2>
+        <h2 id="auth-flow">Authentication &amp; Sessions</h2>
         <div class="section-rule"></div>
 
         <div class="diagram-container">
@@ -863,7 +857,7 @@ stateDiagram-v2
         <hr>
 
         <!-- ── DATA ISOLATION ── -->
-        <h2 id="data-isolation">per-user data isolation</h2>
+        <h2 id="data-isolation">Per-User Data Isolation</h2>
         <div class="section-rule"></div>
 
         <p>
@@ -909,7 +903,7 @@ graph TB
         <hr>
 
         <!-- ── UPLOAD FLOW ── -->
-        <h2 id="upload-flow">request flow: file upload</h2>
+        <h2 id="upload-flow">Request Flow: File Upload</h2>
         <div class="section-rule"></div>
 
         <div class="diagram-container">
@@ -942,7 +936,7 @@ sequenceDiagram
         <hr>
 
         <!-- ── ANALYSIS FLOW ── -->
-        <h2 id="analysis-flow">request flow: analysis query (sse)</h2>
+        <h2 id="analysis-flow">Request Flow: Analysis Query (SSE)</h2>
         <div class="section-rule"></div>
 
         <div class="diagram-container">
@@ -978,7 +972,7 @@ sequenceDiagram
         <hr>
 
         <!-- ── EXPORT FLOW ── -->
-        <h2 id="export-flow">request flow: document export</h2>
+        <h2 id="export-flow">Request Flow: Document Export</h2>
         <div class="section-rule"></div>
 
         <p>
@@ -1030,7 +1024,7 @@ flowchart TD
         <hr>
 
         <!-- ── AUDIT TRAIL ── -->
-        <h2 id="audit-trail">audit trail &amp; admin panel</h2>
+        <h2 id="audit-trail">Audit Trail &amp; Admin Panel</h2>
         <div class="section-rule"></div>
 
         <div class="diagram-container">
@@ -1069,7 +1063,7 @@ flowchart LR
         <hr>
 
         <!-- ── STARTUP FLOW ── -->
-        <h2 id="startup-flow">startup / deployment</h2>
+        <h2 id="startup-flow">Startup / Deployment</h2>
         <div class="section-rule"></div>
 
         <div class="diagram-container">
@@ -1102,11 +1096,11 @@ flowchart TD
         <hr>
 
         <!-- ── API SURFACE ── -->
-        <h2 id="api-surface">full api surface</h2>
+        <h2 id="api-surface">Full API Surface</h2>
         <div class="section-rule"></div>
 
         <table>
-            <thead><tr><th>method</th><th>path</th><th>auth</th><th>purpose</th></tr></thead>
+            <thead><tr><th>Method</th><th>Path</th><th>Auth</th><th>Purpose</th></tr></thead>
             <tbody>
                 <tr><td><code>GET</code></td><td><code>/</code></td><td>—</td><td>Redirects to <code>/static/index.html</code></td></tr>
                 <tr><td><code>POST</code></td><td><code>/api/login</code></td><td>—</td><td>Credential check, brute-force lockout, sets session cookie</td></tr>
@@ -1134,11 +1128,11 @@ flowchart TD
         <hr>
 
         <!-- ── SECURITY ── -->
-        <h2 id="security">security posture</h2>
+        <h2 id="security">Security Posture</h2>
         <div class="section-rule"></div>
 
         <table>
-            <thead><tr><th>concern</th><th>status</th><th>detail</th></tr></thead>
+            <thead><tr><th>Concern</th><th>Status</th><th>Detail</th></tr></thead>
             <tbody>
                 <tr><td>Password storage</td><td><span class="badge good">✅ good</span></td><td>bcrypt hashes only, never plaintext, constant-time comparison</td></tr>
                 <tr><td>Brute-force</td><td><span class="badge good">✅ basic</span></td><td>5 failures → 60s per-username lockout</td></tr>
@@ -1163,11 +1157,11 @@ flowchart TD
         <hr>
 
         <!-- ── MODULE MAP ── -->
-        <h2 id="module-map">module map</h2>
+        <h2 id="module-map">Module Map</h2>
         <div class="section-rule"></div>
 
         <table>
-            <thead><tr><th>file</th><th>responsibility</th></tr></thead>
+            <thead><tr><th>File</th><th>Responsibility</th></tr></thead>
             <tbody>
                 <tr><td><code>app.py</code></td><td>FastAPI app: every route, auth, session store, per-user path helpers, export pipeline</td></tr>
                 <tr><td><code>parser_utils.py</code></td><td><code>extract_text_from_file()</code> — the entire document→text conversion surface</td></tr>
@@ -1184,8 +1178,8 @@ flowchart TD
 
     <!-- ── Footer brand band ── -->
     <div class="footer-band">
-        <p>built with care — sift documentation</p>
-        <p class="footer-sub">fastapi · ollama · vanilla js · flat files · no cloud</p>
+        <p>Built with Care — Sift Documentation</p>
+        <p class="footer-sub">FastAPI · Ollama · Vanilla JS · Flat Files · No Cloud</p>
     </div>
 
 </div><!-- /.main -->
