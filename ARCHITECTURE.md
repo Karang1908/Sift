@@ -59,8 +59,8 @@ graph TB
         AuditLog["audit_log.py<br/>activity log + permanent archive"]
 
         subgraph Storage["Per-user flat-file storage (no DB)"]
-            Live["uploads/&lt;user&gt;/<br/>parsed_cache/&lt;user&gt;/<br/>presets/&lt;user&gt;.json<br/>export_templates/&lt;user&gt;/<br/>export_presets/&lt;user&gt;.json"]
-            Archive["audit_uploads/&lt;user&gt;/<br/>audit_analysis/&lt;user&gt;/<br/>audit_exports/&lt;user&gt;/<br/>logs/activity.jsonl"]
+            Live["uploads/[user]/<br/>parsed_cache/[user]/<br/>presets/[user].json<br/>export_templates/[user]/<br/>export_presets/[user].json"]
+            Archive["audit_uploads/[user]/<br/>audit_analysis/[user]/<br/>audit_exports/[user]/<br/>logs/activity.jsonl"]
         end
     end
 
@@ -72,13 +72,17 @@ graph TB
         OllamaCloud["Ollama Cloud<br/>hosts minimax-m3 inference"]
     end
 
-    Browser <-->|"HTTP, port 8000<br/>cookie: sift_session"| Routes
-    Browser <-->|"static assets"| Static
+    Browser -->|"HTTP, port 8000<br/>cookie: sift_session"| Routes
+    Routes --> Browser
+    Browser -->|"static assets"| Static
+    Static --> Browser
     Routes --> Auth
     Routes --> Parser
     Routes --> AuditLog
-    Routes <--> Live
-    AuditLog <--> Archive
+    Routes --> Live
+    Live --> Routes
+    AuditLog --> Archive
+    Archive --> AuditLog
     Routes -->|"HTTP POST /api/chat<br/>localhost:11434"| OllamaLocal
     OllamaLocal -->|":cloud suffix routes here<br/>requires ollama login"| OllamaCloud
 
@@ -130,13 +134,14 @@ flowchart LR
     U1 == "② POST /api/login<br/>username+password, PLAINTEXT<br/>← sift_session cookie set here" ==> Uvicorn
     Uvicorn --> FastAPIApp
 
-    U1 -. "③ every subsequent request<br/>Cookie: sift_session=&lt;token&gt;<br/>PLAINTEXT — sniffable on this LAN" .-> Uvicorn
+    U1 -. "③ every subsequent request<br/>Cookie: sift_session=[token]<br/>PLAINTEXT — sniffable on this LAN" .-> Uvicorn
 
     FastAPIApp -- "④ POST /api/chat<br/>localhost only, never leaves host" --> OllamaDaemon
     OllamaDaemon -- "⑤ only for :cloud models —<br/>HTTPS out to the internet" --> OllamaCloudAPI
     OllamaDaemon -. "one-time device auth" .-> OllamaAuth
 
-    FastAPIApp <--> Disk
+    FastAPIApp --> Disk
+    Disk --> FastAPIApp
 
     style Internet fill:#3a1f1f,stroke:#c44,color:#eee
     style LAN fill:#1f2a3a,stroke:#5a8fc4,color:#eee
@@ -180,24 +185,24 @@ sequenceDiagram
     alt username locked out (5 failures)
         S-->>B: 429 "Too many failed attempts, retry in Ns"
     else unknown username
-        Note over S: bcrypt.checkpw() still runs against<br/>a DUMMY hash — timing reveals nothing
+        Note over S: bcrypt.checkpw() still runs against\na DUMMY hash — timing reveals nothing
         S-->>B: 401 Invalid username or password
     else wrong password
         S->>S: record failure, lock after 5th
         S-->>B: 401 Invalid username or password
     else correct credentials
-        S->>Sessions: token = secrets.token_urlsafe(32)<br/>store {username, expires_at: now+6h}
-        S-->>B: 200 {username, is_admin}<br/>Set-Cookie: sift_session=&lt;token&gt;<br/>HttpOnly; SameSite=Lax; Max-Age=21600
+        S->>Sessions: token = secrets.token_urlsafe(32)\nstore {username, expires_at: now+6h}
+        S-->>B: 200 {username, is_admin}\nSet-Cookie: sift_session=[token]\nHttpOnly; SameSite=Lax; Max-Age=21600
         S->>S: audit_log.log_activity(username, "login")
     end
 
     loop every subsequent request
-        B->>S: any /api/* request<br/>Cookie: sift_session=&lt;token&gt;
+        B->>S: any /api/* request\nCookie: sift_session=[token]
         S->>Sessions: look up token
         alt expired or unknown
             Sessions-->>S: not found / expired
             S-->>B: 401 Session expired or invalid
-            Note over B: apiFetch() wrapper centrally<br/>re-shows the login overlay
+            Note over B: apiFetch() wrapper centrally\nre-shows the login overlay
         else valid
             Sessions-->>S: username
             S->>S: handle request as that user
@@ -294,17 +299,17 @@ sequenceDiagram
     participant B as Browser
     participant S as app.py: upload_file()
     participant P as parser_utils.extract_text_from_file()
-    participant FS as uploads/&lt;user&gt;/ · parsed_cache/&lt;user&gt;/
+    participant FS as "uploads/[user]/ · parsed_cache/[user]/"
     participant AL as audit_log.py
 
     B->>S: POST /api/upload (multipart file)
-    S->>S: safe_filename = basename(filename)<br/>reject video extensions
-    S->>FS: write original bytes → uploads/&lt;user&gt;/&lt;file&gt;
+    S->>S: safe_filename = basename(filename)\nreject video extensions
+    S->>FS: write original bytes → uploads/[user]/[file]
     S->>P: extract_text_from_file(filepath)
-    Note over P: dispatches by extension:<br/>PDF/DOCX/XLSX/PPTX native parsers,<br/>images via OCR, legacy formats via<br/>macOS textutil, binary sniff fallback
+    Note over P: dispatches by extension:\nPDF/DOCX/XLSX/PPTX native parsers,\nimages via OCR, legacy formats via\nmacOS textutil, binary sniff fallback
     P-->>S: parsed text (or an [Error ...] sentinel string)
-    S->>FS: write &lt;file&gt;.txt → parsed_cache/&lt;user&gt;/ (atomic replace)
-    S->>AL: archive_upload_copy() → permanent copy in audit_uploads/&lt;user&gt;/
+    S->>FS: write [file].txt → parsed_cache/[user]/ (atomic replace)
+    S->>AL: archive_upload_copy() → permanent copy in audit_uploads/[user]/
     S->>AL: log_activity(user, "upload", filename, size, status)
     S-->>B: 200 {filename, size, status: "parsed"|"error"}
 ```
@@ -324,19 +329,19 @@ sequenceDiagram
     participant AL as audit_log.py (shielded persist)
 
     B->>S: POST /api/process {prompt}
-    S->>S: concatenate every .txt in<br/>THIS user's parsed_cache/&lt;user&gt;/ only<br/>(citation-tagged: [Page X], [Sheet Y], ...)
+    S->>S: concatenate every .txt in\nTHIS user's parsed_cache/[user]/ only\n(citation-tagged: [Page X], [Sheet Y], ...)
     S->>O: POST /api/chat {model, messages, stream:true}
     activate S
     loop token stream
         O-->>S: {"message":{"content":"..."}, "done":false}
         S-->>B: SSE: data: {"content":"...", "done":false}
-        Note over S: accumulate content in memory,<br/>server never persisted this before<br/>the audit-trail feature
+        Note over S: accumulate content in memory\nserver never persisted this before\nthe audit-trail feature
     end
     O-->>S: {"done": true}
     S-->>B: SSE: data: {"content":"", "done":true}
     deactivate S
-    S->>AL: asyncio.shield(persist task):<br/>archive_analysis() then log_activity("process")
-    Note over AL: shielded so a client disconnect right<br/>at stream-end can't cancel the archive<br/>write between the two steps
+    S->>AL: asyncio.shield(persist task):\narchive_analysis() then log_activity("process")
+    Note over AL: shielded so a client disconnect right\nat stream-end can't cancel the archive\nwrite between the two steps
 ```
 
 **Why the shield matters:** without it, a client that disconnects at the very end of the
@@ -382,7 +387,7 @@ flowchart TD
     SP5 --> FileBytes
     CP3 --> FileBytes["file_bytes ready in memory"]
 
-    FileBytes --> Archive["audit_log.archive_export()<br/>shielded persist task<br/>→ audit_exports/&lt;user&gt;/"]
+    FileBytes --> Archive["audit_log.archive_export()<br/>shielded persist task<br/>→ audit_exports/[user]/"]
     Archive --> SSE["Terminal SSE event:<br/>base64 file + filename + mime type"]
     SSE --> Done(["Browser decodes + downloads"])
 
@@ -420,7 +425,7 @@ flowchart LR
 
     subgraph AdminReaders["/api/admin/* — get_current_admin gated"]
         RUsers["GET /admin/users"]
-        RAct["GET /admin/activity<br/>?username=&amp;action="]
+        RAct["GET /admin/activity<br/>?username=&action="]
         RUp["GET /admin/uploads<br/>+ /download"]
         RAn["GET /admin/analysis<br/>+ detail"]
         REx["GET /admin/exports<br/>+ /download"]
