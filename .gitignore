@@ -1,0 +1,28 @@
+# Python caches
+__pycache__/
+*.pyc
+
+# Local per-user storage (uploads, parsed cache, presets, templates)
+uploads/
+parsed_cache/
+presets/
+export_templates/
+export_presets/
+
+# Permanent audit trails and archives
+audit_uploads/
+audit_analysis/
+audit_exports/
+logs/
+
+# Launcher output logs
+*.log
+
+# PyInstaller build directories and configs
+dist/
+build/
+*.spec
+
+# OS-specific metadata
+.DS_Store
+Thumps.db
