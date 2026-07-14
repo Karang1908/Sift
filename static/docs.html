@@ -411,8 +411,12 @@
             position: relative;
         }
         .diagram-overlay-inner svg {
-            max-width: 100%;
-            height: auto;
+            max-width: 100% !important;
+            max-height: 80vh !important;
+            width: auto !important;
+            height: auto !important;
+            margin: 0 auto;
+            display: block;
         }
         .diagram-overlay-close {
             position: absolute;
@@ -1329,21 +1333,26 @@ flowchart TD
         if (e.key === 'Escape') closeOverlay();
     });
 
-    // Wait for Mermaid to finish rendering, then wrap containers and inject buttons
+    // Wait for Mermaid to finish rendering all SVGs, then wrap and add expand buttons
     function initDiagramExpand() {
         var containers = document.querySelectorAll('.diagram-container');
-        // Check if Mermaid has rendered (first container should have an SVG)
-        var firstSvg = containers.length > 0 && containers[0].querySelector('svg[id^="mermaid"], svg.mermaid-svg, [id*="mermaid"] svg, .mermaid svg');
-        if (!firstSvg) {
-            // Also try a broader check — Mermaid replaces <pre class="mermaid"> with an SVG
-            firstSvg = containers.length > 0 && containers[0].querySelector('svg');
-        }
-        if (!firstSvg) {
-            // Not ready yet, retry
-            setTimeout(initDiagramExpand, 500);
+        var allReady = true;
+
+        containers.forEach(function(container) {
+            // Check if there is an SVG inside this container
+            var svg = container.querySelector('svg');
+            if (!svg) {
+                allReady = false;
+            }
+        });
+
+        if (!allReady || containers.length === 0) {
+            // Not all diagrams are rendered yet, retry
+            setTimeout(initDiagramExpand, 200);
             return;
         }
 
+        // All diagrams are fully rendered! Wrap and add buttons safely.
         containers.forEach(function(container) {
             // Skip if already wrapped
             if (container.parentElement.classList.contains('diagram-wrapper')) return;
@@ -1354,32 +1363,21 @@ flowchart TD
             container.parentNode.insertBefore(wrapper, container);
             wrapper.appendChild(container);
 
-            // Create expand button on the wrapper (outside the scrollable container)
+            // Create expand button on the wrapper
             var btn = document.createElement('button');
             btn.className = 'diagram-expand';
             btn.title = 'Expand diagram';
             btn.innerHTML = expandIcon;
+            
             btn.addEventListener('click', function() {
-                // Find the Mermaid-rendered SVG inside the container
-                var svgs = container.querySelectorAll('svg');
-                // The Mermaid SVG is typically the largest one; skip tiny icon SVGs
-                var diagramSvg = null;
-                svgs.forEach(function(s) {
-                    var rect = s.getBoundingClientRect();
-                    if (rect.width > 50 && rect.height > 50) {
-                        diagramSvg = s;
-                    }
-                });
+                var diagramSvg = container.querySelector('svg');
                 if (!diagramSvg) return;
 
                 var clone = diagramSvg.cloneNode(true);
-                // Reset sizing so it fills the overlay
+                // Strip sizing attributes so CSS styles the clone cleanly
                 clone.removeAttribute('width');
                 clone.removeAttribute('height');
                 clone.removeAttribute('style');
-                clone.style.maxWidth = '100%';
-                clone.style.height = 'auto';
-                clone.style.display = 'block';
 
                 overlayContent.innerHTML = '';
                 overlayContent.appendChild(clone);
@@ -1391,7 +1389,7 @@ flowchart TD
     }
 
     // Start polling after a brief initial delay
-    setTimeout(initDiagramExpand, 800);
+    setTimeout(initDiagramExpand, 500);
 
     // ── Active sidebar link on scroll ──
     const sections = document.querySelectorAll('h2[id]');
