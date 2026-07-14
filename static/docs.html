@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sift — Documentation</title>
+    <meta name="description" content="Complete technical documentation for Sift, a local AI-powered document analysis dashboard.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+    <style>
+        /* ── Reset & Base ── */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg:         #0e1117;
+            --bg-card:    #161b22;
+            --bg-code:    #1c2128;
+            --border:     #30363d;
+            --text:       #c9d1d9;
+            --text-dim:   #8b949e;
+            --text-bright:#e6edf3;
+            --accent:     #58a6ff;
+            --accent-dim: #1f6feb;
+            --green:      #3fb950;
+            --green-dim:  #1a7f37;
+            --yellow:     #d29922;
+            --red:        #f85149;
+            --purple:     #bc8cff;
+            --sidebar-w:  280px;
+            --content-max:860px;
+        }
+
+        html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            font-size: 15px;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ── Sidebar ── */
+        .sidebar {
+            position: fixed;
+            top: 0; left: 0; bottom: 0;
+            width: var(--sidebar-w);
+            background: var(--bg-card);
+            border-right: 1px solid var(--border);
+            overflow-y: auto;
+            padding: 24px 0;
+            z-index: 100;
+        }
+        .sidebar-logo {
+            padding: 0 24px 20px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+        .sidebar-logo h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-bright);
+            letter-spacing: -0.5px;
+        }
+        .sidebar-logo h1 span { color: var(--accent); }
+        .sidebar-logo p {
+            font-size: 12px;
+            color: var(--text-dim);
+            margin-top: 4px;
+        }
+        .sidebar nav { padding: 0 12px; }
+        .sidebar nav a {
+            display: block;
+            padding: 7px 12px;
+            border-radius: 6px;
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.15s ease;
+        }
+        .sidebar nav a:hover {
+            color: var(--text-bright);
+            background: rgba(88,166,255,0.08);
+        }
+        .sidebar nav a.active {
+            color: var(--accent);
+            background: rgba(88,166,255,0.12);
+        }
+        .sidebar nav .nav-group {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-dim);
+            padding: 16px 12px 6px;
+            opacity: 0.7;
+        }
+
+        /* ── Main Content ── */
+        .main {
+            margin-left: var(--sidebar-w);
+            flex: 1;
+            min-width: 0;
+        }
+
+        /* Top bar */
+        .topbar {
+            position: sticky;
+            top: 0;
+            background: rgba(14,17,23,0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 48px;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .topbar .breadcrumb {
+            font-size: 13px;
+            color: var(--text-dim);
+        }
+        .topbar .breadcrumb span { color: var(--text-bright); }
+        .topbar .version-badge {
+            font-size: 11px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            background: rgba(88,166,255,0.12);
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .content {
+            max-width: var(--content-max);
+            margin: 0 auto;
+            padding: 40px 48px 120px;
+        }
+
+        /* ── Typography ── */
+        h2 {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-bright);
+            margin: 64px 0 12px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+            letter-spacing: -0.3px;
+        }
+        h2:first-of-type { border-top: none; margin-top: 0; }
+        h3 {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-bright);
+            margin: 36px 0 10px;
+        }
+        h4 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-bright);
+            margin: 24px 0 8px;
+        }
+        p { margin: 10px 0; }
+
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        strong { color: var(--text-bright); font-weight: 600; }
+        code {
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 13px;
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 2px 6px;
+            color: var(--purple);
+        }
+
+        pre {
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px 20px;
+            overflow-x: auto;
+            margin: 16px 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--text);
+        }
+
+        /* ── Tables ── */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 14px;
+        }
+        th {
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-bright);
+            background: var(--bg-code);
+            padding: 10px 14px;
+            border-bottom: 2px solid var(--border);
+            font-size: 13px;
+        }
+        td {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
+        }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: rgba(88,166,255,0.03); }
+
+        /* ── Ordered / unordered lists ── */
+        ul, ol {
+            padding-left: 24px;
+            margin: 10px 0;
+        }
+        li { margin: 4px 0; }
+
+        /* ── Info / Warning boxes ── */
+        .callout {
+            border-radius: 8px;
+            padding: 14px 18px;
+            margin: 16px 0;
+            font-size: 14px;
+            line-height: 1.6;
+            border-left: 4px solid;
+        }
+        .callout.info {
+            background: rgba(88,166,255,0.06);
+            border-color: var(--accent);
+        }
+        .callout.warn {
+            background: rgba(210,153,34,0.08);
+            border-color: var(--yellow);
+        }
+        .callout.good {
+            background: rgba(63,185,80,0.06);
+            border-color: var(--green);
+        }
+        .callout.danger {
+            background: rgba(248,81,73,0.06);
+            border-color: var(--red);
+        }
+        .callout strong { display: block; margin-bottom: 4px; }
+
+        /* ── Mermaid diagrams ── */
+        .diagram-container {
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 24px;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+        .diagram-container .mermaid { text-align: center; }
+
+        /* ── Feature cards ── */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 20px 0;
+        }
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            transition: border-color 0.2s ease;
+        }
+        .feature-card:hover { border-color: var(--accent-dim); }
+        .feature-card .icon {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .feature-card h4 {
+            margin: 0 0 6px;
+            font-size: 15px;
+        }
+        .feature-card p {
+            font-size: 13px;
+            color: var(--text-dim);
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        /* ── Status badges ── */
+        .badge {
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+        .badge.good   { background: rgba(63,185,80,0.15); color: var(--green); }
+        .badge.warn   { background: rgba(210,153,34,0.15); color: var(--yellow); }
+        .badge.bad    { background: rgba(248,81,73,0.15); color: var(--red); }
+        .badge.info   { background: rgba(188,140,255,0.15); color: var(--purple); }
+
+        /* ── Horizontal rule ── */
+        hr {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 48px 0;
+        }
+
+        /* ── Scroll to top ── */
+        .scroll-top {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            background: var(--accent-dim);
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.25s ease;
+            z-index: 200;
+            font-size: 18px;
+        }
+        .scroll-top.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .scroll-top:hover { background: var(--accent); }
+
+        /* ── Mobile ── */
+        @media (max-width: 900px) {
+            .sidebar { display: none; }
+            .main { margin-left: 0; }
+            .content { padding: 24px 20px 80px; }
+            .topbar { padding: 12px 20px; }
+            .feature-grid { grid-template-columns: 1fr; }
+            h2 { font-size: 22px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ════════════════════════════ SIDEBAR ════════════════════════════ -->
+<aside class="sidebar">
+    <div class="sidebar-logo">
+        <h1><span>S</span>ift</h1>
+        <p>Document Analysis Dashboard</p>
+    </div>
+    <nav>
+        <div class="nav-group">Overview</div>
+        <a href="#overview">What is Sift</a>
+        <a href="#features">Features</a>
+        <a href="#quick-facts">Quick Facts</a>
+
+        <div class="nav-group">Architecture</div>
+        <a href="#component-architecture">Component Architecture</a>
+        <a href="#network-flow">Network Flow</a>
+        <a href="#data-isolation">Per-User Data Isolation</a>
+
+        <div class="nav-group">Request Flows</div>
+        <a href="#auth-flow">Authentication &amp; Sessions</a>
+        <a href="#upload-flow">File Upload</a>
+        <a href="#analysis-flow">Analysis Query (SSE)</a>
+        <a href="#export-flow">Document Export</a>
+
+        <div class="nav-group">Administration</div>
+        <a href="#audit-trail">Audit Trail &amp; Admin Panel</a>
+        <a href="#startup-flow">Startup / Deployment</a>
+
+        <div class="nav-group">Reference</div>
+        <a href="#api-surface">Full API Surface</a>
+        <a href="#security">Security Posture</a>
+        <a href="#module-map">Module Map</a>
+    </nav>
+</aside>
+
+<!-- ════════════════════════════ MAIN ════════════════════════════ -->
+<div class="main">
+    <header class="topbar">
+        <div class="breadcrumb">Sift / <span>Documentation</span></div>
+        <span class="version-badge">v2026-07-15</span>
+    </header>
+
+    <div class="content">
+
+        <!-- ─── 1. OVERVIEW ─── -->
+        <h2 id="overview">What is Sift</h2>
+
+        <p>
+            Sift is a <strong>single-screen document analysis dashboard</strong>. A small, fixed set of
+            hardcoded accounts log in, upload documents (PDF, DOCX, XLSX, PPTX, images, text, RTF, ODT),
+            get them parsed to text server-side, run AI-assisted analysis queries against a local
+            <a href="https://ollama.com" target="_blank">Ollama</a> instance, and export the results as
+            formatted Excel, PDF, or Word documents.
+        </p>
+        <p>
+            Every account's data is <strong>filesystem-isolated</strong> from every other account's. An
+            <code>is_admin</code>-flagged account can see a permanent, append-only audit trail of
+            everyone's activity through a separate admin panel.
+        </p>
+        <p>
+            It runs as <strong>one Python process on one machine</strong>, reachable either only from that
+            machine (<code>127.0.0.1</code>) or from every device on the local network
+            (<code>0.0.0.0</code>). There is no cloud backend, no container orchestration, no database
+            server — persistence is flat files on the host's own disk.
+        </p>
+
+        <div class="callout info">
+            <strong>Stack</strong>
+            FastAPI + Uvicorn (Python 3.13+), vanilla JS frontend, local Ollama daemon proxying to
+            <code>minimax-m3:cloud</code>.
+        </div>
+
+        <!-- ─── FEATURES ─── -->
+        <h2 id="features">Features</h2>
+
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="icon">📄</div>
+                <h4>Multi-Format Document Parsing</h4>
+                <p>Upload PDF, DOCX, XLSX, PPTX, images (via OCR), RTF, ODT, and plain text. All files are parsed server-side into cached text for instant analysis.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">🤖</div>
+                <h4>AI-Powered Analysis</h4>
+                <p>Run natural-language queries against your uploaded documents via a local Ollama instance. Results stream in real-time via Server-Sent Events.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">📊</div>
+                <h4>Formatted Document Export</h4>
+                <p>Export analysis results to Excel, PDF, or Word. Supports both an AI script pipeline and a template-based clone pipeline for precise formatting.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">🔒</div>
+                <h4>Per-User Data Isolation</h4>
+                <p>Every user's uploads, caches, presets, and templates are stored in their own filesystem namespace. No shared pools, no cross-user data leaks.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">📋</div>
+                <h4>Permanent Audit Trail</h4>
+                <p>Every upload, analysis, and export is archived permanently. Deleting files from the workspace never touches the archive. Admins see everything.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">✨</div>
+                <h4>AI Prompt Enhancement</h4>
+                <p>Refine your analysis prompts and export instructions with one-click AI rewriting before running them — better input, better output.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">💾</div>
+                <h4>Presets System</h4>
+                <p>Save and reuse frequently-used analysis prompts and export instructions as named presets. Separate systems for analysis and export workflows.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">🖥️</div>
+                <h4>One-Click Launcher</h4>
+                <p>Double-click <code>start_mac.command</code> or <code>start_windows.bat</code>. The script handles Ollama, dependencies, the server, and opens your browser automatically.</p>
+            </div>
+        </div>
+
+        <!-- ─── QUICK FACTS ─── -->
+        <h2 id="quick-facts">Quick Facts</h2>
+
+        <table>
+            <tbody>
+                <tr><td><strong>Web framework</strong></td><td>FastAPI ≥0.115, served by Uvicorn ≥0.30</td></tr>
+                <tr><td><strong>Frontend</strong></td><td>Vanilla JS — no build step, no bundler, no framework</td></tr>
+                <tr><td><strong>Model</strong></td><td><code>minimax-m3:cloud</code> via a local Ollama daemon (<code>http://localhost:11434</code>)</td></tr>
+                <tr><td><strong>Auth</strong></td><td>Hardcoded <code>USERS</code> dict in <code>app.py</code>, bcrypt hashes, opaque session tokens</td></tr>
+                <tr><td><strong>Session store</strong></td><td>In-memory Python dict — wiped on every process restart</td></tr>
+                <tr><td><strong>Session TTL</strong></td><td>6 hours, fixed from login time (not sliding)</td></tr>
+                <tr><td><strong>Transport security</strong></td><td><span class="badge bad">None</span> Plain HTTP only, no TLS anywhere in this stack</td></tr>
+                <tr><td><strong>Persistence</strong></td><td>Flat files under the project directory — no SQL/NoSQL database</td></tr>
+                <tr><td><strong>Default bind</strong></td><td><code>127.0.0.1:8000</code> (localhost-only) via the launcher scripts</td></tr>
+                <tr><td><strong>LAN-shared bind</strong></td><td><code>0.0.0.0:8000</code> (opt-in, manual dev-server flag)</td></tr>
+                <tr><td><strong>Multi-tenancy</strong></td><td>Filesystem-namespaced per username — structural, not permission-checked</td></tr>
+            </tbody>
+        </table>
+
+        <hr>
+
+        <!-- ─── 3. COMPONENT ARCHITECTURE ─── -->
+        <h2 id="component-architecture">Component Architecture</h2>
+
+        <p>
+            Everything inside "Host Machine" is one OS process — there's no internal network hop between
+            the web layer, the parser, the audit log, and the filesystem; those are plain Python function calls.
+            The only two real network hops are Browser↔Server (LAN, plaintext HTTP) and Server↔Ollama
+            (localhost, then out to the internet only for the <code>:cloud</code> model's actual inference).
+        </p>
+
+        <div class="diagram-container">
+            <pre class="mermaid">
+graph TB
+    subgraph Client["Client Devices (any device on the LAN)"]
+        Browser["Browser&lt;br/&gt;index.html / admin.html&lt;br/&gt;vanilla JS, no framework"]
+    end
+
+    subgraph Host["Host Machine (one process)"]
+        subgraph WebLayer["app.py — FastAPI application"]
+            Auth["Auth layer&lt;br/&gt;get_current_user / get_current_admin&lt;br/&gt;USERS dict, bcrypt, session table"]
+            Routes["Route handlers&lt;br/&gt;upload · process · export · presets · admin"]
+            Static["StaticFiles mount&lt;br/&gt;/static/*"]
+        end
+
+        Parser["parser_utils.py&lt;br/&gt;extract_text_from_file()"]
+        AuditLog["audit_log.py&lt;br/&gt;activity log + permanent archive"]
+
+        subgraph Storage["Per-user flat-file storage (no DB)"]
+            Live["uploads/[user]/&lt;br/&gt;parsed_cache/[user]/&lt;br/&gt;presets/[user].json&lt;br/&gt;export_templates/[user]/&lt;br/&gt;export_presets/[user].json"]
+            Archive["audit_uploads/[user]/&lt;br/&gt;audit_analysis/[user]/&lt;br/&gt;audit_exports/[user]/&lt;br/&gt;logs/activity.jsonl"]
+        end
+    end
+
+    subgraph OllamaHost["Ollama daemon (same host, port 11434)"]
+        OllamaLocal["ollama serve&lt;br/&gt;local HTTP API"]
+    end
+
+    subgraph Cloud["Internet"]
+        OllamaCloud["Ollama Cloud&lt;br/&gt;hosts minimax-m3 inference"]
+    end
+
+    Browser -->|"HTTP, port 8000&lt;br/&gt;cookie: sift_session"| Routes
+    Routes --> Browser
+    Browser -->|"static assets"| Static
+    Static --> Browser
+    Routes --> Auth
+    Routes --> Parser
+    Routes --> AuditLog
+    Routes --> Live
+    Live --> Routes
+    AuditLog --> Archive
+    Archive --> AuditLog
+    Routes -->|"HTTP POST /api/chat&lt;br/&gt;localhost:11434"| OllamaLocal
+    OllamaLocal -->|":cloud suffix routes here&lt;br/&gt;requires ollama login"| OllamaCloud
+
+    style Cloud fill:#3a1f1f,stroke:#c44,color:#eee
+    style Client fill:#1f2a3a,stroke:#5a8fc4,color:#eee
+    style Host fill:#1f3a2a,stroke:#5ac48f,color:#eee
+            </pre>
+        </div>
+
+        <hr>
+
+        <!-- ─── 4. NETWORK FLOW ─── -->
+        <h2 id="network-flow">Network Flow</h2>
+
+        <p>
+            This is the actual traffic map: who talks to whom, over what protocol, on what port, and —
+            critically — where encryption does and doesn't exist.
+        </p>
+
+        <div class="diagram-container">
+            <pre class="mermaid">
+flowchart LR
+    subgraph LAN["Local Area Network (home / office WiFi or switch)"]
+        direction TB
+        U1["👤 User A's laptop&lt;br/&gt;Chrome/Safari/Firefox"]
+        U2["👤 User B's phone&lt;br/&gt;mobile browser"]
+        U3["👤 User C's desktop&lt;br/&gt;same machine as server"]
+    end
+
+    subgraph HostMachine["Host Machine — e.g. 192.168.1.42"]
+        direction TB
+        Uvicorn["Uvicorn ASGI server&lt;br/&gt;0.0.0.0:8000 (LAN mode)&lt;br/&gt;or 127.0.0.1:8000 (local-only mode)"]
+        FastAPIApp["FastAPI app (app.py)&lt;br/&gt;routes, auth, SSE streaming"]
+        OllamaDaemon["ollama serve&lt;br/&gt;127.0.0.1:11434&lt;br/&gt;(bound to loopback only)"]
+        Disk[("Local disk&lt;br/&gt;uploads/ · audit_* / · logs/")]
+    end
+
+    subgraph Internet["Public Internet"]
+        direction TB
+        OllamaCloudAPI["Ollama Cloud API&lt;br/&gt;proxies :cloud-suffixed models"]
+        OllamaAuth["Ollama account auth&lt;br/&gt;(ollama login)"]
+    end
+
+    U1 -- "① HTTP GET /static/index.html&lt;br/&gt;plaintext, port 8000" --> Uvicorn
+    U2 -- "① HTTP GET /static/index.html&lt;br/&gt;plaintext, port 8000" --> Uvicorn
+    U3 -- "① http://127.0.0.1:8000&lt;br/&gt;never leaves the host" --> Uvicorn
+
+    U1 == "② POST /api/login&lt;br/&gt;username+password, PLAINTEXT&lt;br/&gt;← sift_session cookie set here" ==> Uvicorn
+    Uvicorn --> FastAPIApp
+
+    U1 -. "③ every subsequent request&lt;br/&gt;Cookie: sift_session=[token]&lt;br/&gt;PLAINTEXT — sniffable on this LAN" .-> Uvicorn
+
+    FastAPIApp -- "④ POST /api/chat&lt;br/&gt;localhost only, never leaves host" --> OllamaDaemon
+    OllamaDaemon -- "⑤ only for :cloud models —&lt;br/&gt;HTTPS out to the internet" --> OllamaCloudAPI
+    OllamaDaemon -. "one-time device auth" .-> OllamaAuth
+
+    FastAPIApp --> Disk
+    Disk --> FastAPIApp
+
+    style Internet fill:#3a1f1f,stroke:#c44,color:#eee
+    style LAN fill:#1f2a3a,stroke:#5a8fc4,color:#eee
+    style HostMachine fill:#1f3a2a,stroke:#5ac48f,color:#eee
+            </pre>
+        </div>
+
+        <h3>What this diagram is telling you</h3>
+        <table>
+            <thead><tr><th>Hop</th><th>Protocol</th><th>Encrypted?</th><th>Notes</th></tr></thead>
+            <tbody>
+                <tr><td>① Browser → Uvicorn (page load)</td><td>HTTP</td><td><span class="badge bad">No</span></td><td>No TLS anywhere in this stack.</td></tr>
+                <tr><td>② Browser → Uvicorn (<code>/api/login</code>)</td><td>HTTP</td><td><span class="badge bad">No</span></td><td>Username + password travel in cleartext on the LAN.</td></tr>
+                <tr><td>③ Browser → Uvicorn (every other request)</td><td>HTTP</td><td><span class="badge bad">No</span></td><td><code>sift_session</code> cookie is <code>HttpOnly</code> + <code>SameSite=Lax</code>, but not TLS-protected.</td></tr>
+                <tr><td>④ FastAPI → Ollama daemon</td><td>HTTP</td><td>N/A (loopback)</td><td>Never leaves the host — <code>localhost:11434</code> is not reachable from the LAN.</td></tr>
+                <tr><td>⑤ Ollama → Ollama Cloud</td><td>HTTPS</td><td><span class="badge good">Yes</span></td><td>Ollama's own daemon making an outbound call, not anything Sift constructs.</td></tr>
+            </tbody>
+        </table>
+
+        <div class="callout warn">
+            <strong>CORS Configuration</strong>
+            <code>CORSMiddleware</code> is configured with <code>allow_origins=["*"]</code> but <strong>no</strong>
+            <code>allow_credentials=True</code>. That combination is intentional — a wildcard origin
+            <em>with</em> credentials would let any other site read a logged-in user's session cookie cross-origin;
+            without credentials, the wildcard is inert for anything cookie-authenticated.
+        </div>
+
+        <hr>
+
+        <!-- ─── 5. AUTH FLOW ─── -->
+        <h2 id="auth-flow">Authentication &amp; Session Lifecycle</h2>
+
+        <div class="diagram-container">
+            <pre class="mermaid">
+sequenceDiagram
+    participant B as Browser
+    participant S as FastAPI (app.py)
+    participant Sessions as In-memory _sessions dict
+
+    B->>S: POST /api/login (username, password)
+    alt username locked out (5 failures)
+        S-->>B: 429 "Too many failed attempts, retry in Ns"
+    else unknown username
+        Note over S: bcrypt.checkpw() still runs against<br/>a DUMMY hash — timing reveals nothing
+        S-->>B: 401 Invalid username or password
+    else wrong password
+        S->>S: record failure, lock after 5th
+        S-->>B: 401 Invalid username or password
+    else correct credentials
+        S->>Sessions: store token with username and 6h TTL
+        S-->>B: 200 (Set-Cookie sift_session, HttpOnly, SameSite=Lax)
+        S->>S: audit_log.log_activity(username, "login")
+    end
+
+    loop every subsequent request
+        B->>S: any /api/* request (Cookie: sift_session)
+        S->>Sessions: look up token
+        alt expired or unknown
+            Sessions-->>S: not found / expired
+            S-->>B: 401 Session expired or invalid
+            Note over B: apiFetch() wrapper centrally<br/>re-shows the login overlay
+        else valid
+            Sessions-->>S: username
+            S->>S: handle request as that user
+        end
+    end
+
+    B->>S: POST /api/logout
+    S->>Sessions: delete token
+    S-->>B: 200, Set-Cookie deleted
+    S->>S: audit_log.log_activity(username, "logout")
+            </pre>
+        </div>
+
+        <div class="diagram-container">
+            <pre class="mermaid">
+stateDiagram-v2
+    [*] --> LoggedOut
+    LoggedOut --> Authenticating: POST /api/login
+    Authenticating --> LoggedOut: bad credentials / locked out
+    Authenticating --> Active: valid credentials
+    Active --> Active: any request within 6h of login
+    Active --> LoggedOut: POST /api/logout
+    Active --> LoggedOut: 6h elapsed since login (fixed TTL)
+    Active --> LoggedOut: server process restarts
+    LoggedOut --> [*]
+            </pre>
+        </div>
+
+        <p>
+            The session TTL is <strong>fixed from login time</strong>, not sliding — a user active at hour 5:59
+            is still logged out at hour 6:00. The in-memory store means the <em>entire team</em> gets logged
+            out simultaneously any time the process restarts, including a <code>uvicorn --reload</code>
+            triggered by editing any watched file during development.
+        </p>
+
+        <hr>
+
+        <!-- ─── 6. PER-USER DATA ISOLATION ─── -->
+        <h2 id="data-isolation">Per-User Data Isolation</h2>
+
+        <p>
+            Every account's data lives under its own subdirectory (or its own named file), never a shared pool.
+            <code>username</code> is only ever a value that has already come out of <code>get_current_user()</code>
+            — a validated <code>USERS</code> key — so joining it directly into a filesystem path carries no
+            traversal risk.
+        </p>
+
+        <div class="diagram-container">
+            <pre class="mermaid">
+graph TB
+    Root["Project root"]
+    Root --> UP["uploads/"]
+    Root --> CA["parsed_cache/"]
+    Root --> PR["presets/"]
+    Root --> ET["export_templates/"]
+    Root --> EP["export_presets/"]
+    Root --> AU["audit_uploads/"]
+    Root --> AA["audit_analysis/"]
+    Root --> AE["audit_exports/"]
+    Root --> LG["logs/"]
+
+    UP --> UPa["admin/*.pdf, *.xlsx, ..."]
+    UP --> UPb["alice/*.pdf, ..."]
+    CA --> CAa["admin/*.txt (parsed)"]
+    CA --> CAb["alice/*.txt (parsed)"]
+    PR --> PRa["admin.json"]
+    PR --> PRb["alice.json"]
+    ET --> ETa["admin/uuid.xlsx"]
+    EP --> EPa["admin.json"]
+    AU --> AUa["admin/record__file.pdf"]
+    AA --> AAa["admin/record.md"]
+    AE --> AEa["admin/record__report.xlsx"]
+    LG --> LGa["activity.jsonl&lt;br/&gt;(shared, interleaved by timestamp)"]
+
+    style UPa fill:#1f3a2a,stroke:#5ac48f,color:#eee
+    style CAa fill:#1f3a2a,stroke:#5ac48f,color:#eee
+    style PRa fill:#1f3a2a,stroke:#5ac48f,color:#eee
+    style ETa fill:#1f3a2a,stroke:#5ac48f,color:#eee
+    style EPa fill:#1f3a2a,stroke:#5ac48f,color:#eee
+    style AUa fill:#1f3a2a,stroke:#5ac48f,color:#eee
+    style AAa fill:#1f3a2a,stroke:#5ac48f,color:#eee
+    style AEa fill:#1f3a2a,stroke:#5ac48f,color:#eee
+            </pre>
+        </div>
+
+        <p>Two independent isolation mechanisms are stacked here:</p>
+        <ol>
+            <li><strong>Live workspace</strong> (<code>uploads/</code>, <code>parsed_cache/</code>,
+                <code>presets/</code>, <code>export_templates/</code>, <code>export_presets/</code>) —
+                reflects exactly what a user currently sees in their own UI. Deleting a file removes it from here.</li>
+            <li><strong>Permanent archive</strong> (<code>audit_uploads/</code>, <code>audit_analysis/</code>,
+                <code>audit_exports/</code>) — written once, at the moment content is created (upload / generation
+                time), never modified by later user actions. <code>logs/activity.jsonl</code> is the one genuinely
+                <em>shared</em> file — by design, since it's the admin's cross-user activity feed — but it's
+                write-only from each request's perspective (append under a lock) and read-only from the admin panel's.</li>
+        </ol>
+
+        <hr>
+
+        <!-- ─── 7. FILE UPLOAD FLOW ─── -->
+        <h2 id="upload-flow">Request Flow: File Upload</h2>
+
+        <div class="diagram-container">
+            <pre class="mermaid">
+sequenceDiagram
+    participant B as Browser
+    participant S as app.py: upload_file()
+    participant P as parser_utils
+    participant FS as "uploads/ · parsed_cache/"
+    participant AL as audit_log.py
+
+    B->>S: POST /api/upload (multipart file)
+    S->>S: safe_filename = basename, reject video extensions
+    S->>FS: write original bytes to uploads/[user]/
+    S->>P: extract_text_from_file(filepath)
+    Note over P: dispatches by extension:<br/>PDF/DOCX/XLSX/PPTX native parsers,<br/>images via OCR, legacy formats via<br/>macOS textutil, binary sniff fallback
+    P-->>S: parsed text (or an Error sentinel)
+    S->>FS: write .txt to parsed_cache/[user]/
+    S->>AL: archive_upload_copy() to audit_uploads/
+    S->>AL: log_activity(user, "upload", filename, size, status)
+    S-->>B: 200 (filename, size, status)
+            </pre>
+        </div>
+
+        <div class="callout good">
+            <strong>Archive-at-upload</strong>
+            The permanent archive copy is made at upload time, independent of whatever happens next — so even
+            a delete two seconds later can't lose it.
+        </div>
+
+        <hr>
+
+        <!-- ─── 8. ANALYSIS FLOW ─── -->
+        <h2 id="analysis-flow">Request Flow: Analysis Query (SSE)</h2>
+
+        <div class="diagram-container">
+            <pre class="mermaid">
+sequenceDiagram
+    participant B as Browser
+    participant S as app.py: process_files()
+    participant O as Ollama daemon
+    participant AL as audit_log.py
+
+    B->>S: POST /api/process (prompt)
+    S->>S: concatenate every .txt in user's parsed_cache
+    S->>O: POST /api/chat (model, messages, stream:true)
+    activate S
+    loop token stream
+        O-->>S: message content token
+        S-->>B: SSE: content token
+        Note over S: accumulate content in memory
+    end
+    O-->>S: done: true
+    S-->>B: SSE: done: true
+    deactivate S
+    S->>AL: asyncio.shield(persist):<br/>archive_analysis() then log_activity()
+    Note over AL: shielded so a client disconnect<br/>can't cancel the archive write
+            </pre>
+        </div>
+
+        <div class="callout info">
+            <strong>Why the shield matters</strong>
+            Without <code>asyncio.shield()</code>, a client that disconnects at the very end of the stream
+            can cancel the request task mid-way through the two-step archive-then-log sequence, leaving an
+            archived <code>.md</code> file on disk with no corresponding activity-log entry — an inconsistent
+            audit trail.
+        </div>
+
+        <hr>
+
+        <!-- ─── 9. EXPORT FLOW ─── -->
+        <h2 id="export-flow">Request Flow: Document Export (Two Pipelines)</h2>
+
+        <div class="diagram-container">
+            <pre class="mermaid">
+flowchart TD
+    Start(["POST /api/export-excel&lt;br/&gt;/api/export-pdf&lt;br/&gt;/api/export-word"]) --> HasTemplate{"template_filename&lt;br/&gt;provided?"}
+
+    HasTemplate -->|No| ScriptPipeline
+    HasTemplate -->|Yes| SchemaCheck{"format is xlsx/docx,&lt;br/&gt;or PDF with real&lt;br/&gt;AcroForm fields?"}
+
+    SchemaCheck -->|"No (fixed-layout PDF)"| ScriptPipeline
+    SchemaCheck -->|Yes| ClonePipeline
+
+    subgraph ScriptPipeline["Script pipeline"]
+        direction TB
+        SP1["Model writes a whole&lt;br/&gt;Python script tailored&lt;br/&gt;to this specific report"]
+        SP2["AST allowlist validation&lt;br/&gt;(_validate_generated_code)"]
+        SP3["Run in subprocess:&lt;br/&gt;CPU-rlimit + wall-clock timeout"]
+        SP4{"Script succeeded?"}
+        SP5["Deterministic fallback&lt;br/&gt;(_generate_*_bytes)"]
+        SP1 --> SP2 --> SP3 --> SP4
+        SP4 -->|"No, twice"| SP5
+    end
+
+    subgraph ClonePipeline["Clone pipeline"]
+        direction TB
+        CP1["Extract template's real&lt;br/&gt;structure: cells / paragraphs /&lt;br/&gt;form fields, tagged ID=..."]
+        CP2["Model returns ONLY a JSON&lt;br/&gt;field-mapping id:value&lt;br/&gt;— no code generation"]
+        CP3["Trusted, backend-authored&lt;br/&gt;splice function applies the&lt;br/&gt;mapping to a template copy"]
+        CP1 --> CP2 --> CP3
+    end
+
+    SP4 -->|Yes| FileBytes
+    SP5 --> FileBytes
+    CP3 --> FileBytes["file_bytes ready in memory"]
+
+    FileBytes --> ArchiveStep["audit_log.archive_export()&lt;br/&gt;shielded persist task"]
+    ArchiveStep --> SSE["Terminal SSE event:&lt;br/&gt;base64 file + filename + mime type"]
+    SSE --> Done(["Browser decodes + downloads"])
+
+    style ScriptPipeline fill:#2a1f3a,stroke:#8f5ac4,color:#eee
+    style ClonePipeline fill:#1f3a2a,stroke:#5ac48f,color:#eee
+            </pre>
+        </div>
+
+        <p>
+            The <strong>clone pipeline</strong> is the meaningfully smaller attack surface: the model never
+            writes or runs code, it only returns a bounded JSON object that a trusted function applies. The
+            <strong>script pipeline</strong> does run LLM-generated Python on the host — guarded by an AST
+            import/name allowlist and a subprocess CPU/wall-clock limit, but that's defense-in-depth, not a
+            real sandbox. Acceptable for a local/LAN single-trust-boundary tool.
+        </p>
+        <p>
+            Both pipelines stream real per-stage progress over the same SSE channel, and both archive the
+            final bytes permanently before the file ever reaches the browser.
+        </p>
+
+        <hr>
+
+        <!-- ─── 10. AUDIT TRAIL ─── -->
+        <h2 id="audit-trail">Audit Trail &amp; Admin Panel</h2>
+
+        <div class="diagram-container">
+            <pre class="mermaid">
+flowchart LR
+    subgraph Writers["Every write path (normal app usage)"]
+        Up["upload_file()"]
+        Del["delete_file()"]
+        Proc["process_files()"]
+        Exp["_stream_export()"]
+        Pre["preset / export-preset /&lt;br/&gt;template endpoints"]
+    end
+
+    Writers -->|"archive_upload_copy&lt;br/&gt;archive_analysis&lt;br/&gt;archive_export"| ArchiveStore[("audit_uploads/&lt;br/&gt;audit_analysis/&lt;br/&gt;audit_exports/")]
+    Writers -->|"log_activity()&lt;br/&gt;lock-guarded append"| Log[("logs/activity.jsonl")]
+
+    subgraph AdminReaders["/api/admin/* — admin-gated"]
+        RUsers["GET /admin/users"]
+        RAct["GET /admin/activity"]
+        RUp["GET /admin/uploads + download"]
+        RAn["GET /admin/analysis + detail"]
+        REx["GET /admin/exports + download"]
+    end
+
+    ArchiveStore --> RUp
+    ArchiveStore --> RAn
+    ArchiveStore --> REx
+    Log --> RAct
+
+    RUsers --> Panel["static/admin.html + admin.js"]
+    RAct --> Panel
+    RUp --> Panel
+    RAn --> Panel
+    REx --> Panel
+
+    Panel --> AdminBrowser["Admin's browser&lt;br/&gt;(separate page, no shared&lt;br/&gt;state with the main app)"]
+
+    style ArchiveStore fill:#1f3a2a,stroke:#5ac48f,color:#eee
+    style Log fill:#1f3a2a,stroke:#5ac48f,color:#eee
+    style AdminReaders fill:#1f2a3a,stroke:#5a8fc4,color:#eee
+            </pre>
+        </div>
+
+        <p>
+            Key property: <strong>deleting a file from the live workspace never touches the archive.</strong>
+            <code>delete_file()</code> only removes from <code>uploads/&lt;user&gt;/</code> and
+            <code>parsed_cache/&lt;user&gt;/</code> — the archive copy made at upload time is untouched and
+            remains admin-visible/downloadable indefinitely. There is currently no retention or pruning policy —
+            the archive only ever grows.
+        </p>
+
+        <hr>
+
+        <!-- ─── 11. STARTUP FLOW ─── -->
+        <h2 id="startup-flow">Startup / Deployment Flow</h2>
+
+        <div class="diagram-container">
+            <pre class="mermaid">
+flowchart TD
+    DoubleClick(["User double-clicks&lt;br/&gt;start_mac.command / start_windows.bat"]) --> CheckOllama{"Ollama already&lt;br/&gt;running on :11434?"}
+    CheckOllama -- No --> StartOllama["Start 'ollama serve'&lt;br/&gt;in the background"]
+    CheckOllama -- Yes --> CheckModel
+    StartOllama --> WaitOllama["Poll until ready&lt;br/&gt;(30s timeout)"]
+    WaitOllama --> CheckModel{"minimax-m3:cloud&lt;br/&gt;already pulled?"}
+    CheckModel -- No --> PullModel["ollama pull minimax-m3:cloud&lt;br/&gt;(requires ollama login)"]
+    CheckModel -- Yes --> CheckDeps
+    PullModel --> CheckDeps{"fastapi/uvicorn&lt;br/&gt;importable?"}
+    CheckDeps -- No --> InstallDeps["pip install -r requirements.txt"]
+    CheckDeps -- Yes --> CheckServer
+    InstallDeps --> CheckServer{"App server already&lt;br/&gt;responding on :8000?"}
+    CheckServer -- No --> StartServer["uvicorn app:app&lt;br/&gt;--host 127.0.0.1 --port 8000&lt;br/&gt;(background, no --reload)"]
+    CheckServer -- Yes --> OpenBrowser
+    StartServer --> WaitServer["Poll until ready&lt;br/&gt;(30s timeout)"]
+    WaitServer --> OpenBrowser["Open http://127.0.0.1:8000&lt;br/&gt;in default browser"]
+    OpenBrowser --> LoginScreen(["Login overlay&lt;br/&gt;(session store is empty&lt;br/&gt;on every fresh start)"])
+
+    style DoubleClick fill:#1f2a3a,stroke:#5a8fc4,color:#eee
+    style LoginScreen fill:#1f3a2a,stroke:#5ac48f,color:#eee
+            </pre>
+        </div>
+
+        <p>
+            Both launcher scripts are idempotent — re-running one after everything's already up just detects
+            that and opens the browser. Neither script binds to <code>0.0.0.0</code>; LAN sharing is a manual
+            choice made by starting the dev server directly with <code>--host 0.0.0.0</code>.
+        </p>
+
+        <hr>
+
+        <!-- ─── 12. API SURFACE ─── -->
+        <h2 id="api-surface">Full API Surface</h2>
+
+        <table>
+            <thead>
+                <tr><th>Method</th><th>Path</th><th>Auth</th><th>Purpose</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><code>GET</code></td><td><code>/</code></td><td>—</td><td>Redirects to <code>/static/index.html</code></td></tr>
+                <tr><td><code>POST</code></td><td><code>/api/login</code></td><td>—</td><td>Credential check, brute-force lockout, sets session cookie</td></tr>
+                <tr><td><code>POST</code></td><td><code>/api/logout</code></td><td>—</td><td>Clears session server-side + cookie</td></tr>
+                <tr><td><code>GET</code></td><td><code>/api/me</code></td><td>✓</td><td>Returns <code>{username, is_admin}</code></td></tr>
+                <tr><td><code>POST</code></td><td><code>/api/upload</code></td><td>✓</td><td>Save + parse + cache + archive a file</td></tr>
+                <tr><td><code>GET</code></td><td><code>/api/files</code></td><td>✓</td><td>List current user's live files</td></tr>
+                <tr><td><code>DELETE</code></td><td><code>/api/files/{filename}</code></td><td>✓</td><td>Remove from live workspace only</td></tr>
+                <tr><td><code>GET/POST/DELETE</code></td><td><code>/api/presets[/{name}]</code></td><td>✓</td><td>Analysis-query prompt presets</td></tr>
+                <tr><td><code>POST</code></td><td><code>/api/enhance-prompt</code></td><td>✓</td><td>AI-rewrite a raw analysis prompt</td></tr>
+                <tr><td><code>POST</code></td><td><code>/api/process</code></td><td>✓</td><td>SSE-streamed analysis over the user's own documents</td></tr>
+                <tr><td><code>GET/POST/DELETE</code></td><td><code>/api/export-presets[/{name}]</code></td><td>✓</td><td>Export-instructions presets</td></tr>
+                <tr><td><code>POST</code></td><td><code>/api/export-templates</code></td><td>✓</td><td>Upload an .xlsx/.docx/.pdf template</td></tr>
+                <tr><td><code>POST</code></td><td><code>/api/enhance-instructions</code></td><td>✓</td><td>AI-rewrite export styling instructions</td></tr>
+                <tr><td><code>POST</code></td><td><code>/api/export-excel | -pdf | -word</code></td><td>✓</td><td>SSE-streamed export (script or clone pipeline)</td></tr>
+                <tr><td><code>GET</code></td><td><code>/api/admin/users</code></td><td>✓ + admin</td><td>List configured accounts + roles</td></tr>
+                <tr><td><code>GET</code></td><td><code>/api/admin/activity</code></td><td>✓ + admin</td><td>Filterable activity feed</td></tr>
+                <tr><td><code>GET</code></td><td><code>/api/admin/uploads[/{u}/{id}/download]</code></td><td>✓ + admin</td><td>Archived uploads, list + download</td></tr>
+                <tr><td><code>GET</code></td><td><code>/api/admin/analysis[/{u}/{id}]</code></td><td>✓ + admin</td><td>Archived analysis runs, list + full detail</td></tr>
+                <tr><td><code>GET</code></td><td><code>/api/admin/exports[/{u}/{id}/download]</code></td><td>✓ + admin</td><td>Archived exports, list + download</td></tr>
+                <tr><td><code>GET</code></td><td><code>/docs</code>, <code>/redoc</code>, <code>/openapi.json</code></td><td><span class="badge warn">none</span></td><td>FastAPI auto-generated, not gated</td></tr>
+            </tbody>
+        </table>
+
+        <hr>
+
+        <!-- ─── 13. SECURITY ─── -->
+        <h2 id="security">Security Posture</h2>
+
+        <table>
+            <thead><tr><th>Concern</th><th>Status</th><th>Detail</th></tr></thead>
+            <tbody>
+                <tr><td>Password storage</td><td><span class="badge good">✅ Good</span></td><td>bcrypt hashes only, never plaintext, never in transit-comparison timing leaks</td></tr>
+                <tr><td>Brute-force protection</td><td><span class="badge good">✅ Basic</span></td><td>5 failures → 60s per-username lockout</td></tr>
+                <tr><td>Session token</td><td><span class="badge good">✅ Good</span></td><td><code>secrets.token_urlsafe(32)</code>, <code>HttpOnly</code>, <code>SameSite=Lax</code></td></tr>
+                <tr><td>Cross-account data isolation</td><td><span class="badge good">✅ Structural</span></td><td>Filesystem-namespaced by username, not permission-checked after the fact</td></tr>
+                <tr><td>Transport encryption</td><td><span class="badge bad">❌ None</span></td><td>Plain HTTP; credentials and session cookie are sniffable on the LAN</td></tr>
+                <tr><td>CORS</td><td><span class="badge good">✅ Hardened</span></td><td>Wildcard origin, but no <code>allow_credentials</code> — cookie can't be ridden cross-origin</td></tr>
+                <tr><td>Admin authorization</td><td><span class="badge good">✅ Explicit</span></td><td><code>get_current_admin</code> 403s non-flagged accounts on every <code>/api/admin/*</code> route</td></tr>
+                <tr><td>Path traversal</td><td><span class="badge good">✅ Guarded</span></td><td><code>os.path.basename()</code>, explicit validation, <code>_RECORD_ID_RE</code> regex</td></tr>
+                <tr><td>LLM code execution</td><td><span class="badge warn">⚠️ Defense-in-depth</span></td><td>AST allowlist + subprocess rlimits, not a real sandbox</td></tr>
+                <tr><td>Unauthenticated API discovery</td><td><span class="badge warn">⚠️ Minor</span></td><td><code>/docs</code> / <code>/redoc</code> / <code>/openapi.json</code> are reachable without login</td></tr>
+                <tr><td>Audit trail integrity</td><td><span class="badge good">✅ Verified</span></td><td><code>asyncio.shield()</code> on archive+log writes survives client disconnects</td></tr>
+                <tr><td>Data retention</td><td><span class="badge info">ℹ️ By design</span></td><td>Archive and activity log grow forever — no pruning policy exists yet</td></tr>
+            </tbody>
+        </table>
+
+        <div class="callout info">
+            <strong>Bottom line</strong>
+            This is correctly scoped as a trusted-LAN, known-small-team tool, not a public-facing service.
+            The single biggest thing that would change if it were ever exposed beyond a trusted LAN is transport
+            security: put a reverse proxy with a real TLS certificate in front of it before doing that.
+        </div>
+
+        <hr>
+
+        <!-- ─── 14. MODULE MAP ─── -->
+        <h2 id="module-map">Module Map</h2>
+
+        <table>
+            <thead><tr><th>File</th><th>Responsibility</th></tr></thead>
+            <tbody>
+                <tr><td><code>app.py</code></td><td>FastAPI app: every route, auth, session store, per-user path helpers, export pipeline orchestration</td></tr>
+                <tr><td><code>parser_utils.py</code></td><td><code>extract_text_from_file()</code> — the entire document→text conversion surface</td></tr>
+                <tr><td><code>audit_log.py</code></td><td>Activity log (JSONL) + permanent per-user archive (uploads/analysis/exports)</td></tr>
+                <tr><td><code>static/index.html</code> / <code>style.css</code> / <code>script.js</code></td><td>Main dashboard UI, login overlay, all fetch logic</td></tr>
+                <tr><td><code>static/admin.html</code> / <code>admin.js</code></td><td>Admin panel — standalone page, own auth check, no shared JS state</td></tr>
+                <tr><td><code>start_mac.command</code> / <code>start_windows.bat</code></td><td>Idempotent double-click launchers</td></tr>
+                <tr><td><code>test_backend.py</code></td><td>Offline-ish smoke test: Ollama ping + parser round-trip</td></tr>
+                <tr><td><code>verify_integration.py</code></td><td>Live end-to-end test against a running server, incl. cross-account and admin-panel checks</td></tr>
+            </tbody>
+        </table>
+
+    </div><!-- /.content -->
+</div><!-- /.main -->
+
+<!-- Scroll-to-top button -->
+<button class="scroll-top" id="scrollTopBtn" onclick="window.scrollTo({top:0})">↑</button>
+
+<script>
+    // ── Mermaid ──
+    mermaid.initialize({
+        startOnLoad: true,
+        theme: 'dark',
+        themeVariables: {
+            primaryColor: '#1f3a2a',
+            primaryTextColor: '#c9d1d9',
+            primaryBorderColor: '#5ac48f',
+            lineColor: '#8b949e',
+            secondaryColor: '#1f2a3a',
+            tertiaryColor: '#2a1f3a',
+            fontFamily: 'Inter, sans-serif',
+            fontSize: '13px'
+        },
+        flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'basis' },
+        sequence: { useMaxWidth: true, actorMargin: 60, mirrorActors: false }
+    });
+
+    // ── Active sidebar link on scroll ──
+    const sections = document.querySelectorAll('h2[id]');
+    const navLinks = document.querySelectorAll('.sidebar nav a[href^="#"]');
+    const scrollTopBtn = document.getElementById('scrollTopBtn');
+
+    function onScroll() {
+        // Active nav
+        let current = '';
+        sections.forEach(s => {
+            if (window.scrollY >= s.offsetTop - 120) current = s.id;
+        });
+        navLinks.forEach(a => {
+            a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+        });
+
+        // Scroll-to-top visibility
+        scrollTopBtn.classList.toggle('visible', window.scrollY > 400);
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+</script>
+</body>
+</html>
