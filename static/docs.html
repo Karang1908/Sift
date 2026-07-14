@@ -346,21 +346,23 @@
         }
 
         /* ── Diagram containers ── */
+        .diagram-wrapper {
+            position: relative;
+            margin: 20px 0;
+        }
         .diagram-container {
             background: var(--color-cream-paper);
             border: 1.5px solid var(--color-charcoal);
             border-radius: var(--radius-cards);
             padding: 28px 24px;
-            margin: 20px 0;
             overflow-x: auto;
             box-shadow: var(--shadow-lg);
-            position: relative;
         }
         .diagram-container .mermaid { text-align: center; }
 
         .diagram-expand {
             position: absolute;
-            top: 10px; right: 10px;
+            top: 8px; right: 8px;
             width: 32px; height: 32px;
             border-radius: var(--radius-inputs);
             background: var(--color-cream-paper);
@@ -408,6 +410,10 @@
             box-shadow: 0px 8px 40px rgba(0,0,0,0.15);
             position: relative;
         }
+        .diagram-overlay-inner svg {
+            max-width: 100%;
+            height: auto;
+        }
         .diagram-overlay-close {
             position: absolute;
             top: 12px; right: 12px;
@@ -421,6 +427,7 @@
             justify-content: center;
             padding: 0;
             transition: background 0.15s;
+            z-index: 2;
         }
         .diagram-overlay-close:hover { background: var(--color-dew-drop); }
         .diagram-overlay-close svg { width: 18px; height: 18px; stroke: var(--color-charcoal); fill: none; stroke-width: 2; stroke-linecap: round; }
@@ -1311,7 +1318,10 @@ flowchart TD
         overlay.classList.remove('active');
         document.body.style.overflow = '';
     }
-    overlayClose.addEventListener('click', closeOverlay);
+    overlayClose.addEventListener('click', function(e) {
+        e.stopPropagation();
+        closeOverlay();
+    });
     overlay.addEventListener('click', function(e) {
         if (e.target === overlay) closeOverlay();
     });
@@ -1319,28 +1329,69 @@ flowchart TD
         if (e.key === 'Escape') closeOverlay();
     });
 
-    // After Mermaid renders, inject expand buttons into each diagram container
-    setTimeout(function() {
-        document.querySelectorAll('.diagram-container').forEach(function(container) {
+    // Wait for Mermaid to finish rendering, then wrap containers and inject buttons
+    function initDiagramExpand() {
+        var containers = document.querySelectorAll('.diagram-container');
+        // Check if Mermaid has rendered (first container should have an SVG)
+        var firstSvg = containers.length > 0 && containers[0].querySelector('svg[id^="mermaid"], svg.mermaid-svg, [id*="mermaid"] svg, .mermaid svg');
+        if (!firstSvg) {
+            // Also try a broader check — Mermaid replaces <pre class="mermaid"> with an SVG
+            firstSvg = containers.length > 0 && containers[0].querySelector('svg');
+        }
+        if (!firstSvg) {
+            // Not ready yet, retry
+            setTimeout(initDiagramExpand, 500);
+            return;
+        }
+
+        containers.forEach(function(container) {
+            // Skip if already wrapped
+            if (container.parentElement.classList.contains('diagram-wrapper')) return;
+
+            // Wrap container in a wrapper div
+            var wrapper = document.createElement('div');
+            wrapper.className = 'diagram-wrapper';
+            container.parentNode.insertBefore(wrapper, container);
+            wrapper.appendChild(container);
+
+            // Create expand button on the wrapper (outside the scrollable container)
             var btn = document.createElement('button');
             btn.className = 'diagram-expand';
             btn.title = 'Expand diagram';
             btn.innerHTML = expandIcon;
             btn.addEventListener('click', function() {
-                var svg = container.querySelector('svg');
-                if (!svg) return;
-                var clone = svg.cloneNode(true);
+                // Find the Mermaid-rendered SVG inside the container
+                var svgs = container.querySelectorAll('svg');
+                // The Mermaid SVG is typically the largest one; skip tiny icon SVGs
+                var diagramSvg = null;
+                svgs.forEach(function(s) {
+                    var rect = s.getBoundingClientRect();
+                    if (rect.width > 50 && rect.height > 50) {
+                        diagramSvg = s;
+                    }
+                });
+                if (!diagramSvg) return;
+
+                var clone = diagramSvg.cloneNode(true);
+                // Reset sizing so it fills the overlay
+                clone.removeAttribute('width');
+                clone.removeAttribute('height');
+                clone.removeAttribute('style');
                 clone.style.maxWidth = '100%';
                 clone.style.height = 'auto';
-                clone.removeAttribute('width');
+                clone.style.display = 'block';
+
                 overlayContent.innerHTML = '';
                 overlayContent.appendChild(clone);
                 overlay.classList.add('active');
                 document.body.style.overflow = 'hidden';
             });
-            container.appendChild(btn);
+            wrapper.appendChild(btn);
         });
-    }, 1500);
+    }
+
+    // Start polling after a brief initial delay
+    setTimeout(initDiagramExpand, 800);
 
     // ── Active sidebar link on scroll ──
     const sections = document.querySelectorAll('h2[id]');
