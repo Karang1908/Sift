@@ -3,44 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sift — Documentation</title>
+    <title>sift — documentation</title>
     <meta name="description" content="Complete technical documentation for Sift, a local AI-powered document analysis dashboard.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
     <style>
-        /* ── Reset & Base ── */
+        /* ══════════════════════════════════════════
+           Superr — warm schoolyard notebook aesthetic
+           ══════════════════════════════════════════ */
+
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
-            --bg:         #0e1117;
-            --bg-card:    #161b22;
-            --bg-code:    #1c2128;
-            --border:     #30363d;
-            --text:       #c9d1d9;
-            --text-dim:   #8b949e;
-            --text-bright:#e6edf3;
-            --accent:     #58a6ff;
-            --accent-dim: #1f6feb;
-            --green:      #3fb950;
-            --green-dim:  #1a7f37;
-            --yellow:     #d29922;
-            --red:        #f85149;
-            --purple:     #bc8cff;
-            --sidebar-w:  280px;
-            --content-max:860px;
+            --color-cream-paper:       #fdfbf9;
+            --color-charcoal:          #171717;
+            --color-cocoa-ink:         #2b1a07;
+            --color-true-black:        #000000;
+            --color-dew-drop:          #f7efe9;
+            --color-marker-orange:     #ff6f1e;
+            --color-burnt-sienna:      #ce500a;
+            --color-sky-sticker:       #3b82f6;
+            --color-bubblegum-sticker: #ff66cf;
+            --color-sprout-sticker:    #22c55e;
+            --color-shadow-mist:       #bebcbb;
+
+            --font-display: 'DM Serif Display', Georgia, 'Times New Roman', serif;
+            --font-body:    'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+            --shadow-lg:     0px 2px 20px 0px rgba(0, 0, 0, 0.06);
+            --shadow-subtle: 0px 1px 2px 0px rgba(0, 0, 0, 0.25);
+
+            --radius-cards:   12px;
+            --radius-buttons: 20px;
+            --radius-tags:    20px;
+            --radius-inputs:  8px;
+            --radius-footer:  56px;
+
+            --page-max-width: 1200px;
+            --sidebar-w:      260px;
         }
 
-        html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 80px;
+        }
+
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            line-height: 1.7;
-            font-size: 15px;
+            font-family: var(--font-body);
+            background: var(--color-cream-paper);
+            color: var(--color-charcoal);
+            line-height: 1.6;
+            font-size: 16px;
             display: flex;
             min-height: 100vh;
+        }
+
+        ::selection {
+            background: var(--color-marker-orange);
+            color: var(--color-cream-paper);
         }
 
         /* ── Sidebar ── */
@@ -48,217 +70,293 @@
             position: fixed;
             top: 0; left: 0; bottom: 0;
             width: var(--sidebar-w);
-            background: var(--bg-card);
-            border-right: 1px solid var(--border);
+            background: var(--color-cream-paper);
+            border-right: 1.5px solid var(--color-charcoal);
             overflow-y: auto;
-            padding: 24px 0;
+            padding: 32px 0 48px;
             z-index: 100;
         }
-        .sidebar-logo {
-            padding: 0 24px 20px;
-            border-bottom: 1px solid var(--border);
-            margin-bottom: 16px;
+        .sidebar::-webkit-scrollbar { width: 4px; }
+        .sidebar::-webkit-scrollbar-thumb { background: var(--color-shadow-mist); border-radius: 4px; }
+
+        .sidebar-brand {
+            padding: 0 24px 24px;
+            border-bottom: 1.5px solid var(--color-charcoal);
+            margin-bottom: 20px;
         }
-        .sidebar-logo h1 {
-            font-size: 22px;
-            font-weight: 700;
-            color: var(--text-bright);
-            letter-spacing: -0.5px;
+        .sidebar-brand h1 {
+            font-family: var(--font-display);
+            font-size: 28px;
+            font-weight: 400;
+            color: var(--color-cocoa-ink);
+            letter-spacing: -0.3px;
+            text-transform: lowercase;
         }
-        .sidebar-logo h1 span { color: var(--accent); }
-        .sidebar-logo p {
-            font-size: 12px;
-            color: var(--text-dim);
-            margin-top: 4px;
+        .sidebar-brand h1 span {
+            color: var(--color-marker-orange);
+            font-style: italic;
         }
-        .sidebar nav { padding: 0 12px; }
-        .sidebar nav a {
-            display: block;
-            padding: 7px 12px;
-            border-radius: 6px;
-            color: var(--text-dim);
-            text-decoration: none;
+        .sidebar-brand p {
             font-size: 13px;
+            color: var(--color-shadow-mist);
+            margin-top: 4px;
             font-weight: 500;
-            transition: all 0.15s ease;
         }
-        .sidebar nav a:hover {
-            color: var(--text-bright);
-            background: rgba(88,166,255,0.08);
-        }
-        .sidebar nav a.active {
-            color: var(--accent);
-            background: rgba(88,166,255,0.12);
-        }
+
+        .sidebar nav { padding: 0 16px; }
         .sidebar nav .nav-group {
             font-size: 11px;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.8px;
-            color: var(--text-dim);
-            padding: 16px 12px 6px;
-            opacity: 0.7;
+            letter-spacing: 1.2px;
+            color: var(--color-shadow-mist);
+            padding: 20px 8px 6px;
+        }
+        .sidebar nav a {
+            display: block;
+            padding: 6px 10px;
+            border-radius: var(--radius-inputs);
+            color: var(--color-charcoal);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 400;
+            transition: all 0.15s ease;
+            border: 1.5px solid transparent;
+        }
+        .sidebar nav a:hover {
+            background: var(--color-dew-drop);
+        }
+        .sidebar nav a.active {
+            color: var(--color-cocoa-ink);
+            font-weight: 500;
+            border-color: var(--color-charcoal);
+            background: var(--color-cream-paper);
+            box-shadow: var(--shadow-subtle);
         }
 
-        /* ── Main Content ── */
+        /* ── Main ── */
         .main {
             margin-left: var(--sidebar-w);
             flex: 1;
             min-width: 0;
         }
 
-        /* Top bar */
+        /* ── Top bar ── */
         .topbar {
             position: sticky;
             top: 0;
-            background: rgba(14,17,23,0.85);
+            background: rgba(253, 251, 249, 0.88);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border);
-            padding: 14px 48px;
+            border-bottom: 1.5px solid var(--color-charcoal);
+            padding: 12px 48px;
             z-index: 50;
             display: flex;
             align-items: center;
             justify-content: space-between;
         }
         .topbar .breadcrumb {
-            font-size: 13px;
-            color: var(--text-dim);
+            font-size: 14px;
+            color: var(--color-shadow-mist);
+            font-weight: 500;
         }
-        .topbar .breadcrumb span { color: var(--text-bright); }
-        .topbar .version-badge {
-            font-size: 11px;
-            padding: 3px 10px;
-            border-radius: 20px;
-            background: rgba(88,166,255,0.12);
-            color: var(--accent);
-            font-weight: 600;
+        .topbar .breadcrumb span {
+            color: var(--color-cocoa-ink);
+        }
+        .topbar .version-pill {
+            font-size: 13px;
+            padding: 4px 16px;
+            border-radius: var(--radius-buttons);
+            background: var(--color-cream-paper);
+            color: var(--color-charcoal);
+            font-weight: 500;
+            border: 1.5px solid var(--color-charcoal);
+            box-shadow: var(--shadow-subtle);
         }
 
+        /* ── Content ── */
         .content {
-            max-width: var(--content-max);
+            max-width: 840px;
             margin: 0 auto;
-            padding: 40px 48px 120px;
+            padding: 48px 48px 0;
         }
 
         /* ── Typography ── */
         h2 {
-            font-size: 28px;
-            font-weight: 700;
-            color: var(--text-bright);
-            margin: 64px 0 12px;
-            padding-top: 24px;
-            border-top: 1px solid var(--border);
-            letter-spacing: -0.3px;
+            font-family: var(--font-display);
+            font-size: 36px;
+            font-weight: 400;
+            color: var(--color-cocoa-ink);
+            text-transform: lowercase;
+            margin: 72px 0 8px;
+            padding-top: 32px;
+            line-height: 1.2;
         }
-        h2:first-of-type { border-top: none; margin-top: 0; }
+        h2:first-of-type { margin-top: 0; padding-top: 0; }
+
+        .section-rule {
+            width: 100%;
+            height: 1.5px;
+            background: var(--color-charcoal);
+            margin-bottom: 28px;
+            border: none;
+        }
+
         h3 {
-            font-size: 20px;
-            font-weight: 600;
-            color: var(--text-bright);
-            margin: 36px 0 10px;
+            font-family: var(--font-display);
+            font-size: 24px;
+            font-weight: 400;
+            color: var(--color-cocoa-ink);
+            text-transform: lowercase;
+            margin: 36px 0 8px;
+            line-height: 1.3;
         }
         h4 {
             font-size: 16px;
             font-weight: 600;
-            color: var(--text-bright);
-            margin: 24px 0 8px;
+            color: var(--color-cocoa-ink);
+            margin: 24px 0 6px;
         }
-        p { margin: 10px 0; }
 
-        a { color: var(--accent); text-decoration: none; }
-        a:hover { text-decoration: underline; }
+        p {
+            margin: 12px 0;
+            line-height: 1.7;
+            color: var(--color-charcoal);
+        }
 
-        strong { color: var(--text-bright); font-weight: 600; }
+        a {
+            color: var(--color-burnt-sienna);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.15s;
+        }
+        a:hover { border-bottom-color: var(--color-burnt-sienna); }
+
+        strong { color: var(--color-cocoa-ink); font-weight: 600; }
+
+        /* Inline orange marker highlight */
+        .marker {
+            color: var(--color-marker-orange);
+            font-weight: 500;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 8'%3E%3Cpath d='M0 6 Q25 2 50 5 T100 4' stroke='%23ff6f1e' stroke-width='2.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: bottom left;
+            background-size: 100% 6px;
+            padding-bottom: 3px;
+        }
+
         code {
-            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
             font-size: 13px;
-            background: var(--bg-code);
-            border: 1px solid var(--border);
+            background: var(--color-dew-drop);
+            border: 1px solid rgba(43,26,7,0.12);
             border-radius: 4px;
             padding: 2px 6px;
-            color: var(--purple);
+            color: var(--color-burnt-sienna);
         }
 
         pre {
-            background: var(--bg-code);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 16px 20px;
+            background: var(--color-dew-drop);
+            border: 1.5px solid var(--color-charcoal);
+            border-radius: var(--radius-cards);
+            padding: 20px 24px;
             overflow-x: auto;
             margin: 16px 0;
             font-family: 'JetBrains Mono', monospace;
             font-size: 13px;
             line-height: 1.6;
-            color: var(--text);
+            color: var(--color-cocoa-ink);
         }
 
         /* ── Tables ── */
         table {
             width: 100%;
             border-collapse: collapse;
-            margin: 16px 0;
+            margin: 16px 0 24px;
             font-size: 14px;
         }
+        thead { border-bottom: 2px solid var(--color-charcoal); }
         th {
             text-align: left;
             font-weight: 600;
-            color: var(--text-bright);
-            background: var(--bg-code);
+            color: var(--color-cocoa-ink);
             padding: 10px 14px;
-            border-bottom: 2px solid var(--border);
             font-size: 13px;
+            text-transform: lowercase;
+            letter-spacing: 0.3px;
         }
         td {
             padding: 10px 14px;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid rgba(43,26,7,0.08);
             vertical-align: top;
         }
         tr:last-child td { border-bottom: none; }
-        tr:hover td { background: rgba(88,166,255,0.03); }
+        tr:hover td { background: var(--color-dew-drop); }
 
-        /* ── Ordered / unordered lists ── */
-        ul, ol {
-            padding-left: 24px;
-            margin: 10px 0;
-        }
-        li { margin: 4px 0; }
+        /* ── Lists ── */
+        ul, ol { padding-left: 24px; margin: 10px 0; }
+        li { margin: 5px 0; }
+        li::marker { color: var(--color-marker-orange); }
 
-        /* ── Info / Warning boxes ── */
+        /* ── Callout boxes ── */
         .callout {
-            border-radius: 8px;
-            padding: 14px 18px;
-            margin: 16px 0;
-            font-size: 14px;
+            border-radius: var(--radius-cards);
+            padding: 16px 20px;
+            margin: 20px 0;
+            font-size: 15px;
             line-height: 1.6;
-            border-left: 4px solid;
+            border: 1.5px solid var(--color-charcoal);
+            position: relative;
+        }
+        .callout::before {
+            position: absolute;
+            top: -11px; left: 16px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            padding: 2px 10px;
+            border-radius: var(--radius-tags);
+            border: 1.5px solid var(--color-charcoal);
         }
         .callout.info {
-            background: rgba(88,166,255,0.06);
-            border-color: var(--accent);
+            background: var(--color-cream-paper);
+        }
+        .callout.info::before {
+            content: 'note';
+            background: var(--color-cream-paper);
+            color: var(--color-cocoa-ink);
         }
         .callout.warn {
-            background: rgba(210,153,34,0.08);
-            border-color: var(--yellow);
+            background: var(--color-cream-paper);
+            border-color: var(--color-marker-orange);
+        }
+        .callout.warn::before {
+            content: 'heads up';
+            background: var(--color-marker-orange);
+            color: var(--color-cream-paper);
+            border-color: var(--color-marker-orange);
         }
         .callout.good {
-            background: rgba(63,185,80,0.06);
-            border-color: var(--green);
+            background: var(--color-cream-paper);
+            border-color: var(--color-sprout-sticker);
         }
-        .callout.danger {
-            background: rgba(248,81,73,0.06);
-            border-color: var(--red);
+        .callout.good::before {
+            content: 'nice';
+            background: var(--color-cream-paper);
+            color: var(--color-sprout-sticker);
+            border-color: var(--color-sprout-sticker);
         }
-        .callout strong { display: block; margin-bottom: 4px; }
 
-        /* ── Mermaid diagrams ── */
+        /* ── Diagram containers ── */
         .diagram-container {
-            background: var(--bg-code);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 24px;
+            background: var(--color-cream-paper);
+            border: 1.5px solid var(--color-charcoal);
+            border-radius: var(--radius-cards);
+            padding: 28px 24px;
             margin: 20px 0;
             overflow-x: auto;
+            box-shadow: var(--shadow-lg);
         }
         .diagram-container .mermaid { text-align: center; }
 
@@ -267,138 +365,227 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 16px;
-            margin: 20px 0;
+            margin: 24px 0;
         }
         .feature-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 20px;
-            transition: border-color 0.2s ease;
+            background: var(--color-cream-paper);
+            border: 1.5px solid var(--color-charcoal);
+            border-radius: var(--radius-cards);
+            padding: 24px;
+            box-shadow: var(--shadow-lg);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
-        .feature-card:hover { border-color: var(--accent-dim); }
-        .feature-card .icon {
-            font-size: 24px;
-            margin-bottom: 10px;
+        .feature-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0px 4px 24px 0px rgba(0,0,0,0.08);
         }
+        .feature-card .icon { font-size: 28px; margin-bottom: 12px; }
         .feature-card h4 {
             margin: 0 0 6px;
-            font-size: 15px;
+            font-family: var(--font-display);
+            font-size: 18px;
+            font-weight: 400;
+            text-transform: lowercase;
         }
         .feature-card p {
-            font-size: 13px;
-            color: var(--text-dim);
+            font-size: 14px;
+            color: var(--color-charcoal);
             margin: 0;
-            line-height: 1.5;
+            line-height: 1.55;
+            opacity: 0.75;
         }
 
-        /* ── Status badges ── */
+        /* ── Badges ── */
         .badge {
             display: inline-block;
             font-size: 12px;
             font-weight: 600;
-            padding: 2px 8px;
-            border-radius: 12px;
+            padding: 2px 10px;
+            border-radius: var(--radius-tags);
+            border: 1.5px solid;
+            background: var(--color-cream-paper);
         }
-        .badge.good   { background: rgba(63,185,80,0.15); color: var(--green); }
-        .badge.warn   { background: rgba(210,153,34,0.15); color: var(--yellow); }
-        .badge.bad    { background: rgba(248,81,73,0.15); color: var(--red); }
-        .badge.info   { background: rgba(188,140,255,0.15); color: var(--purple); }
+        .badge.good   { border-color: var(--color-sprout-sticker); color: var(--color-sprout-sticker); }
+        .badge.warn   { border-color: var(--color-marker-orange);  color: var(--color-burnt-sienna); }
+        .badge.bad    { border-color: var(--color-burnt-sienna);    color: var(--color-burnt-sienna); }
+        .badge.info-b { border-color: var(--color-sky-sticker);     color: var(--color-sky-sticker); }
 
-        /* ── Horizontal rule ── */
+        /* ── HR ── */
         hr {
             border: none;
-            border-top: 1px solid var(--border);
-            margin: 48px 0;
+            height: 1.5px;
+            background: var(--color-charcoal);
+            margin: 56px 0 0;
+        }
+
+        /* ── Hero banner ── */
+        .hero {
+            margin-bottom: 48px;
+        }
+        .hero h1 {
+            font-family: var(--font-display);
+            font-size: 56px;
+            font-weight: 400;
+            color: var(--color-cocoa-ink);
+            text-transform: lowercase;
+            line-height: 1.12;
+            margin-bottom: 16px;
+        }
+        .hero .subtitle {
+            font-size: 18px;
+            color: var(--color-charcoal);
+            line-height: 1.6;
+            max-width: 560px;
+            opacity: 0.7;
+        }
+        .hero .hero-caption {
+            display: inline-block;
+            font-family: var(--font-display);
+            font-style: italic;
+            font-size: 18px;
+            color: var(--color-marker-orange);
+            margin-top: 20px;
+            transform: rotate(-1.5deg);
+        }
+        .hero-divider {
+            width: 100%;
+            height: 2px;
+            background: var(--color-charcoal);
+            margin-top: 32px;
         }
 
         /* ── Scroll to top ── */
         .scroll-top {
             position: fixed;
-            bottom: 28px;
-            right: 28px;
-            width: 40px; height: 40px;
-            border-radius: 50%;
-            background: var(--accent-dim);
-            color: #fff;
-            border: none;
+            bottom: 28px; right: 28px;
+            width: 44px; height: 44px;
+            border-radius: var(--radius-buttons);
+            background: var(--color-cream-paper);
+            color: var(--color-charcoal);
+            border: 1.5px solid var(--color-charcoal);
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             opacity: 0;
-            transform: translateY(10px);
+            transform: translateY(8px);
             transition: all 0.25s ease;
             z-index: 200;
             font-size: 18px;
+            box-shadow: var(--shadow-subtle);
         }
-        .scroll-top.visible {
-            opacity: 1;
-            transform: translateY(0);
+        .scroll-top.visible { opacity: 1; transform: translateY(0); }
+        .scroll-top:hover { background: var(--color-dew-drop); }
+
+        /* ── Footer brand band ── */
+        .footer-band {
+            background: var(--color-marker-orange);
+            border-radius: var(--radius-footer) var(--radius-footer) 0 0;
+            padding: 40px 48px;
+            margin-top: 80px;
+            text-align: center;
         }
-        .scroll-top:hover { background: var(--accent); }
+        .footer-band p {
+            font-family: var(--font-display);
+            font-size: 20px;
+            color: var(--color-cream-paper);
+            text-transform: lowercase;
+            margin: 0;
+        }
+        .footer-band .footer-sub {
+            font-family: var(--font-body);
+            font-size: 13px;
+            color: rgba(253,251,249,0.7);
+            margin-top: 8px;
+        }
+
+        /* ── Sticker decorations ── */
+        .sticker {
+            display: inline-block;
+            font-size: 20px;
+            transform: rotate(var(--r, 5deg));
+            margin: 0 4px;
+            user-select: none;
+        }
 
         /* ── Mobile ── */
         @media (max-width: 900px) {
             .sidebar { display: none; }
             .main { margin-left: 0; }
-            .content { padding: 24px 20px 80px; }
+            .content { padding: 28px 20px 0; }
             .topbar { padding: 12px 20px; }
             .feature-grid { grid-template-columns: 1fr; }
-            h2 { font-size: 22px; }
+            .hero h1 { font-size: 36px; }
+            h2 { font-size: 28px; }
         }
     </style>
 </head>
 <body>
 
-<!-- ════════════════════════════ SIDEBAR ════════════════════════════ -->
+<!-- ═══════════════ SIDEBAR ═══════════════ -->
 <aside class="sidebar">
-    <div class="sidebar-logo">
-        <h1><span>S</span>ift</h1>
-        <p>Document Analysis Dashboard</p>
+    <div class="sidebar-brand">
+        <h1><span>s</span>ift</h1>
+        <p>documentation</p>
     </div>
     <nav>
-        <div class="nav-group">Overview</div>
-        <a href="#overview">What is Sift</a>
-        <a href="#features">Features</a>
-        <a href="#quick-facts">Quick Facts</a>
+        <div class="nav-group">overview</div>
+        <a href="#overview">what is sift</a>
+        <a href="#features">features</a>
+        <a href="#quick-facts">quick facts</a>
 
-        <div class="nav-group">Architecture</div>
-        <a href="#component-architecture">Component Architecture</a>
-        <a href="#network-flow">Network Flow</a>
-        <a href="#data-isolation">Per-User Data Isolation</a>
+        <div class="nav-group">architecture</div>
+        <a href="#component-architecture">components</a>
+        <a href="#network-flow">network flow</a>
+        <a href="#data-isolation">data isolation</a>
 
-        <div class="nav-group">Request Flows</div>
-        <a href="#auth-flow">Authentication &amp; Sessions</a>
-        <a href="#upload-flow">File Upload</a>
-        <a href="#analysis-flow">Analysis Query (SSE)</a>
-        <a href="#export-flow">Document Export</a>
+        <div class="nav-group">request flows</div>
+        <a href="#auth-flow">authentication</a>
+        <a href="#upload-flow">file upload</a>
+        <a href="#analysis-flow">analysis (sse)</a>
+        <a href="#export-flow">document export</a>
 
-        <div class="nav-group">Administration</div>
-        <a href="#audit-trail">Audit Trail &amp; Admin Panel</a>
-        <a href="#startup-flow">Startup / Deployment</a>
+        <div class="nav-group">administration</div>
+        <a href="#audit-trail">audit trail</a>
+        <a href="#startup-flow">startup</a>
 
-        <div class="nav-group">Reference</div>
-        <a href="#api-surface">Full API Surface</a>
-        <a href="#security">Security Posture</a>
-        <a href="#module-map">Module Map</a>
+        <div class="nav-group">reference</div>
+        <a href="#api-surface">api surface</a>
+        <a href="#security">security</a>
+        <a href="#module-map">module map</a>
     </nav>
 </aside>
 
-<!-- ════════════════════════════ MAIN ════════════════════════════ -->
+<!-- ═══════════════ MAIN ═══════════════ -->
 <div class="main">
     <header class="topbar">
-        <div class="breadcrumb">Sift / <span>Documentation</span></div>
-        <span class="version-badge">v2026-07-15</span>
+        <div class="breadcrumb">sift / <span>docs</span></div>
+        <span class="version-pill">july 2026</span>
     </header>
 
     <div class="content">
 
-        <!-- ─── 1. OVERVIEW ─── -->
-        <h2 id="overview">What is Sift</h2>
+        <!-- ── HERO ── -->
+        <div class="hero">
+            <h1>understand how<br>sift works</h1>
+            <p class="subtitle">
+                A complete technical reference for the document analysis dashboard — architecture,
+                request flows, security model, and every API endpoint.
+            </p>
+            <div class="hero-caption">
+                <span class="sticker" style="--r:-8deg">⚡</span>
+                everything in one page
+                <span class="sticker" style="--r:12deg">📄</span>
+            </div>
+            <div class="hero-divider"></div>
+        </div>
+
+        <!-- ── 1. OVERVIEW ── -->
+        <h2 id="overview">what is sift</h2>
+        <div class="section-rule"></div>
 
         <p>
-            Sift is a <strong>single-screen document analysis dashboard</strong>. A small, fixed set of
+            Sift is a <span class="marker">single-screen document analysis dashboard</span>. A small, fixed set of
             hardcoded accounts log in, upload documents (PDF, DOCX, XLSX, PPTX, images, text, RTF, ODT),
             get them parsed to text server-side, run AI-assisted analysis queries against a local
             <a href="https://ollama.com" target="_blank">Ollama</a> instance, and export the results as
@@ -417,86 +604,88 @@
         </p>
 
         <div class="callout info">
-            <strong>Stack</strong>
-            FastAPI + Uvicorn (Python 3.13+), vanilla JS frontend, local Ollama daemon proxying to
-            <code>minimax-m3:cloud</code>.
+            <strong>Stack:</strong> FastAPI + Uvicorn (Python 3.13+), vanilla JS frontend, local Ollama daemon proxying to
+            <code>minimax-m3:cloud</code>. Deployment model: single-process, single-host, LAN-shared, no database, no cloud hosting.
         </div>
 
-        <!-- ─── FEATURES ─── -->
-        <h2 id="features">Features</h2>
+        <!-- ── FEATURES ── -->
+        <h2 id="features">features</h2>
+        <div class="section-rule"></div>
 
         <div class="feature-grid">
             <div class="feature-card">
                 <div class="icon">📄</div>
-                <h4>Multi-Format Document Parsing</h4>
+                <h4>multi-format parsing</h4>
                 <p>Upload PDF, DOCX, XLSX, PPTX, images (via OCR), RTF, ODT, and plain text. All files are parsed server-side into cached text for instant analysis.</p>
             </div>
             <div class="feature-card">
                 <div class="icon">🤖</div>
-                <h4>AI-Powered Analysis</h4>
+                <h4>ai-powered analysis</h4>
                 <p>Run natural-language queries against your uploaded documents via a local Ollama instance. Results stream in real-time via Server-Sent Events.</p>
             </div>
             <div class="feature-card">
                 <div class="icon">📊</div>
-                <h4>Formatted Document Export</h4>
-                <p>Export analysis results to Excel, PDF, or Word. Supports both an AI script pipeline and a template-based clone pipeline for precise formatting.</p>
+                <h4>formatted export</h4>
+                <p>Export analysis results to Excel, PDF, or Word. Two pipelines: an AI script generator and a template-based clone pipeline for precise formatting.</p>
             </div>
             <div class="feature-card">
                 <div class="icon">🔒</div>
-                <h4>Per-User Data Isolation</h4>
-                <p>Every user's uploads, caches, presets, and templates are stored in their own filesystem namespace. No shared pools, no cross-user data leaks.</p>
+                <h4>per-user isolation</h4>
+                <p>Every user's uploads, caches, presets, and templates live in their own filesystem namespace. No shared pools, no cross-user data leaks.</p>
             </div>
             <div class="feature-card">
                 <div class="icon">📋</div>
-                <h4>Permanent Audit Trail</h4>
-                <p>Every upload, analysis, and export is archived permanently. Deleting files from the workspace never touches the archive. Admins see everything.</p>
+                <h4>permanent audit trail</h4>
+                <p>Every upload, analysis, and export is archived permanently. Deleting from the workspace never touches the archive. Admins see everything.</p>
             </div>
             <div class="feature-card">
                 <div class="icon">✨</div>
-                <h4>AI Prompt Enhancement</h4>
+                <h4>prompt enhancement</h4>
                 <p>Refine your analysis prompts and export instructions with one-click AI rewriting before running them — better input, better output.</p>
             </div>
             <div class="feature-card">
                 <div class="icon">💾</div>
-                <h4>Presets System</h4>
+                <h4>presets system</h4>
                 <p>Save and reuse frequently-used analysis prompts and export instructions as named presets. Separate systems for analysis and export workflows.</p>
             </div>
             <div class="feature-card">
                 <div class="icon">🖥️</div>
-                <h4>One-Click Launcher</h4>
-                <p>Double-click <code>start_mac.command</code> or <code>start_windows.bat</code>. The script handles Ollama, dependencies, the server, and opens your browser automatically.</p>
+                <h4>one-click launcher</h4>
+                <p>Double-click <code>start_mac.command</code> or <code>start_windows.bat</code>. Handles Ollama, dependencies, the server, and opens your browser.</p>
             </div>
         </div>
 
-        <!-- ─── QUICK FACTS ─── -->
-        <h2 id="quick-facts">Quick Facts</h2>
+        <!-- ── QUICK FACTS ── -->
+        <h2 id="quick-facts">quick facts</h2>
+        <div class="section-rule"></div>
 
         <table>
             <tbody>
                 <tr><td><strong>Web framework</strong></td><td>FastAPI ≥0.115, served by Uvicorn ≥0.30</td></tr>
                 <tr><td><strong>Frontend</strong></td><td>Vanilla JS — no build step, no bundler, no framework</td></tr>
-                <tr><td><strong>Model</strong></td><td><code>minimax-m3:cloud</code> via a local Ollama daemon (<code>http://localhost:11434</code>)</td></tr>
-                <tr><td><strong>Auth</strong></td><td>Hardcoded <code>USERS</code> dict in <code>app.py</code>, bcrypt hashes, opaque session tokens</td></tr>
+                <tr><td><strong>Model</strong></td><td><code>minimax-m3:cloud</code> via local Ollama (<code>localhost:11434</code>)</td></tr>
+                <tr><td><strong>Auth</strong></td><td>Hardcoded <code>USERS</code> dict, bcrypt hashes, opaque session tokens</td></tr>
                 <tr><td><strong>Session store</strong></td><td>In-memory Python dict — wiped on every process restart</td></tr>
                 <tr><td><strong>Session TTL</strong></td><td>6 hours, fixed from login time (not sliding)</td></tr>
-                <tr><td><strong>Transport security</strong></td><td><span class="badge bad">None</span> Plain HTTP only, no TLS anywhere in this stack</td></tr>
-                <tr><td><strong>Persistence</strong></td><td>Flat files under the project directory — no SQL/NoSQL database</td></tr>
-                <tr><td><strong>Default bind</strong></td><td><code>127.0.0.1:8000</code> (localhost-only) via the launcher scripts</td></tr>
-                <tr><td><strong>LAN-shared bind</strong></td><td><code>0.0.0.0:8000</code> (opt-in, manual dev-server flag)</td></tr>
-                <tr><td><strong>Multi-tenancy</strong></td><td>Filesystem-namespaced per username — structural, not permission-checked</td></tr>
+                <tr><td><strong>Transport</strong></td><td><span class="badge bad">none</span> Plain HTTP only</td></tr>
+                <tr><td><strong>Persistence</strong></td><td>Flat files on the host's disk — no database</td></tr>
+                <tr><td><strong>Default bind</strong></td><td><code>127.0.0.1:8000</code> (localhost-only)</td></tr>
+                <tr><td><strong>LAN bind</strong></td><td><code>0.0.0.0:8000</code> (opt-in, manual flag)</td></tr>
+                <tr><td><strong>Multi-tenancy</strong></td><td>Filesystem-namespaced per username — structural</td></tr>
             </tbody>
         </table>
 
         <hr>
 
-        <!-- ─── 3. COMPONENT ARCHITECTURE ─── -->
-        <h2 id="component-architecture">Component Architecture</h2>
+        <!-- ── COMPONENT ARCHITECTURE ── -->
+        <h2 id="component-architecture">component architecture</h2>
+        <div class="section-rule"></div>
 
         <p>
             Everything inside "Host Machine" is one OS process — there's no internal network hop between
             the web layer, the parser, the audit log, and the filesystem; those are plain Python function calls.
-            The only two real network hops are Browser↔Server (LAN, plaintext HTTP) and Server↔Ollama
-            (localhost, then out to the internet only for the <code>:cloud</code> model's actual inference).
+            The only two <span class="marker">real network hops</span> are Browser↔Server (LAN, plaintext HTTP) and
+            Server↔Ollama (localhost, then out to the internet for <code>:cloud</code> inference).
         </p>
 
         <div class="diagram-container">
@@ -505,32 +694,26 @@ graph TB
     subgraph Client["Client Devices (any device on the LAN)"]
         Browser["Browser&lt;br/&gt;index.html / admin.html&lt;br/&gt;vanilla JS, no framework"]
     end
-
     subgraph Host["Host Machine (one process)"]
         subgraph WebLayer["app.py — FastAPI application"]
-            Auth["Auth layer&lt;br/&gt;get_current_user / get_current_admin&lt;br/&gt;USERS dict, bcrypt, session table"]
+            Auth["Auth layer&lt;br/&gt;get_current_user / get_current_admin"]
             Routes["Route handlers&lt;br/&gt;upload · process · export · presets · admin"]
-            Static["StaticFiles mount&lt;br/&gt;/static/*"]
+            Static["StaticFiles mount (/static/*)"]
         end
-
         Parser["parser_utils.py&lt;br/&gt;extract_text_from_file()"]
         AuditLog["audit_log.py&lt;br/&gt;activity log + permanent archive"]
-
         subgraph Storage["Per-user flat-file storage (no DB)"]
-            Live["uploads/[user]/&lt;br/&gt;parsed_cache/[user]/&lt;br/&gt;presets/[user].json&lt;br/&gt;export_templates/[user]/&lt;br/&gt;export_presets/[user].json"]
-            Archive["audit_uploads/[user]/&lt;br/&gt;audit_analysis/[user]/&lt;br/&gt;audit_exports/[user]/&lt;br/&gt;logs/activity.jsonl"]
+            Live["uploads/ · parsed_cache/&lt;br/&gt;presets/ · export_templates/&lt;br/&gt;export_presets/"]
+            ArchiveStore["audit_uploads/ · audit_analysis/&lt;br/&gt;audit_exports/ · logs/"]
         end
     end
-
-    subgraph OllamaHost["Ollama daemon (same host, port 11434)"]
+    subgraph OllamaHost["Ollama daemon (port 11434)"]
         OllamaLocal["ollama serve&lt;br/&gt;local HTTP API"]
     end
-
     subgraph Cloud["Internet"]
-        OllamaCloud["Ollama Cloud&lt;br/&gt;hosts minimax-m3 inference"]
+        OllamaCloud["Ollama Cloud&lt;br/&gt;minimax-m3 inference"]
     end
-
-    Browser -->|"HTTP, port 8000&lt;br/&gt;cookie: sift_session"| Routes
+    Browser -->|"HTTP :8000"| Routes
     Routes --> Browser
     Browser -->|"static assets"| Static
     Static --> Browser
@@ -539,97 +722,80 @@ graph TB
     Routes --> AuditLog
     Routes --> Live
     Live --> Routes
-    AuditLog --> Archive
-    Archive --> AuditLog
-    Routes -->|"HTTP POST /api/chat&lt;br/&gt;localhost:11434"| OllamaLocal
-    OllamaLocal -->|":cloud suffix routes here&lt;br/&gt;requires ollama login"| OllamaCloud
-
-    style Cloud fill:#3a1f1f,stroke:#c44,color:#eee
-    style Client fill:#1f2a3a,stroke:#5a8fc4,color:#eee
-    style Host fill:#1f3a2a,stroke:#5ac48f,color:#eee
+    AuditLog --> ArchiveStore
+    ArchiveStore --> AuditLog
+    Routes -->|"POST /api/chat"| OllamaLocal
+    OllamaLocal -->|":cloud model"| OllamaCloud
             </pre>
         </div>
 
         <hr>
 
-        <!-- ─── 4. NETWORK FLOW ─── -->
-        <h2 id="network-flow">Network Flow</h2>
+        <!-- ── NETWORK FLOW ── -->
+        <h2 id="network-flow">network flow</h2>
+        <div class="section-rule"></div>
 
         <p>
-            This is the actual traffic map: who talks to whom, over what protocol, on what port, and —
-            critically — where encryption does and doesn't exist.
+            The actual traffic map: who talks to whom, over what protocol, on what port, and where
+            encryption does and doesn't exist.
         </p>
 
         <div class="diagram-container">
             <pre class="mermaid">
 flowchart LR
-    subgraph LAN["Local Area Network (home / office WiFi or switch)"]
+    subgraph LAN["Local Area Network"]
         direction TB
-        U1["👤 User A's laptop&lt;br/&gt;Chrome/Safari/Firefox"]
-        U2["👤 User B's phone&lt;br/&gt;mobile browser"]
-        U3["👤 User C's desktop&lt;br/&gt;same machine as server"]
+        U1["👤 User A — laptop"]
+        U2["👤 User B — phone"]
+        U3["👤 User C — same machine"]
     end
-
-    subgraph HostMachine["Host Machine — e.g. 192.168.1.42"]
+    subgraph HostMachine["Host Machine"]
         direction TB
-        Uvicorn["Uvicorn ASGI server&lt;br/&gt;0.0.0.0:8000 (LAN mode)&lt;br/&gt;or 127.0.0.1:8000 (local-only mode)"]
-        FastAPIApp["FastAPI app (app.py)&lt;br/&gt;routes, auth, SSE streaming"]
-        OllamaDaemon["ollama serve&lt;br/&gt;127.0.0.1:11434&lt;br/&gt;(bound to loopback only)"]
-        Disk[("Local disk&lt;br/&gt;uploads/ · audit_* / · logs/")]
+        Uvicorn["Uvicorn ASGI&lt;br/&gt;0.0.0.0:8000 or 127.0.0.1:8000"]
+        FastAPIApp["FastAPI app.py"]
+        OllamaDaemon["ollama serve&lt;br/&gt;127.0.0.1:11434"]
+        Disk[("Local disk&lt;br/&gt;uploads/ · audit_*/")]
     end
-
     subgraph Internet["Public Internet"]
         direction TB
-        OllamaCloudAPI["Ollama Cloud API&lt;br/&gt;proxies :cloud-suffixed models"]
-        OllamaAuth["Ollama account auth&lt;br/&gt;(ollama login)"]
+        OllamaCloudAPI["Ollama Cloud API"]
     end
-
-    U1 -- "① HTTP GET /static/index.html&lt;br/&gt;plaintext, port 8000" --> Uvicorn
-    U2 -- "① HTTP GET /static/index.html&lt;br/&gt;plaintext, port 8000" --> Uvicorn
-    U3 -- "① http://127.0.0.1:8000&lt;br/&gt;never leaves the host" --> Uvicorn
-
-    U1 == "② POST /api/login&lt;br/&gt;username+password, PLAINTEXT&lt;br/&gt;← sift_session cookie set here" ==> Uvicorn
+    U1 -- "① HTTP plaintext :8000" --> Uvicorn
+    U2 -- "① HTTP plaintext :8000" --> Uvicorn
+    U3 -- "① localhost only" --> Uvicorn
+    U1 == "② POST /api/login (PLAINTEXT)" ==> Uvicorn
     Uvicorn --> FastAPIApp
-
-    U1 -. "③ every subsequent request&lt;br/&gt;Cookie: sift_session=[token]&lt;br/&gt;PLAINTEXT — sniffable on this LAN" .-> Uvicorn
-
-    FastAPIApp -- "④ POST /api/chat&lt;br/&gt;localhost only, never leaves host" --> OllamaDaemon
-    OllamaDaemon -- "⑤ only for :cloud models —&lt;br/&gt;HTTPS out to the internet" --> OllamaCloudAPI
-    OllamaDaemon -. "one-time device auth" .-> OllamaAuth
-
+    U1 -. "③ Cookie: sift_session (PLAINTEXT)" .-> Uvicorn
+    FastAPIApp -- "④ localhost:11434" --> OllamaDaemon
+    OllamaDaemon -- "⑤ HTTPS to cloud" --> OllamaCloudAPI
     FastAPIApp --> Disk
     Disk --> FastAPIApp
-
-    style Internet fill:#3a1f1f,stroke:#c44,color:#eee
-    style LAN fill:#1f2a3a,stroke:#5a8fc4,color:#eee
-    style HostMachine fill:#1f3a2a,stroke:#5ac48f,color:#eee
             </pre>
         </div>
 
-        <h3>What this diagram is telling you</h3>
+        <h3>what this means</h3>
         <table>
-            <thead><tr><th>Hop</th><th>Protocol</th><th>Encrypted?</th><th>Notes</th></tr></thead>
+            <thead><tr><th>hop</th><th>protocol</th><th>encrypted?</th><th>notes</th></tr></thead>
             <tbody>
-                <tr><td>① Browser → Uvicorn (page load)</td><td>HTTP</td><td><span class="badge bad">No</span></td><td>No TLS anywhere in this stack.</td></tr>
-                <tr><td>② Browser → Uvicorn (<code>/api/login</code>)</td><td>HTTP</td><td><span class="badge bad">No</span></td><td>Username + password travel in cleartext on the LAN.</td></tr>
-                <tr><td>③ Browser → Uvicorn (every other request)</td><td>HTTP</td><td><span class="badge bad">No</span></td><td><code>sift_session</code> cookie is <code>HttpOnly</code> + <code>SameSite=Lax</code>, but not TLS-protected.</td></tr>
-                <tr><td>④ FastAPI → Ollama daemon</td><td>HTTP</td><td>N/A (loopback)</td><td>Never leaves the host — <code>localhost:11434</code> is not reachable from the LAN.</td></tr>
-                <tr><td>⑤ Ollama → Ollama Cloud</td><td>HTTPS</td><td><span class="badge good">Yes</span></td><td>Ollama's own daemon making an outbound call, not anything Sift constructs.</td></tr>
+                <tr><td>① page load</td><td>HTTP</td><td><span class="badge bad">no</span></td><td>No TLS in this stack</td></tr>
+                <tr><td>② login</td><td>HTTP</td><td><span class="badge bad">no</span></td><td>Credentials travel in cleartext on the LAN</td></tr>
+                <tr><td>③ every request</td><td>HTTP</td><td><span class="badge bad">no</span></td><td>Session cookie is HttpOnly + SameSite=Lax, but not TLS-protected</td></tr>
+                <tr><td>④ app → ollama</td><td>HTTP</td><td>N/A</td><td>Loopback only — never leaves the host</td></tr>
+                <tr><td>⑤ ollama → cloud</td><td>HTTPS</td><td><span class="badge good">yes</span></td><td>Ollama's own outbound call</td></tr>
             </tbody>
         </table>
 
         <div class="callout warn">
-            <strong>CORS Configuration</strong>
-            <code>CORSMiddleware</code> is configured with <code>allow_origins=["*"]</code> but <strong>no</strong>
-            <code>allow_credentials=True</code>. That combination is intentional — a wildcard origin
-            <em>with</em> credentials would let any other site read a logged-in user's session cookie cross-origin;
-            without credentials, the wildcard is inert for anything cookie-authenticated.
+            <code>CORSMiddleware</code> uses <code>allow_origins=["*"]</code> but <strong>no</strong>
+            <code>allow_credentials=True</code>. Intentional — a wildcard with credentials would let
+            any site ride the session cookie cross-origin; without credentials, the wildcard is inert.
         </div>
 
         <hr>
 
-        <!-- ─── 5. AUTH FLOW ─── -->
-        <h2 id="auth-flow">Authentication &amp; Session Lifecycle</h2>
+        <!-- ── AUTH FLOW ── -->
+        <h2 id="auth-flow">authentication &amp; sessions</h2>
+        <div class="section-rule"></div>
 
         <div class="diagram-container">
             <pre class="mermaid">
@@ -640,7 +806,7 @@ sequenceDiagram
 
     B->>S: POST /api/login (username, password)
     alt username locked out (5 failures)
-        S-->>B: 429 "Too many failed attempts, retry in Ns"
+        S-->>B: 429 Too many failed attempts
     else unknown username
         Note over S: bcrypt.checkpw() still runs against<br/>a DUMMY hash — timing reveals nothing
         S-->>B: 401 Invalid username or password
@@ -682,29 +848,28 @@ stateDiagram-v2
     Authenticating --> Active: valid credentials
     Active --> Active: any request within 6h of login
     Active --> LoggedOut: POST /api/logout
-    Active --> LoggedOut: 6h elapsed since login (fixed TTL)
+    Active --> LoggedOut: 6h elapsed (fixed TTL)
     Active --> LoggedOut: server process restarts
     LoggedOut --> [*]
             </pre>
         </div>
 
         <p>
-            The session TTL is <strong>fixed from login time</strong>, not sliding — a user active at hour 5:59
-            is still logged out at hour 6:00. The in-memory store means the <em>entire team</em> gets logged
-            out simultaneously any time the process restarts, including a <code>uvicorn --reload</code>
-            triggered by editing any watched file during development.
+            The session TTL is <span class="marker">fixed from login time</span>, not sliding — a user active at hour 5:59
+            is still logged out at hour 6:00. The in-memory store means the entire team gets logged out simultaneously
+            any time the process restarts, including a <code>uvicorn --reload</code> triggered by editing any watched file.
         </p>
 
         <hr>
 
-        <!-- ─── 6. PER-USER DATA ISOLATION ─── -->
-        <h2 id="data-isolation">Per-User Data Isolation</h2>
+        <!-- ── DATA ISOLATION ── -->
+        <h2 id="data-isolation">per-user data isolation</h2>
+        <div class="section-rule"></div>
 
         <p>
-            Every account's data lives under its own subdirectory (or its own named file), never a shared pool.
-            <code>username</code> is only ever a value that has already come out of <code>get_current_user()</code>
-            — a validated <code>USERS</code> key — so joining it directly into a filesystem path carries no
-            traversal risk.
+            Every account's data lives under its own subdirectory, never a shared pool.
+            <code>username</code> is only ever a value from <code>get_current_user()</code> — a validated
+            <code>USERS</code> key — so joining it into a path carries no traversal risk.
         </p>
 
         <div class="diagram-container">
@@ -720,47 +885,32 @@ graph TB
     Root --> AA["audit_analysis/"]
     Root --> AE["audit_exports/"]
     Root --> LG["logs/"]
-
-    UP --> UPa["admin/*.pdf, *.xlsx, ..."]
-    UP --> UPb["alice/*.pdf, ..."]
-    CA --> CAa["admin/*.txt (parsed)"]
-    CA --> CAb["alice/*.txt (parsed)"]
+    UP --> UPa["admin/*.pdf, *.xlsx"]
+    UP --> UPb["alice/*.pdf ..."]
+    CA --> CAa["admin/*.txt"]
     PR --> PRa["admin.json"]
-    PR --> PRb["alice.json"]
-    ET --> ETa["admin/uuid.xlsx"]
-    EP --> EPa["admin.json"]
     AU --> AUa["admin/record__file.pdf"]
     AA --> AAa["admin/record.md"]
     AE --> AEa["admin/record__report.xlsx"]
-    LG --> LGa["activity.jsonl&lt;br/&gt;(shared, interleaved by timestamp)"]
-
-    style UPa fill:#1f3a2a,stroke:#5ac48f,color:#eee
-    style CAa fill:#1f3a2a,stroke:#5ac48f,color:#eee
-    style PRa fill:#1f3a2a,stroke:#5ac48f,color:#eee
-    style ETa fill:#1f3a2a,stroke:#5ac48f,color:#eee
-    style EPa fill:#1f3a2a,stroke:#5ac48f,color:#eee
-    style AUa fill:#1f3a2a,stroke:#5ac48f,color:#eee
-    style AAa fill:#1f3a2a,stroke:#5ac48f,color:#eee
-    style AEa fill:#1f3a2a,stroke:#5ac48f,color:#eee
+    LG --> LGa["activity.jsonl"]
             </pre>
         </div>
 
-        <p>Two independent isolation mechanisms are stacked here:</p>
+        <p>Two independent isolation mechanisms are stacked:</p>
         <ol>
             <li><strong>Live workspace</strong> (<code>uploads/</code>, <code>parsed_cache/</code>,
                 <code>presets/</code>, <code>export_templates/</code>, <code>export_presets/</code>) —
-                reflects exactly what a user currently sees in their own UI. Deleting a file removes it from here.</li>
+                reflects what a user currently sees. Deleting a file removes it from here.</li>
             <li><strong>Permanent archive</strong> (<code>audit_uploads/</code>, <code>audit_analysis/</code>,
-                <code>audit_exports/</code>) — written once, at the moment content is created (upload / generation
-                time), never modified by later user actions. <code>logs/activity.jsonl</code> is the one genuinely
-                <em>shared</em> file — by design, since it's the admin's cross-user activity feed — but it's
-                write-only from each request's perspective (append under a lock) and read-only from the admin panel's.</li>
+                <code>audit_exports/</code>) — written once at creation time, never modified.
+                <code>logs/activity.jsonl</code> is the one shared file — the admin's cross-user activity feed.</li>
         </ol>
 
         <hr>
 
-        <!-- ─── 7. FILE UPLOAD FLOW ─── -->
-        <h2 id="upload-flow">Request Flow: File Upload</h2>
+        <!-- ── UPLOAD FLOW ── -->
+        <h2 id="upload-flow">request flow: file upload</h2>
+        <div class="section-rule"></div>
 
         <div class="diagram-container">
             <pre class="mermaid">
@@ -776,24 +926,24 @@ sequenceDiagram
     S->>FS: write original bytes to uploads/[user]/
     S->>P: extract_text_from_file(filepath)
     Note over P: dispatches by extension:<br/>PDF/DOCX/XLSX/PPTX native parsers,<br/>images via OCR, legacy formats via<br/>macOS textutil, binary sniff fallback
-    P-->>S: parsed text (or an Error sentinel)
+    P-->>S: parsed text (or Error sentinel)
     S->>FS: write .txt to parsed_cache/[user]/
-    S->>AL: archive_upload_copy() to audit_uploads/
-    S->>AL: log_activity(user, "upload", filename, size, status)
+    S->>AL: archive_upload_copy()
+    S->>AL: log_activity(user, "upload", ...)
     S-->>B: 200 (filename, size, status)
             </pre>
         </div>
 
         <div class="callout good">
-            <strong>Archive-at-upload</strong>
-            The permanent archive copy is made at upload time, independent of whatever happens next — so even
-            a delete two seconds later can't lose it.
+            The permanent archive copy is made <strong>at upload time</strong>, independent of whatever happens next —
+            even a delete two seconds later can't lose it.
         </div>
 
         <hr>
 
-        <!-- ─── 8. ANALYSIS FLOW ─── -->
-        <h2 id="analysis-flow">Request Flow: Analysis Query (SSE)</h2>
+        <!-- ── ANALYSIS FLOW ── -->
+        <h2 id="analysis-flow">request flow: analysis query (sse)</h2>
+        <div class="section-rule"></div>
 
         <div class="diagram-container">
             <pre class="mermaid">
@@ -816,273 +966,263 @@ sequenceDiagram
     S-->>B: SSE: done: true
     deactivate S
     S->>AL: asyncio.shield(persist):<br/>archive_analysis() then log_activity()
-    Note over AL: shielded so a client disconnect<br/>can't cancel the archive write
+    Note over AL: shielded so a client disconnect<br/>at stream-end can't cancel the write
             </pre>
         </div>
 
         <div class="callout info">
-            <strong>Why the shield matters</strong>
-            Without <code>asyncio.shield()</code>, a client that disconnects at the very end of the stream
-            can cancel the request task mid-way through the two-step archive-then-log sequence, leaving an
-            archived <code>.md</code> file on disk with no corresponding activity-log entry — an inconsistent
-            audit trail.
+            <strong>Why the shield matters:</strong> without <code>asyncio.shield()</code>, a client disconnecting at stream-end
+            can cancel the two-step archive-then-log sequence, leaving an archived <code>.md</code> with no matching activity-log entry.
         </div>
 
         <hr>
 
-        <!-- ─── 9. EXPORT FLOW ─── -->
-        <h2 id="export-flow">Request Flow: Document Export (Two Pipelines)</h2>
+        <!-- ── EXPORT FLOW ── -->
+        <h2 id="export-flow">request flow: document export</h2>
+        <div class="section-rule"></div>
+
+        <p>
+            Two pipelines handle export. The choice depends on whether a template is provided and whether it has
+            fillable fields.
+        </p>
 
         <div class="diagram-container">
             <pre class="mermaid">
 flowchart TD
-    Start(["POST /api/export-excel&lt;br/&gt;/api/export-pdf&lt;br/&gt;/api/export-word"]) --> HasTemplate{"template_filename&lt;br/&gt;provided?"}
-
+    Start(["POST /api/export-excel&lt;br/&gt;-pdf / -word"]) --> HasTemplate{"template_filename&lt;br/&gt;provided?"}
     HasTemplate -->|No| ScriptPipeline
-    HasTemplate -->|Yes| SchemaCheck{"format is xlsx/docx,&lt;br/&gt;or PDF with real&lt;br/&gt;AcroForm fields?"}
-
+    HasTemplate -->|Yes| SchemaCheck{"xlsx/docx or PDF&lt;br/&gt;with AcroForm fields?"}
     SchemaCheck -->|"No (fixed-layout PDF)"| ScriptPipeline
     SchemaCheck -->|Yes| ClonePipeline
-
     subgraph ScriptPipeline["Script pipeline"]
         direction TB
-        SP1["Model writes a whole&lt;br/&gt;Python script tailored&lt;br/&gt;to this specific report"]
-        SP2["AST allowlist validation&lt;br/&gt;(_validate_generated_code)"]
-        SP3["Run in subprocess:&lt;br/&gt;CPU-rlimit + wall-clock timeout"]
+        SP1["Model writes a Python&lt;br/&gt;script for this report"]
+        SP2["AST allowlist validation"]
+        SP3["Run in subprocess&lt;br/&gt;with CPU + wall-clock limits"]
         SP4{"Script succeeded?"}
-        SP5["Deterministic fallback&lt;br/&gt;(_generate_*_bytes)"]
+        SP5["Deterministic fallback"]
         SP1 --> SP2 --> SP3 --> SP4
         SP4 -->|"No, twice"| SP5
     end
-
     subgraph ClonePipeline["Clone pipeline"]
         direction TB
-        CP1["Extract template's real&lt;br/&gt;structure: cells / paragraphs /&lt;br/&gt;form fields, tagged ID=..."]
-        CP2["Model returns ONLY a JSON&lt;br/&gt;field-mapping id:value&lt;br/&gt;— no code generation"]
-        CP3["Trusted, backend-authored&lt;br/&gt;splice function applies the&lt;br/&gt;mapping to a template copy"]
+        CP1["Extract template structure&lt;br/&gt;cells / paragraphs / form fields"]
+        CP2["Model returns JSON&lt;br/&gt;field-mapping only"]
+        CP3["Trusted splice function&lt;br/&gt;applies mapping to copy"]
         CP1 --> CP2 --> CP3
     end
-
     SP4 -->|Yes| FileBytes
     SP5 --> FileBytes
-    CP3 --> FileBytes["file_bytes ready in memory"]
-
-    FileBytes --> ArchiveStep["audit_log.archive_export()&lt;br/&gt;shielded persist task"]
-    ArchiveStep --> SSE["Terminal SSE event:&lt;br/&gt;base64 file + filename + mime type"]
-    SSE --> Done(["Browser decodes + downloads"])
-
-    style ScriptPipeline fill:#2a1f3a,stroke:#8f5ac4,color:#eee
-    style ClonePipeline fill:#1f3a2a,stroke:#5ac48f,color:#eee
+    CP3 --> FileBytes["file_bytes in memory"]
+    FileBytes --> ArchiveStep["archive_export()&lt;br/&gt;shielded persist"]
+    ArchiveStep --> SSE["SSE: base64 file"]
+    SSE --> Done(["Browser downloads"])
             </pre>
         </div>
 
         <p>
-            The <strong>clone pipeline</strong> is the meaningfully smaller attack surface: the model never
-            writes or runs code, it only returns a bounded JSON object that a trusted function applies. The
-            <strong>script pipeline</strong> does run LLM-generated Python on the host — guarded by an AST
-            import/name allowlist and a subprocess CPU/wall-clock limit, but that's defense-in-depth, not a
-            real sandbox. Acceptable for a local/LAN single-trust-boundary tool.
-        </p>
-        <p>
-            Both pipelines stream real per-stage progress over the same SSE channel, and both archive the
-            final bytes permanently before the file ever reaches the browser.
+            The <span class="marker">clone pipeline</span> is the smaller attack surface: the model never writes or runs code —
+            it only returns a bounded JSON object that a trusted function applies. The
+            <strong>script pipeline</strong> does run LLM-generated Python on the host, guarded by an AST
+            import/name allowlist and subprocess resource limits. Defense-in-depth, not a real sandbox.
         </p>
 
         <hr>
 
-        <!-- ─── 10. AUDIT TRAIL ─── -->
-        <h2 id="audit-trail">Audit Trail &amp; Admin Panel</h2>
+        <!-- ── AUDIT TRAIL ── -->
+        <h2 id="audit-trail">audit trail &amp; admin panel</h2>
+        <div class="section-rule"></div>
 
         <div class="diagram-container">
             <pre class="mermaid">
 flowchart LR
-    subgraph Writers["Every write path (normal app usage)"]
+    subgraph Writers["Every write path"]
         Up["upload_file()"]
         Del["delete_file()"]
         Proc["process_files()"]
         Exp["_stream_export()"]
-        Pre["preset / export-preset /&lt;br/&gt;template endpoints"]
+        Pre["preset / template&lt;br/&gt;endpoints"]
     end
-
-    Writers -->|"archive_upload_copy&lt;br/&gt;archive_analysis&lt;br/&gt;archive_export"| ArchiveStore[("audit_uploads/&lt;br/&gt;audit_analysis/&lt;br/&gt;audit_exports/")]
+    Writers -->|"archive_*() calls"| ArchiveDir[("audit_uploads/&lt;br/&gt;audit_analysis/&lt;br/&gt;audit_exports/")]
     Writers -->|"log_activity()&lt;br/&gt;lock-guarded append"| Log[("logs/activity.jsonl")]
-
-    subgraph AdminReaders["/api/admin/* — admin-gated"]
-        RUsers["GET /admin/users"]
+    subgraph AdminReaders["/api/admin/* (admin-gated)"]
         RAct["GET /admin/activity"]
-        RUp["GET /admin/uploads + download"]
-        RAn["GET /admin/analysis + detail"]
-        REx["GET /admin/exports + download"]
+        RUp["GET /admin/uploads"]
+        RAn["GET /admin/analysis"]
+        REx["GET /admin/exports"]
     end
-
-    ArchiveStore --> RUp
-    ArchiveStore --> RAn
-    ArchiveStore --> REx
+    ArchiveDir --> RUp
+    ArchiveDir --> RAn
+    ArchiveDir --> REx
     Log --> RAct
-
-    RUsers --> Panel["static/admin.html + admin.js"]
-    RAct --> Panel
-    RUp --> Panel
-    RAn --> Panel
-    REx --> Panel
-
-    Panel --> AdminBrowser["Admin's browser&lt;br/&gt;(separate page, no shared&lt;br/&gt;state with the main app)"]
-
-    style ArchiveStore fill:#1f3a2a,stroke:#5ac48f,color:#eee
-    style Log fill:#1f3a2a,stroke:#5ac48f,color:#eee
-    style AdminReaders fill:#1f2a3a,stroke:#5a8fc4,color:#eee
+    AdminReaders --> Panel["admin.html + admin.js"]
+    Panel --> AdminBrowser["Admin's browser"]
             </pre>
         </div>
 
         <p>
-            Key property: <strong>deleting a file from the live workspace never touches the archive.</strong>
-            <code>delete_file()</code> only removes from <code>uploads/&lt;user&gt;/</code> and
-            <code>parsed_cache/&lt;user&gt;/</code> — the archive copy made at upload time is untouched and
-            remains admin-visible/downloadable indefinitely. There is currently no retention or pruning policy —
-            the archive only ever grows.
+            Key property: <span class="marker">deleting a file from the live workspace never touches the archive.</span>
+            <code>delete_file()</code> only removes from <code>uploads/</code> and <code>parsed_cache/</code> — the
+            archive copy is untouched and remains admin-visible indefinitely.
         </p>
 
         <hr>
 
-        <!-- ─── 11. STARTUP FLOW ─── -->
-        <h2 id="startup-flow">Startup / Deployment Flow</h2>
+        <!-- ── STARTUP FLOW ── -->
+        <h2 id="startup-flow">startup / deployment</h2>
+        <div class="section-rule"></div>
 
         <div class="diagram-container">
             <pre class="mermaid">
 flowchart TD
-    DoubleClick(["User double-clicks&lt;br/&gt;start_mac.command / start_windows.bat"]) --> CheckOllama{"Ollama already&lt;br/&gt;running on :11434?"}
-    CheckOllama -- No --> StartOllama["Start 'ollama serve'&lt;br/&gt;in the background"]
+    DoubleClick(["Double-click&lt;br/&gt;start_mac.command / start_windows.bat"]) --> CheckOllama{"Ollama running&lt;br/&gt;on :11434?"}
+    CheckOllama -- No --> StartOllama["Start ollama serve"]
     CheckOllama -- Yes --> CheckModel
-    StartOllama --> WaitOllama["Poll until ready&lt;br/&gt;(30s timeout)"]
-    WaitOllama --> CheckModel{"minimax-m3:cloud&lt;br/&gt;already pulled?"}
-    CheckModel -- No --> PullModel["ollama pull minimax-m3:cloud&lt;br/&gt;(requires ollama login)"]
+    StartOllama --> WaitOllama["Poll until ready (30s)"]
+    WaitOllama --> CheckModel{"minimax-m3:cloud&lt;br/&gt;pulled?"}
+    CheckModel -- No --> PullModel["ollama pull minimax-m3:cloud"]
     CheckModel -- Yes --> CheckDeps
     PullModel --> CheckDeps{"fastapi/uvicorn&lt;br/&gt;importable?"}
     CheckDeps -- No --> InstallDeps["pip install -r requirements.txt"]
     CheckDeps -- Yes --> CheckServer
-    InstallDeps --> CheckServer{"App server already&lt;br/&gt;responding on :8000?"}
-    CheckServer -- No --> StartServer["uvicorn app:app&lt;br/&gt;--host 127.0.0.1 --port 8000&lt;br/&gt;(background, no --reload)"]
+    InstallDeps --> CheckServer{"Server on :8000?"}
+    CheckServer -- No --> StartServer["uvicorn app:app&lt;br/&gt;--host 127.0.0.1 --port 8000"]
     CheckServer -- Yes --> OpenBrowser
-    StartServer --> WaitServer["Poll until ready&lt;br/&gt;(30s timeout)"]
-    WaitServer --> OpenBrowser["Open http://127.0.0.1:8000&lt;br/&gt;in default browser"]
-    OpenBrowser --> LoginScreen(["Login overlay&lt;br/&gt;(session store is empty&lt;br/&gt;on every fresh start)"])
-
-    style DoubleClick fill:#1f2a3a,stroke:#5a8fc4,color:#eee
-    style LoginScreen fill:#1f3a2a,stroke:#5ac48f,color:#eee
+    StartServer --> WaitServer["Poll until ready (30s)"]
+    WaitServer --> OpenBrowser["Open browser"]
+    OpenBrowser --> LoginScreen(["Login overlay"])
             </pre>
         </div>
 
         <p>
-            Both launcher scripts are idempotent — re-running one after everything's already up just detects
-            that and opens the browser. Neither script binds to <code>0.0.0.0</code>; LAN sharing is a manual
-            choice made by starting the dev server directly with <code>--host 0.0.0.0</code>.
+            Both launcher scripts are <strong>idempotent</strong> — re-running one after everything's already up
+            just opens the browser. Neither binds to <code>0.0.0.0</code>; LAN sharing is opt-in via <code>--host 0.0.0.0</code>.
         </p>
 
         <hr>
 
-        <!-- ─── 12. API SURFACE ─── -->
-        <h2 id="api-surface">Full API Surface</h2>
+        <!-- ── API SURFACE ── -->
+        <h2 id="api-surface">full api surface</h2>
+        <div class="section-rule"></div>
 
         <table>
-            <thead>
-                <tr><th>Method</th><th>Path</th><th>Auth</th><th>Purpose</th></tr>
-            </thead>
+            <thead><tr><th>method</th><th>path</th><th>auth</th><th>purpose</th></tr></thead>
             <tbody>
                 <tr><td><code>GET</code></td><td><code>/</code></td><td>—</td><td>Redirects to <code>/static/index.html</code></td></tr>
                 <tr><td><code>POST</code></td><td><code>/api/login</code></td><td>—</td><td>Credential check, brute-force lockout, sets session cookie</td></tr>
                 <tr><td><code>POST</code></td><td><code>/api/logout</code></td><td>—</td><td>Clears session server-side + cookie</td></tr>
-                <tr><td><code>GET</code></td><td><code>/api/me</code></td><td>✓</td><td>Returns <code>{username, is_admin}</code></td></tr>
+                <tr><td><code>GET</code></td><td><code>/api/me</code></td><td>✓</td><td>Returns username and admin status</td></tr>
                 <tr><td><code>POST</code></td><td><code>/api/upload</code></td><td>✓</td><td>Save + parse + cache + archive a file</td></tr>
                 <tr><td><code>GET</code></td><td><code>/api/files</code></td><td>✓</td><td>List current user's live files</td></tr>
                 <tr><td><code>DELETE</code></td><td><code>/api/files/{filename}</code></td><td>✓</td><td>Remove from live workspace only</td></tr>
-                <tr><td><code>GET/POST/DELETE</code></td><td><code>/api/presets[/{name}]</code></td><td>✓</td><td>Analysis-query prompt presets</td></tr>
+                <tr><td><code>GET/POST/DEL</code></td><td><code>/api/presets[/{name}]</code></td><td>✓</td><td>Analysis-query prompt presets</td></tr>
                 <tr><td><code>POST</code></td><td><code>/api/enhance-prompt</code></td><td>✓</td><td>AI-rewrite a raw analysis prompt</td></tr>
-                <tr><td><code>POST</code></td><td><code>/api/process</code></td><td>✓</td><td>SSE-streamed analysis over the user's own documents</td></tr>
-                <tr><td><code>GET/POST/DELETE</code></td><td><code>/api/export-presets[/{name}]</code></td><td>✓</td><td>Export-instructions presets</td></tr>
-                <tr><td><code>POST</code></td><td><code>/api/export-templates</code></td><td>✓</td><td>Upload an .xlsx/.docx/.pdf template</td></tr>
-                <tr><td><code>POST</code></td><td><code>/api/enhance-instructions</code></td><td>✓</td><td>AI-rewrite export styling instructions</td></tr>
-                <tr><td><code>POST</code></td><td><code>/api/export-excel | -pdf | -word</code></td><td>✓</td><td>SSE-streamed export (script or clone pipeline)</td></tr>
-                <tr><td><code>GET</code></td><td><code>/api/admin/users</code></td><td>✓ + admin</td><td>List configured accounts + roles</td></tr>
-                <tr><td><code>GET</code></td><td><code>/api/admin/activity</code></td><td>✓ + admin</td><td>Filterable activity feed</td></tr>
-                <tr><td><code>GET</code></td><td><code>/api/admin/uploads[/{u}/{id}/download]</code></td><td>✓ + admin</td><td>Archived uploads, list + download</td></tr>
-                <tr><td><code>GET</code></td><td><code>/api/admin/analysis[/{u}/{id}]</code></td><td>✓ + admin</td><td>Archived analysis runs, list + full detail</td></tr>
-                <tr><td><code>GET</code></td><td><code>/api/admin/exports[/{u}/{id}/download]</code></td><td>✓ + admin</td><td>Archived exports, list + download</td></tr>
-                <tr><td><code>GET</code></td><td><code>/docs</code>, <code>/redoc</code>, <code>/openapi.json</code></td><td><span class="badge warn">none</span></td><td>FastAPI auto-generated, not gated</td></tr>
+                <tr><td><code>POST</code></td><td><code>/api/process</code></td><td>✓</td><td>SSE-streamed analysis over user's documents</td></tr>
+                <tr><td><code>GET/POST/DEL</code></td><td><code>/api/export-presets[/{name}]</code></td><td>✓</td><td>Export-instructions presets</td></tr>
+                <tr><td><code>POST</code></td><td><code>/api/export-templates</code></td><td>✓</td><td>Upload a .xlsx/.docx/.pdf template</td></tr>
+                <tr><td><code>POST</code></td><td><code>/api/enhance-instructions</code></td><td>✓</td><td>AI-rewrite export instructions</td></tr>
+                <tr><td><code>POST</code></td><td><code>/api/export-excel|-pdf|-word</code></td><td>✓</td><td>SSE-streamed export (script or clone)</td></tr>
+                <tr><td><code>GET</code></td><td><code>/api/admin/users</code></td><td>✓ admin</td><td>List configured accounts + roles</td></tr>
+                <tr><td><code>GET</code></td><td><code>/api/admin/activity</code></td><td>✓ admin</td><td>Filterable activity feed</td></tr>
+                <tr><td><code>GET</code></td><td><code>/api/admin/uploads</code></td><td>✓ admin</td><td>Archived uploads, list + download</td></tr>
+                <tr><td><code>GET</code></td><td><code>/api/admin/analysis</code></td><td>✓ admin</td><td>Archived analyses, list + detail</td></tr>
+                <tr><td><code>GET</code></td><td><code>/api/admin/exports</code></td><td>✓ admin</td><td>Archived exports, list + download</td></tr>
+                <tr><td><code>GET</code></td><td><code>/docs</code> · <code>/redoc</code></td><td><span class="badge warn">none</span></td><td>FastAPI auto-generated, not gated</td></tr>
             </tbody>
         </table>
 
         <hr>
 
-        <!-- ─── 13. SECURITY ─── -->
-        <h2 id="security">Security Posture</h2>
+        <!-- ── SECURITY ── -->
+        <h2 id="security">security posture</h2>
+        <div class="section-rule"></div>
 
         <table>
-            <thead><tr><th>Concern</th><th>Status</th><th>Detail</th></tr></thead>
+            <thead><tr><th>concern</th><th>status</th><th>detail</th></tr></thead>
             <tbody>
-                <tr><td>Password storage</td><td><span class="badge good">✅ Good</span></td><td>bcrypt hashes only, never plaintext, never in transit-comparison timing leaks</td></tr>
-                <tr><td>Brute-force protection</td><td><span class="badge good">✅ Basic</span></td><td>5 failures → 60s per-username lockout</td></tr>
-                <tr><td>Session token</td><td><span class="badge good">✅ Good</span></td><td><code>secrets.token_urlsafe(32)</code>, <code>HttpOnly</code>, <code>SameSite=Lax</code></td></tr>
-                <tr><td>Cross-account data isolation</td><td><span class="badge good">✅ Structural</span></td><td>Filesystem-namespaced by username, not permission-checked after the fact</td></tr>
-                <tr><td>Transport encryption</td><td><span class="badge bad">❌ None</span></td><td>Plain HTTP; credentials and session cookie are sniffable on the LAN</td></tr>
-                <tr><td>CORS</td><td><span class="badge good">✅ Hardened</span></td><td>Wildcard origin, but no <code>allow_credentials</code> — cookie can't be ridden cross-origin</td></tr>
-                <tr><td>Admin authorization</td><td><span class="badge good">✅ Explicit</span></td><td><code>get_current_admin</code> 403s non-flagged accounts on every <code>/api/admin/*</code> route</td></tr>
-                <tr><td>Path traversal</td><td><span class="badge good">✅ Guarded</span></td><td><code>os.path.basename()</code>, explicit validation, <code>_RECORD_ID_RE</code> regex</td></tr>
-                <tr><td>LLM code execution</td><td><span class="badge warn">⚠️ Defense-in-depth</span></td><td>AST allowlist + subprocess rlimits, not a real sandbox</td></tr>
-                <tr><td>Unauthenticated API discovery</td><td><span class="badge warn">⚠️ Minor</span></td><td><code>/docs</code> / <code>/redoc</code> / <code>/openapi.json</code> are reachable without login</td></tr>
-                <tr><td>Audit trail integrity</td><td><span class="badge good">✅ Verified</span></td><td><code>asyncio.shield()</code> on archive+log writes survives client disconnects</td></tr>
-                <tr><td>Data retention</td><td><span class="badge info">ℹ️ By design</span></td><td>Archive and activity log grow forever — no pruning policy exists yet</td></tr>
+                <tr><td>Password storage</td><td><span class="badge good">✅ good</span></td><td>bcrypt hashes only, never plaintext, constant-time comparison</td></tr>
+                <tr><td>Brute-force</td><td><span class="badge good">✅ basic</span></td><td>5 failures → 60s per-username lockout</td></tr>
+                <tr><td>Session token</td><td><span class="badge good">✅ good</span></td><td><code>secrets.token_urlsafe(32)</code>, <code>HttpOnly</code>, <code>SameSite=Lax</code></td></tr>
+                <tr><td>Data isolation</td><td><span class="badge good">✅ structural</span></td><td>Filesystem-namespaced by username</td></tr>
+                <tr><td>Transport</td><td><span class="badge bad">❌ none</span></td><td>Plain HTTP — credentials sniffable on the LAN</td></tr>
+                <tr><td>CORS</td><td><span class="badge good">✅ hardened</span></td><td>Wildcard origin, no <code>allow_credentials</code></td></tr>
+                <tr><td>Admin authz</td><td><span class="badge good">✅ explicit</span></td><td><code>get_current_admin</code> 403s non-admin accounts</td></tr>
+                <tr><td>Path traversal</td><td><span class="badge good">✅ guarded</span></td><td><code>os.path.basename()</code> + regex validation</td></tr>
+                <tr><td>LLM code exec</td><td><span class="badge warn">⚠️ defense-in-depth</span></td><td>AST allowlist + subprocess rlimits, not a real sandbox</td></tr>
+                <tr><td>API discovery</td><td><span class="badge warn">⚠️ minor</span></td><td><code>/docs</code> and <code>/redoc</code> reachable without login</td></tr>
+                <tr><td>Audit integrity</td><td><span class="badge good">✅ verified</span></td><td><code>asyncio.shield()</code> survives client disconnects</td></tr>
+                <tr><td>Retention</td><td><span class="badge info-b">ℹ️ by design</span></td><td>Archive grows forever — no pruning policy yet</td></tr>
             </tbody>
         </table>
 
         <div class="callout info">
-            <strong>Bottom line</strong>
-            This is correctly scoped as a trusted-LAN, known-small-team tool, not a public-facing service.
-            The single biggest thing that would change if it were ever exposed beyond a trusted LAN is transport
-            security: put a reverse proxy with a real TLS certificate in front of it before doing that.
+            <strong>Bottom line:</strong> this is correctly scoped as a trusted-LAN, known-small-team tool. The single biggest change
+            for external exposure would be transport security — put a reverse proxy with a TLS certificate in front of it.
         </div>
 
         <hr>
 
-        <!-- ─── 14. MODULE MAP ─── -->
-        <h2 id="module-map">Module Map</h2>
+        <!-- ── MODULE MAP ── -->
+        <h2 id="module-map">module map</h2>
+        <div class="section-rule"></div>
 
         <table>
-            <thead><tr><th>File</th><th>Responsibility</th></tr></thead>
+            <thead><tr><th>file</th><th>responsibility</th></tr></thead>
             <tbody>
-                <tr><td><code>app.py</code></td><td>FastAPI app: every route, auth, session store, per-user path helpers, export pipeline orchestration</td></tr>
+                <tr><td><code>app.py</code></td><td>FastAPI app: every route, auth, session store, per-user path helpers, export pipeline</td></tr>
                 <tr><td><code>parser_utils.py</code></td><td><code>extract_text_from_file()</code> — the entire document→text conversion surface</td></tr>
-                <tr><td><code>audit_log.py</code></td><td>Activity log (JSONL) + permanent per-user archive (uploads/analysis/exports)</td></tr>
-                <tr><td><code>static/index.html</code> / <code>style.css</code> / <code>script.js</code></td><td>Main dashboard UI, login overlay, all fetch logic</td></tr>
-                <tr><td><code>static/admin.html</code> / <code>admin.js</code></td><td>Admin panel — standalone page, own auth check, no shared JS state</td></tr>
-                <tr><td><code>start_mac.command</code> / <code>start_windows.bat</code></td><td>Idempotent double-click launchers</td></tr>
-                <tr><td><code>test_backend.py</code></td><td>Offline-ish smoke test: Ollama ping + parser round-trip</td></tr>
-                <tr><td><code>verify_integration.py</code></td><td>Live end-to-end test against a running server, incl. cross-account and admin-panel checks</td></tr>
+                <tr><td><code>audit_log.py</code></td><td>Activity log (JSONL) + permanent per-user archive</td></tr>
+                <tr><td><code>static/index.html</code> · <code>style.css</code> · <code>script.js</code></td><td>Main dashboard UI, login overlay, all fetch logic</td></tr>
+                <tr><td><code>static/admin.html</code> · <code>admin.js</code></td><td>Admin panel — standalone page, own auth check</td></tr>
+                <tr><td><code>start_mac.command</code> · <code>start_windows.bat</code></td><td>Idempotent double-click launchers</td></tr>
+                <tr><td><code>test_backend.py</code></td><td>Offline smoke test: Ollama ping + parser round-trip</td></tr>
+                <tr><td><code>verify_integration.py</code></td><td>Live end-to-end test against a running server</td></tr>
             </tbody>
         </table>
 
     </div><!-- /.content -->
+
+    <!-- ── Footer brand band ── -->
+    <div class="footer-band">
+        <p>built with care — sift documentation</p>
+        <p class="footer-sub">fastapi · ollama · vanilla js · flat files · no cloud</p>
+    </div>
+
 </div><!-- /.main -->
 
-<!-- Scroll-to-top button -->
 <button class="scroll-top" id="scrollTopBtn" onclick="window.scrollTo({top:0})">↑</button>
 
 <script>
-    // ── Mermaid ──
     mermaid.initialize({
         startOnLoad: true,
-        theme: 'dark',
+        theme: 'base',
         themeVariables: {
-            primaryColor: '#1f3a2a',
-            primaryTextColor: '#c9d1d9',
-            primaryBorderColor: '#5ac48f',
-            lineColor: '#8b949e',
-            secondaryColor: '#1f2a3a',
-            tertiaryColor: '#2a1f3a',
-            fontFamily: 'Inter, sans-serif',
-            fontSize: '13px'
+            primaryColor:       '#f7efe9',
+            primaryTextColor:   '#2b1a07',
+            primaryBorderColor: '#171717',
+            lineColor:          '#171717',
+            secondaryColor:     '#fdfbf9',
+            tertiaryColor:      '#f7efe9',
+            fontFamily:         'Inter, sans-serif',
+            fontSize:           '13px',
+            noteBkgColor:       '#f7efe9',
+            noteTextColor:      '#2b1a07',
+            noteBorderColor:    '#171717',
+            actorBkg:           '#fdfbf9',
+            actorBorder:        '#171717',
+            actorTextColor:     '#2b1a07',
+            signalColor:        '#171717',
+            signalTextColor:    '#2b1a07',
+            labelBoxBkgColor:   '#f7efe9',
+            labelBoxBorderColor:'#171717',
+            labelTextColor:     '#2b1a07',
+            loopTextColor:      '#2b1a07',
+            activationBorderColor: '#171717',
+            activationBkgColor: '#f7efe9',
+            sequenceNumberColor: '#ff6f1e'
         },
-        flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'basis' },
-        sequence: { useMaxWidth: true, actorMargin: 60, mirrorActors: false }
+        flowchart:  { useMaxWidth: true, htmlLabels: true, curve: 'basis' },
+        sequence:   { useMaxWidth: true, actorMargin: 50, mirrorActors: false }
     });
 
     // ── Active sidebar link on scroll ──
@@ -1091,7 +1231,6 @@ flowchart TD
     const scrollTopBtn = document.getElementById('scrollTopBtn');
 
     function onScroll() {
-        // Active nav
         let current = '';
         sections.forEach(s => {
             if (window.scrollY >= s.offsetTop - 120) current = s.id;
@@ -1099,11 +1238,8 @@ flowchart TD
         navLinks.forEach(a => {
             a.classList.toggle('active', a.getAttribute('href') === '#' + current);
         });
-
-        // Scroll-to-top visibility
         scrollTopBtn.classList.toggle('visible', window.scrollY > 400);
     }
-
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
 </script>
