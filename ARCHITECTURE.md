@@ -181,7 +181,7 @@ sequenceDiagram
     participant S as FastAPI (app.py)
     participant Sessions as In-memory _sessions dict
 
-    B->>S: POST /api/login {username, password}
+    B->>S: POST /api/login (username, password)
     alt username locked out (5 failures)
         S-->>B: 429 "Too many failed attempts, retry in Ns"
     else unknown username
@@ -191,13 +191,13 @@ sequenceDiagram
         S->>S: record failure, lock after 5th
         S-->>B: 401 Invalid username or password
     else correct credentials
-        S->>Sessions: token = secrets.token_urlsafe(32)\nstore {username, expires_at: now+6h}
-        S-->>B: 200 {username, is_admin}\nSet-Cookie: sift_session=[token]\nHttpOnly; SameSite=Lax; Max-Age=21600
+        S->>Sessions: token = secrets.token_urlsafe(32) (store username, expires_at: now+6h)
+        S-->>B: 200 [username, is_admin] (Set-Cookie: sift_session=[token], HttpOnly, SameSite=Lax, Max-Age=21600)
         S->>S: audit_log.log_activity(username, "login")
     end
 
     loop every subsequent request
-        B->>S: any /api/* request\nCookie: sift_session=[token]
+        B->>S: any /api/* request (Cookie: sift_session=[token])
         S->>Sessions: look up token
         alt expired or unknown
             Sessions-->>S: not found / expired
@@ -224,7 +224,7 @@ stateDiagram-v2
     Active --> Active: any request within 6h of login
     Active --> LoggedOut: POST /api/logout
     Active --> LoggedOut: 6h elapsed since login (fixed TTL)
-    Active --> LoggedOut: server process restarts<br/>(in-memory store, incl. --reload)
+    Active --> LoggedOut: server process restarts (in-memory store, incl. --reload)
     LoggedOut --> [*]
 ```
 
@@ -311,7 +311,7 @@ sequenceDiagram
     S->>FS: write [file].txt → parsed_cache/[user]/ (atomic replace)
     S->>AL: archive_upload_copy() → permanent copy in audit_uploads/[user]/
     S->>AL: log_activity(user, "upload", filename, size, status)
-    S-->>B: 200 {filename, size, status: "parsed"|"error"}
+    S-->>B: 200 [filename, size, status: "parsed"|"error"]
 ```
 
 The permanent archive copy is made **at upload time**, independent of whatever happens
@@ -328,17 +328,17 @@ sequenceDiagram
     participant O as Ollama daemon
     participant AL as audit_log.py (shielded persist)
 
-    B->>S: POST /api/process {prompt}
+    B->>S: POST /api/process [prompt]
     S->>S: concatenate every .txt in\nTHIS user's parsed_cache/[user]/ only\n(citation-tagged: [Page X], [Sheet Y], ...)
-    S->>O: POST /api/chat {model, messages, stream:true}
+    S->>O: POST /api/chat [model, messages, stream:true]
     activate S
     loop token stream
-        O-->>S: {"message":{"content":"..."}, "done":false}
-        S-->>B: SSE: data: {"content":"...", "done":false}
+        O-->>S: message: content: "...", done: false
+        S-->>B: SSE: content: "...", done: false
         Note over S: accumulate content in memory\nserver never persisted this before\nthe audit-trail feature
     end
-    O-->>S: {"done": true}
-    S-->>B: SSE: data: {"content":"", "done":true}
+    O-->>S: done: true
+    S-->>B: SSE: done: true
     deactivate S
     S->>AL: asyncio.shield(persist task):\narchive_analysis() then log_activity("process")
     Note over AL: shielded so a client disconnect right\nat stream-end can't cancel the archive\nwrite between the two steps
@@ -378,7 +378,7 @@ flowchart TD
     subgraph ClonePipeline["Clone pipeline"]
         direction TB
         CP1["Extract template's real<br/>structure: cells / paragraphs /<br/>form fields, tagged [ID=...]"]
-        CP2["Model returns ONLY a JSON<br/>field-mapping {id: value}<br/>— no code generation"]
+        CP2["Model returns ONLY a JSON<br/>field-mapping [id: value]<br/>— no code generation"]
         CP3["Trusted, backend-authored<br/>splice function applies the<br/>mapping to a template copy"]
         CP1 --> CP2 --> CP3
     end
