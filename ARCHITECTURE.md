@@ -358,11 +358,11 @@ by wrapping the persist step in `asyncio.shield()`.
 flowchart TD
     Start(["POST /api/export-excel<br/>/api/export-pdf<br/>/api/export-word"]) --> HasTemplate{"template_filename<br/>provided?"}
 
-    HasTemplate -- No --> ScriptPipeline
-    HasTemplate -- Yes --> SchemaCheck{"format is xlsx/docx,<br/>or PDF with real<br/>AcroForm fields?"}
+    HasTemplate -->|No| ScriptPipeline
+    HasTemplate -->|Yes| SchemaCheck{"format is xlsx/docx,<br/>or PDF with real<br/>AcroForm fields?"}
 
-    SchemaCheck -- No --"fixed-layout PDF<br/>template, nothing<br/>discrete to map onto"--> ScriptPipeline
-    SchemaCheck -- Yes --> ClonePipeline
+    SchemaCheck -->|"No (fixed-layout PDF template, nothing discrete to map onto)"| ScriptPipeline
+    SchemaCheck -->|Yes| ClonePipeline
 
     subgraph ScriptPipeline["Script pipeline"]
         direction TB
@@ -372,7 +372,7 @@ flowchart TD
         SP4{"Script succeeded?"}
         SP5["Deterministic fallback<br/>(_generate_*_bytes)"]
         SP1 --> SP2 --> SP3 --> SP4
-        SP4 -- No, twice --> SP5
+        SP4 -->|"No, twice"| SP5
     end
 
     subgraph ClonePipeline["Clone pipeline"]
@@ -383,7 +383,7 @@ flowchart TD
         CP1 --> CP2 --> CP3
     end
 
-    SP4 -- Yes --> FileBytes
+    SP4 -->|Yes| FileBytes
     SP5 --> FileBytes
     CP3 --> FileBytes["file_bytes ready in memory"]
 
