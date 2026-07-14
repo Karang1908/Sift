@@ -919,16 +919,15 @@ sequenceDiagram
 
         <div class="diagram-container">
             <pre class="mermaid">
-stateDiagram-v2
-    [*] --> LoggedOut
-    LoggedOut --> Authenticating: POST /api/login
-    Authenticating --> LoggedOut: bad credentials / locked out
-    Authenticating --> Active: valid credentials
-    Active --> Active: any request within 6h of login
-    Active --> LoggedOut: POST /api/logout
-    Active --> LoggedOut: 6h elapsed (fixed TTL)
-    Active --> LoggedOut: server process restarts
-    LoggedOut --> [*]
+flowchart TD
+    Start([Start]) --> LoggedOut[LoggedOut]
+    LoggedOut -->|POST /api/login| Authenticating[Authenticating]
+    Authenticating -->|bad credentials / locked out| LoggedOut
+    Authenticating -->|valid credentials| Active[Active]
+    Active -->|any request within 6h of login| Active
+    Active -->|POST /api/logout| LoggedOut
+    Active -->|6h elapsed / server restart| LoggedOut
+    LoggedOut --> End([End])
             </pre>
         </div>
 
