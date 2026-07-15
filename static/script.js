@@ -237,6 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
             presets: [],            // server-side list, filtered to this format
             currentPresetName: "",
             menuOpen: false,
+            loaded: false,
         };
     }
     let activeExportFormat = "pdf";
@@ -250,7 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
         switchExportTab(fmt || activeExportFormat);
         // Lazy-load presets the first time the modal opens per format.
         for (const f of EXPORT_FORMATS) {
-            if (exportState[f].presets.length === 0) {
+            if (!exportState[f].loaded) {
                 fetchExportPresets(f);
             }
         }
@@ -283,6 +284,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!response.ok) throw new Error("Failed to fetch export presets");
             const all = await response.json();
             exportState[fmt].presets = all.filter(p => p.format === fmt);
+            exportState[fmt].loaded = true;
             renderExportPresetOptions(fmt);
         } catch (error) {
             console.error(`Error loading ${fmt} export presets:`, error);
@@ -460,9 +462,14 @@ document.addEventListener('DOMContentLoaded', () => {
             // modal's progress-status text doubles as the upload indicator.
         };
         xhr.onload = () => {
+            if (xhr.status === 401) {
+                showLoginOverlay('Your session expired. Please log in again.');
+                return;
+            }
             try {
                 if (xhr.status < 200 || xhr.status >= 300) {
-                    const detail = JSON.parse(xhr.responseText).detail || "Template upload failed";
+                    let detail = "Template upload failed";
+                    try { detail = JSON.parse(xhr.responseText).detail || detail; } catch (e) {}
                     throw new Error(detail);
                 }
                 const data = JSON.parse(xhr.responseText);
@@ -549,6 +556,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const response = await fetch(url, options);
         if (response.status === 401) {
             showLoginOverlay('Your session expired. Please log in again.');
+            throw new Error('Session expired');
         }
         return response;
     }
@@ -666,6 +674,29 @@ document.addEventListener('DOMContentLoaded', () => {
         uploadedFiles = [];
         savedPresets = [];
         accumulatedOutput = '';
+        
+        // Reset export modal state per format
+        for (const fmt of EXPORT_FORMATS) {
+            exportState[fmt].instructions = '';
+            exportState[fmt].templateFilename = null;
+            exportState[fmt].templateOriginalName = null;
+            exportState[fmt].presets = [];
+            exportState[fmt].currentPresetName = '';
+            exportState[fmt].menuOpen = false;
+            exportState[fmt].loaded = false;
+            updateExportTemplateDisplay(fmt);
+            const textarea = document.getElementById(`export-instructions-${fmt}`);
+            if (textarea) textarea.value = '';
+        }
+        currentPresetName = '';
+        
+        // Reset DOM elements
+        outputBody.innerHTML = '<div class="output-placeholder">AI analysis output will appear here...</div>';
+        const rows = fileListBody.querySelectorAll('tr:not(#empty-row)');
+        rows.forEach(r => r.remove());
+        const emptyRow = document.getElementById('empty-row');
+        if (emptyRow) emptyRow.classList.remove('hidden');
+        
         showLoginOverlay();
     });
 
@@ -943,6 +974,11 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             xhr.onload = () => {
+                if (xhr.status === 401) {
+                    showLoginOverlay('Your session expired. Please log in again.');
+                    reject(new Error('Session expired'));
+                    return;
+                }
                 if (xhr.status >= 200 && xhr.status < 300) {
                     resolve(JSON.parse(xhr.responseText));
                 } else {
@@ -1061,7 +1097,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error("Error enhancing prompt:", error);
             showOutputMessage(`[ENHANCE ERROR] Prompt enhancement failed: ${error.message}`, true);
         } finally {
-            enhanceBtn.disabled = false;
+            updateEnhanceButtonState();
             enhanceSpinner.classList.add('hidden');
             progressStatus.textContent = "Ready.";
         }
@@ -1200,6 +1236,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function showOutputMessage(msg, isError = false) {
+        if (msg && msg.includes('Session expired')) return;
         const p = document.createElement('p');
         p.style.color = isError ? '#dc2626' : '#2563eb';
         p.style.margin = '0.5rem 0';
@@ -1214,13 +1251,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function copyOutputToClipboard() {
-        if (!accumulatedOutput) {
-            const textToCopy = outputBody.innerText;
-            navigator.clipboard.writeText(textToCopy);
-            return;
-        }
+        const textToCopy = accumulatedOutput || outputBody.innerText;
+        if (!textToCopy) return;
 
-        navigator.clipboard.writeText(accumulatedOutput)
+        navigator.clipboard.writeText(textToCopy)
             .then(() => {
                 const origText = progressStatus.textContent;
                 progressStatus.textContent = "Copied output to clipboard!";
@@ -1230,6 +1264,7 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .catch(err => {
                 console.error("Failed to copy text: ", err);
+                showOutputMessage("[SYSTEM ERROR] Failed to copy output to clipboard.", true);
             });
     }
 
@@ -1237,11 +1272,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!accumulatedOutput) return;
         const blob = new Blob([accumulatedOutput], { type: 'text/markdown;charset=utf-8;' });
         const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
+        const url = URL.createObjectURL(blob);
+        link.href = url;
         link.setAttribute('download', 'document_analysis_report.md');
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(url), 100);
     }
 
     // Streamed export: all three AI-driven exports (PDF/Excel/Word) hit a
@@ -1316,11 +1353,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         const bytes = Uint8Array.from(atob(evt.file_b64), c => c.charCodeAt(0));
                         const blob = new Blob([bytes], { type: evt.mime_type });
                         const link = document.createElement('a');
-                        link.href = URL.createObjectURL(blob);
+                        const url = URL.createObjectURL(blob);
+                        link.href = url;
                         link.setAttribute('download', evt.filename || filename);
                         document.body.appendChild(link);
                         link.click();
                         document.body.removeChild(link);
+                        setTimeout(() => URL.revokeObjectURL(url), 100);
                         showOutputMessage(evt.ai_generated
                             ? `[SYSTEM] ${label} file exported successfully (AI-designed layout).`
                             : `[SYSTEM] ${label} file exported successfully (AI layout unavailable, used standard formatting).`);

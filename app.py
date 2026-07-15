@@ -207,18 +207,33 @@ LOGIN_LOCKOUT_SECONDS = 60
 _login_attempts: dict = {}
 
 
+def _prune_sessions_and_lockouts():
+    now = time.time()
+    expired_sessions = [t for t, s in _sessions.items() if s["expires_at"] < now]
+    for t in expired_sessions:
+        _sessions.pop(t, None)
+    expired_lockouts = [
+        u for u, a in _login_attempts.items()
+        if a["locked_until"] < now and a.get("updated_at", 0) < now - 3600
+    ]
+    for u in expired_lockouts:
+        _login_attempts.pop(u, None)
+
+
 def _create_session(username: str) -> str:
+    _prune_sessions_and_lockouts()
     token = secrets.token_urlsafe(32)
     _sessions[token] = {"username": username, "expires_at": time.time() + SESSION_TTL_SECONDS}
     return token
 
 
 def _get_session_user(token: str):
+    _prune_sessions_and_lockouts()
     session = _sessions.get(token)
     if not session:
         return None
     if session["expires_at"] < time.time():
-        del _sessions[token]
+        _sessions.pop(token, None)
         return None
     return session["username"]
 
@@ -306,8 +321,9 @@ async def login(data: dict, response: Response):
     valid = valid and account is not None
 
     if not valid:
-        attempt = _login_attempts.setdefault(username, {"failures": 0, "locked_until": 0})
+        attempt = _login_attempts.setdefault(username, {"failures": 0, "locked_until": 0, "updated_at": time.time()})
         attempt["failures"] += 1
+        attempt["updated_at"] = time.time()
         if attempt["failures"] >= LOGIN_MAX_FAILURES:
             attempt["locked_until"] = time.time() + LOGIN_LOCKOUT_SECONDS
             attempt["failures"] = 0
@@ -345,6 +361,22 @@ async def me(user: str = Depends(get_current_user)):
 def _save_upload_sync(file_obj, filepath):
     with open(filepath, "wb") as buffer:
         shutil.copyfileobj(file_obj, buffer)
+
+
+def _save_template_sync(file_obj, filepath):
+    size = 0
+    with open(filepath, "wb") as buffer:
+        while True:
+            chunk = file_obj.read(64 * 1024)
+            if not chunk:
+                break
+            size += len(chunk)
+            if size > EXPORT_TEMPLATE_MAX_BYTES:
+                raise ValueError("Template file exceeds maximum allowed size")
+            buffer.write(chunk)
+        buffer.flush()
+        os.fsync(buffer.fileno())
+    return size
 
 
 def _write_cache_atomic(cache_path, text):
@@ -430,6 +462,8 @@ async def upload_file(file: UploadFile = File(...), user: str = Depends(get_curr
         if os.path.exists(filepath):
             os.remove(filepath)
         raise HTTPException(status_code=500, detail=f"Failed to process and parse file: {str(e)}")
+    finally:
+        await file.close()
 
 
 @app.delete("/api/files/{filename}")
@@ -789,23 +823,25 @@ def _extract_template_schema(template_path: str, fmt_key: str, max_items: int = 
                     count += 1
                     
                     # Detect and include empty neighbor cells as target slots
-                    try:
-                        right_cell = ws.cell(row=cell.row, column=cell.column + 1)
-                        if right_cell.value in (None, ""):
-                            right_loc_id = f"{ws.title}!{right_cell.coordinate}"
-                            lines.append(f"  [ID={right_loc_id}] current='' (blank target cell to the right of {cell.coordinate})")
-                            count += 1
-                    except Exception:
-                        pass
+                    if count < max_items:
+                        try:
+                            right_cell = ws.cell(row=cell.row, column=cell.column + 1)
+                            if right_cell.value in (None, ""):
+                                right_loc_id = f"{ws.title}!{right_cell.coordinate}"
+                                lines.append(f"  [ID={right_loc_id}] current='' (blank target cell to the right of {cell.coordinate})")
+                                count += 1
+                        except Exception:
+                            pass
                     
-                    try:
-                        below_cell = ws.cell(row=cell.row + 1, column=cell.column)
-                        if below_cell.value in (None, ""):
-                            below_loc_id = f"{ws.title}!{below_cell.coordinate}"
-                            lines.append(f"  [ID={below_loc_id}] current='' (blank target cell below {cell.coordinate})")
-                            count += 1
-                    except Exception:
-                        pass
+                    if count < max_items:
+                        try:
+                            below_cell = ws.cell(row=cell.row + 1, column=cell.column)
+                            if below_cell.value in (None, ""):
+                                below_loc_id = f"{ws.title}!{below_cell.coordinate}"
+                                lines.append(f"  [ID={below_loc_id}] current='' (blank target cell below {cell.coordinate})")
+                                count += 1
+                        except Exception:
+                            pass
                 if stop:
                     break
             if stop:
@@ -1272,22 +1308,10 @@ async def upload_export_template(file: UploadFile = File(...), user: str = Depen
 
     templates_dir = user_export_templates_dir(user)
     fd, tmp_path = tempfile.mkstemp(dir=templates_dir, suffix=ext)
+    os.close(fd)
     try:
-        size = 0
-        with os.fdopen(fd, "wb") as buffer:
-            while True:
-                chunk = file.file.read(64 * 1024)
-                if not chunk:
-                    break
-                size += len(chunk)
-                if size > EXPORT_TEMPLATE_MAX_BYTES:
-                    raise HTTPException(
-                        status_code=413,
-                        detail=f"Template file exceeds {EXPORT_TEMPLATE_MAX_BYTES} bytes",
-                    )
-                buffer.write(chunk)
-            buffer.flush()
-            os.fsync(buffer.fileno())
+        # Read and write the template file on a sync worker thread
+        size = await asyncio.to_thread(_save_template_sync, file.file, tmp_path)
 
         # Move the tmp file to a uuid-suffixed final name so re-uploads don't
         # clobber existing template files referenced by other presets.
@@ -1306,11 +1330,18 @@ async def upload_export_template(file: UploadFile = File(...), user: str = Depen
             "size": size,
             "format": EXPORT_TEMPLATE_FORMATS[ext],
         }
+    except ValueError as e:
+        if os.path.exists(tmp_path):
+            try: os.remove(tmp_path)
+            except OSError: pass
+        raise HTTPException(status_code=413, detail=str(e))
     except Exception:
         if os.path.exists(tmp_path):
             try: os.remove(tmp_path)
             except OSError: pass
         raise
+    finally:
+        await file.close()
 
 
 # ── AI Enhance for export instructions ────────────────────────────────
@@ -1756,65 +1787,78 @@ async def _stream_export(data: dict, fmt: ExportFormat, user: str):
         queue: asyncio.Queue = asyncio.Queue()
 
         def progress_cb(stage: str, message: str):
-            loop.call_soon_threadsafe(queue.put_nowait, {
-                "stage": stage, "message": message,
+            evt = {
+                "stage": stage,
+                "message": message,
                 "pct": stage_pcts.get(stage, 0),
-            })
+            }
+            try:
+                # If running on the same event loop thread, put directly to maintain order
+                if asyncio.get_running_loop() == loop:
+                    queue.put_nowait(evt)
+                    return
+            except RuntimeError:
+                pass
+            loop.call_soon_threadsafe(queue.put_nowait, evt)
 
         async def run_pipeline():
-            if template_warning:
-                progress_cb("template", template_warning)
-
-            if use_clone_pipeline:
-                file_bytes, ai_generated, last_error = await _run_template_clone_pipeline(
-                    markdown_text, fmt, user, template_filename, template_schema,
-                    user_instructions, progress_cb=progress_cb,
-                )
-            else:
-                file_bytes, ai_generated, last_error = await _generate_ai_export(
-                    markdown_text, fmt, progress_cb=progress_cb,
-                    instructions=user_instructions,
-                    template_filename=template_filename if fmt.key == "pdf" else None,
-                    template_owner=user,
-                    effective_prompt_override=effective_prompt,
-                )
-            if file_bytes is None:
-                logger.warning(
-                    "AI %s generation unavailable, using deterministic export: %s",
-                    fmt.key, last_error,
-                )
-                progress_cb("fallback", f"AI script failed ({last_error}); using standard formatting...")
-                try:
-                    file_bytes = await asyncio.to_thread(fmt.deterministic_fallback, markdown_text)
-                    ai_generated = False
-                except Exception as e:
-                    logger.exception("Deterministic %s export failed", fmt.key)
-                    await queue.put({"stage": "error", "message": f"{fmt.label} generation failed: {e}"})
-                    return
-
-            # Permanent archive copy - exported files were never written to
-            # disk before (only base64'd into this SSE event and discarded
-            # server-side once sent). See audit_log.py. Shielded for the same
-            # reason as process_files()'s archive: the outer event_generator
-            # explicitly cancels this task on client disconnect, and without
-            # shielding that can land between the archive write and the
-            # log_activity call, leaving an orphaned archive entry with no
-            # matching activity-log line.
-            persist_task = asyncio.create_task(_persist_export_archive(
-                user, fmt.key, fmt.download_filename, file_bytes,
-                user_instructions, template_filename, ai_generated,
-            ))
             try:
-                await asyncio.shield(persist_task)
-            except asyncio.CancelledError:
-                pass
+                if template_warning:
+                    progress_cb("template", template_warning)
 
-            progress_cb("done", f"{fmt.label} ready.")
-            await queue.put({
-                "stage": "file", "filename": fmt.download_filename,
-                "mime_type": fmt.media_type, "ai_generated": ai_generated,
-                "file_b64": base64.b64encode(file_bytes).decode("ascii"),
-            })
+                if use_clone_pipeline:
+                    file_bytes, ai_generated, last_error = await _run_template_clone_pipeline(
+                        markdown_text, fmt, user, template_filename, template_schema,
+                        user_instructions, progress_cb=progress_cb,
+                    )
+                else:
+                    file_bytes, ai_generated, last_error = await _generate_ai_export(
+                        markdown_text, fmt, progress_cb=progress_cb,
+                        instructions=user_instructions,
+                        template_filename=template_filename if fmt.key == "pdf" else None,
+                        template_owner=user,
+                        effective_prompt_override=effective_prompt,
+                    )
+                if file_bytes is None:
+                    logger.warning(
+                        "AI %s generation unavailable, using deterministic export: %s",
+                        fmt.key, last_error,
+                    )
+                    progress_cb("fallback", f"AI script failed ({last_error}); using standard formatting...")
+                    try:
+                        file_bytes = await asyncio.to_thread(fmt.deterministic_fallback, markdown_text)
+                        ai_generated = False
+                    except Exception as e:
+                        logger.exception("Deterministic %s export failed", fmt.key)
+                        await queue.put({"stage": "error", "message": f"{fmt.label} generation failed: {e}"})
+                        return
+
+                # Permanent archive copy - exported files were never written to
+                # disk before (only base64'd into this SSE event and discarded
+                # server-side once sent). See audit_log.py. Shielded for the same
+                # reason as process_files()'s archive: the outer event_generator
+                # explicitly cancels this task on client disconnect, and without
+                # shielding that can land between the archive write and the
+                # log_activity call, leaving an orphaned archive entry with no
+                # matching activity-log line.
+                persist_task = asyncio.create_task(_persist_export_archive(
+                    user, fmt.key, fmt.download_filename, file_bytes,
+                    user_instructions, template_filename, ai_generated,
+                ))
+                try:
+                    await asyncio.shield(persist_task)
+                except asyncio.CancelledError:
+                    pass
+
+                progress_cb("done", f"{fmt.label} ready.")
+                await queue.put({
+                    "stage": "file", "filename": fmt.download_filename,
+                    "mime_type": fmt.media_type, "ai_generated": ai_generated,
+                    "file_b64": base64.b64encode(file_bytes).decode("ascii"),
+                })
+            except Exception as e:
+                logger.exception("Unexpected error in export pipeline task")
+                await queue.put({"stage": "error", "message": f"Export pipeline error: {e}"})
 
         pipeline_task = asyncio.create_task(run_pipeline())
 
@@ -2704,7 +2748,8 @@ def _generate_pdf_bytes(markdown_text: str) -> bytes:
     for block in _parse_markdown_blocks(markdown_text):
         btype = block["type"]
         if btype == "heading":
-            flow.append(Paragraph(_xml_escape(block["text"]), styles[f"h{block['level']}"]))
+            style_key = f"h{min(block['level'], 3)}"
+            flow.append(Paragraph(_xml_escape(block["text"]), styles[style_key]))
         elif btype == "text":
             flow.append(Paragraph(_xml_escape(block["text"]), styles["body"]))
         elif btype == "bullet":
