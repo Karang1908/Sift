@@ -1349,6 +1349,7 @@ document.addEventListener('DOMContentLoaded', () => {
             exportPDFBtn.disabled = false;
             exportExcelBtn.disabled = false;
             exportWordBtn.disabled = false;
+            if (button) button.disabled = false;
             updateExportButtonsState();
         }
     }
