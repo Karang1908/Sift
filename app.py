@@ -778,7 +778,7 @@ def _extract_template_schema(template_path: str, fmt_key: str, max_items: int = 
                     if cell.value in (None, ""):
                         continue
                     if count >= max_items:
-                        lines.append(f"  ... (truncated at {max_items} non-empty cells; more exist)")
+                        lines.append(f"  ... (truncated at {max_items} cells; more exist)")
                         stop = True
                         break
                     loc_id = f"{ws.title}!{cell.coordinate}"
@@ -787,6 +787,25 @@ def _extract_template_schema(template_path: str, fmt_key: str, max_items: int = 
                         f"(number_format={cell.number_format!r})"
                     )
                     count += 1
+                    
+                    # Detect and include empty neighbor cells as target slots
+                    try:
+                        right_cell = ws.cell(row=cell.row, column=cell.column + 1)
+                        if right_cell.value in (None, ""):
+                            right_loc_id = f"{ws.title}!{right_cell.coordinate}"
+                            lines.append(f"  [ID={right_loc_id}] current='' (blank target cell to the right of {cell.coordinate})")
+                            count += 1
+                    except Exception:
+                        pass
+                    
+                    try:
+                        below_cell = ws.cell(row=cell.row + 1, column=cell.column)
+                        if below_cell.value in (None, ""):
+                            below_loc_id = f"{ws.title}!{below_cell.coordinate}"
+                            lines.append(f"  [ID={below_loc_id}] current='' (blank target cell below {cell.coordinate})")
+                            count += 1
+                    except Exception:
+                        pass
                 if stop:
                     break
             if stop:
@@ -810,12 +829,23 @@ def _extract_template_schema(template_path: str, fmt_key: str, max_items: int = 
             lines.append(f"TABLE {ti}: {len(table.rows)} rows x {len(table.columns)} cols")
             for ri, row in enumerate(table.rows):
                 for ci, cell in enumerate(row.cells):
-                    if not cell.text.strip():
+                    is_empty = not cell.text.strip()
+                    if is_empty and ri == 0:
                         continue
                     if count >= max_items:
                         lines.append(f"... (truncated at {max_items} items; more exist)")
                         return "\n".join(lines), None
-                    lines.append(f"  [ID=table:{ti}:{ri}:{ci}] current={cell.text[:200]!r}")
+                    if is_empty:
+                        # Find the header text for this column if available
+                        header_text = ""
+                        try:
+                            header_text = table.rows[0].cells[ci].text.strip()
+                        except Exception:
+                            pass
+                        header_desc = f" (target cell under column header {header_text!r})" if header_text else ""
+                        lines.append(f"  [ID=table:{ti}:{ri}:{ci}] current=''{header_desc}")
+                    else:
+                        lines.append(f"  [ID=table:{ti}:{ri}:{ci}] current={cell.text[:200]!r}")
                     count += 1
         return "\n".join(lines) or "(empty document)", None
 
@@ -886,7 +916,12 @@ def _extract_json_object(text: str):
 
 _FIELD_MAPPING_SYSTEM_PROMPT = """You are a precise field-mapping engine. You are given the exact existing structure of a document template (a list of labeled locations, each tagged with a stable [ID=...] locator) and a Markdown report containing data. Your ONLY job is to map values from the report onto the matching template locations - you do not write any code and you do not generate a document.
 
-For each template location, decide what value (if any) from the report belongs there, based on genuinely matching context (what the location's current content/label suggests it represents) - not just superficially similar names. Only map a location if you are confident it's a real match; leave ambiguous or unmatched locations out of your answer entirely rather than guessing.
+For each template location, decide what value (if any) from the report belongs there, based on genuinely matching context (what the location's current content/label suggests it represents) - not just superficially similar names. Even if no explicit user instructions are provided, you must automatically identify logical mappings between the report data and the template structure.
+
+Use these structural and spatial context rules to decide mappings:
+1. Spreadsheet cell adjacency: In spreadsheets (IDs containing '!'), the descriptive label is typically in an adjacent cell on the same row. For example, if cell 'Sheet1!A4' contains 'Revenue' and cell 'Sheet1!B4' contains '[VALUE]', '____', or is empty, associate the value for 'Revenue' from the report with the ID 'Sheet1!B4'.
+2. Table header context: In tables (IDs starting with 'table:'), the first row (row 0) contains the column headers describing what values should go in subsequent rows (e.g., 'table:0:0:1' is a header, and 'table:0:1:1' is the corresponding data slot).
+3. Text placeholders: In text paragraphs, current placeholders (like '[VALUE]', '____', or '{{name}}') are target slots.
 
 How much text to output depends on the location type - read its ID prefix:
 - IDs containing "!" (spreadsheet cells) and IDs starting with "field:" (PDF form fields) are ATOMIC value slots - output ONLY the bare data value (e.g. "24.8%", "$1,234.56", "42"), never a label.
