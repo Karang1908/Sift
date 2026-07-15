@@ -214,3 +214,26 @@ Wiped all user-generated runtime data to restore a fresh-start state. User accou
 
 **Verification:** All 9 data directories contain only their `.gitkeep` file. `activity.jsonl` is 0 bytes. No `__pycache__` directories exist.
 
+---
+
+### 03:25 PM — Comprehensive Bug Audit & Remediation (Export Multi-Run, Race Conditions, XSS, Template Splicing)
+
+**Files:** [app.py](file:///Users/karangarg/Desktop/file%20parsing/app.py), [static/script.js](file:///Users/karangarg/Desktop/file%20parsing/static/script.js), [static/admin.js](file:///Users/karangarg/Desktop/file%20parsing/static/admin.js), [verify_integration.py](file:///Users/karangarg/Desktop/file%20parsing/verify_integration.py)
+
+Performed an exhaustive line-by-line audit across both frontend and backend modules to fix critical race conditions, security vulnerabilities, and workflow deadlocks:
+
+1. **Multiple Sequential Exports & Button State Deadlocks (`script.js`)**:
+   - Fixed `runSkillExport` locking export buttons permanently after the first export due to inflexible `finally` block unlocking. Added `updateExportButtonsState()` execution across all export modal completion paths and added cross-tab `localStorage` event sync (`onstorage`) so state transitions update across open tabs immediately.
+   - Refactored `createProgressController` across file upload (`#upload-progress`), AI analysis (`#process-progress`), and exporting (`#export-progress`). Replaced rigid CSS classes with explicit inline styles and added proper `hideTimeoutId` cancellation (`clearTimeout(hideTimeoutId)`) to eliminate progress bar flicker and early hides.
+2. **Template Splicing & Normalization (`app.py`)**:
+   - Upgraded `_splice_xlsx_template`, `_splice_docx_template`, and `_splice_pdf_form_template` to clean `[ID=...]` wrappers, quotes, `$` signs, and whitespace from `loc_id` before matching against lookup tables. This guarantees exact matches even when the LLM formats location identifiers differently during template mapping.
+   - Fixed `delete_file` directory deletion `500` crashes by sanitizing `safe_filename` and verifying `os.path.isfile()` before attempting removal.
+   - Resolved SSE `JSONDecodeError` failures inside `_stream_process` by skipping non-JSON keep-alive lines instead of aborting the generator stream.
+3. **Security Sanitations (`script.js`, `admin.js`)**:
+   - Integrated `DOMPurify.sanitize()` into `renderAccumulatedMarkdown()` before injecting LLM markdown output into `#output-body`.
+   - Upgraded `escapeHtml()` in `admin.js` to escape single (`&#39;`) and double (`&quot;`) quotes to prevent DOM attribute injection vulnerabilities.
+4. **Integration Verification (`verify_integration.py`)**:
+   - Updated `BASE_URL` to default to `http://127.0.0.1:8000` (`SIFT_BASE_URL` env var override) matching the standard uvicorn configuration in `GEMINI.md`.
+
+**Verification:** `python3 -m py_compile app.py verify_integration.py test_backend.py audit_log.py parser_utils.py` passes. `node --check static/script.js static/admin.js` passes. `python3 test_backend.py` unit and connection tests pass cleanly.
+

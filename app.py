@@ -469,16 +469,24 @@ async def upload_file(file: UploadFile = File(...), user: str = Depends(get_curr
 @app.delete("/api/files/{filename}")
 def delete_file(filename: str, user: str = Depends(get_current_user)):
     safe_filename = os.path.basename(filename)
+    if not safe_filename or safe_filename in (".", ".."):
+        raise HTTPException(status_code=400, detail="Invalid filename")
     filepath = os.path.join(user_upload_dir(user), safe_filename)
     cache_path = os.path.join(user_cache_dir(user), f"{safe_filename}.txt")
 
     deleted = False
-    if os.path.exists(filepath):
-        os.remove(filepath)
-        deleted = True
-    if os.path.exists(cache_path):
-        os.remove(cache_path)
-        deleted = True
+    if os.path.isfile(filepath):
+        try:
+            os.remove(filepath)
+            deleted = True
+        except OSError:
+            pass
+    if os.path.isfile(cache_path):
+        try:
+            os.remove(cache_path)
+            deleted = True
+        except OSError:
+            pass
 
     if not deleted:
         raise HTTPException(status_code=404, detail="File not found")
@@ -1038,35 +1046,33 @@ def _splice_xlsx_template(template_path: str, mapping: dict):
     lookup = {}
     for sname in wb.sheetnames:
         ws = wb[sname]
-        sname_norm = sname.replace(" ", "").lower()
+        sname_norm = re.sub(r"[\s$'\"]", "", sname).lower()
         for row in ws.iter_rows():
             for cell in row:
                 coord = cell.coordinate
-                # Fully qualified: e.g. "sheet1!b4"
-                lookup[f"{sname_norm}!{coord.lower()}"] = (sname, coord)
-                # Spaces in sheet name: "sheet 1!b4"
-                lookup[f"{sname.lower()}!{coord.lower()}"] = (sname, coord)
-                # Coordinate only: "b4" (useful for single sheet workbooks)
-                if coord.lower() not in lookup:
-                    lookup[coord.lower()] = (sname, coord)
+                coord_norm = re.sub(r"[\s$'\"]", "", coord).lower()
+                lookup[f"{sname_norm}!{coord_norm}"] = (sname, coord)
+                if coord_norm not in lookup:
+                    lookup[coord_norm] = (sname, coord)
 
     for loc_id, value in mapping.items():
         if not loc_id or not isinstance(loc_id, str):
             continue
-        norm_key = loc_id.replace(" ", "").lower()
+        loc_clean = re.sub(r"^\[?ID=", "", loc_id, flags=re.I).rstrip("]").strip()
+        norm_key = re.sub(r"[\s$'\"]", "", loc_clean).lower()
         if norm_key in lookup:
             sname, coord = lookup[norm_key]
             ws = wb[sname]
             coerced, _ = smart_value(str(value))
             ws[coord].value = coerced
             applied += 1
-        elif "!" in loc_id:
-            parts = loc_id.split("!", 1)
-            sheet_part = parts[0].strip().lower()
-            cell_part = parts[1].strip().upper()
+        elif "!" in loc_clean:
+            parts = loc_clean.split("!", 1)
+            sheet_part = re.sub(r"[\s$'\"]", "", parts[0]).lower()
+            cell_part = re.sub(r"[\s$'\"]", "", parts[1]).upper()
             matched_sheet = None
             for sname in wb.sheetnames:
-                if sname.strip().lower() == sheet_part:
+                if re.sub(r"[\s$'\"]", "", sname).lower() == sheet_part:
                     matched_sheet = sname
                     break
             if matched_sheet:
@@ -1104,7 +1110,8 @@ def _splice_docx_template(template_path: str, mapping: dict):
     for loc_id, value in mapping.items():
         if not loc_id or not isinstance(loc_id, str):
             continue
-        norm_key = loc_id.replace(" ", "").lower()
+        loc_clean = re.sub(r"^\[?ID=", "", loc_id, flags=re.I).rstrip("]").strip()
+        norm_key = loc_clean.replace(" ", "").lower()
         text = str(value)
         if "paragraph" in norm_key:
             num_part = "".join(ch for ch in norm_key if ch.isdigit())
@@ -1158,7 +1165,8 @@ def _splice_pdf_form_template(template_path: str, mapping: dict):
     for loc_id, value in mapping.items():
         if not loc_id or not isinstance(loc_id, str):
             continue
-        norm_key = loc_id.lower().strip()
+        loc_clean = re.sub(r"^\[?ID=", "", loc_id, flags=re.I).rstrip("]").strip()
+        norm_key = loc_clean.lower().strip()
         if norm_key.startswith("field:"):
             norm_key = norm_key.split(":", 1)[1].strip()
         
@@ -1593,6 +1601,9 @@ async def process_files(data: dict, user: str = Depends(get_current_user)):
                         if line:
                             try:
                                 chunk = json.loads(line)
+                            except json.JSONDecodeError:
+                                continue
+                            try:
                                 content = chunk.get("message", {}).get("content", "")
                                 done = chunk.get("done", False)
                                 accumulated.append(content)

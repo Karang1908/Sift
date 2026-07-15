@@ -17,14 +17,19 @@ async function apiFetch(url, options = {}) {
     const response = await fetch(url, options);
     if (response.status === 401 || response.status === 403) {
         window.location.href = '/static/index.html';
+        throw new Error('Unauthorized');
     }
     return response;
 }
 
 function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str === null || str === undefined ? '' : String(str);
-    return div.innerHTML;
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
 }
 
 function formatTime(ts) {
@@ -155,6 +160,7 @@ function formatActivityDetails(entry) {
 }
 
 async function refreshActivity() {
+    await loadUsers();
     const username = document.getElementById('activity-user-filter').value;
     const action = document.getElementById('activity-action-filter').value;
     const params = new URLSearchParams();
@@ -189,6 +195,7 @@ document.getElementById('activity-action-filter').addEventListener('change', ref
 // ── Uploads ──────────────────────────────────────────────────────────
 
 async function refreshUploads() {
+    await loadUsers();
     const username = document.getElementById('uploads-user-filter').value;
     const params = new URLSearchParams();
     if (username) params.set('username', username);
@@ -222,6 +229,7 @@ document.getElementById('uploads-user-filter').addEventListener('change', refres
 // ── Analysis runs ────────────────────────────────────────────────────
 
 async function refreshAnalysis() {
+    await loadUsers();
     const username = document.getElementById('analysis-user-filter').value;
     const params = new URLSearchParams();
     if (username) params.set('username', username);
@@ -264,7 +272,7 @@ async function viewAnalysis(btn) {
     const data = await response.json();
     document.getElementById('analysis-modal-title').textContent = `${username} — ${formatTime(data.ts)}`;
     document.getElementById('analysis-modal-prompt').textContent = `Prompt: ${data.prompt}`;
-    document.getElementById('analysis-modal-content').textContent = data.content;
+    document.getElementById('analysis-modal-content').textContent = data.content || '(No output content generated)';
     document.getElementById('analysis-modal-overlay').classList.remove('hidden');
 }
 
@@ -275,6 +283,7 @@ document.getElementById('analysis-modal-close').addEventListener('click', () => 
 // ── Exports ──────────────────────────────────────────────────────────
 
 async function refreshExports() {
+    await loadUsers();
     const username = document.getElementById('exports-user-filter').value;
     const params = new URLSearchParams();
     if (username) params.set('username', username);
@@ -308,6 +317,7 @@ document.getElementById('exports-user-filter').addEventListener('change', refres
 // ── Presets & Templates ──────────────────────────────────────────────
 
 async function refreshPresets() {
+    await loadUsers();
     const userFilter = document.getElementById('presets-user-filter').value;
     const tbody = document.getElementById('presets-tbody');
     tbody.innerHTML = '<tr class="empty-row"><td colspan="5">Loading...</td></tr>';

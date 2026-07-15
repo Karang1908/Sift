@@ -67,6 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let current = 0;
         let ceiling = 100;
         let intervalId = null;
+        let hideTimeoutId = null;
 
         function render() {
             const clamped = Math.min(current, 100);
@@ -78,6 +79,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (intervalId) {
                 clearInterval(intervalId);
                 intervalId = null;
+            }
+            if (hideTimeoutId) {
+                clearTimeout(hideTimeoutId);
+                hideTimeoutId = null;
             }
         }
 
@@ -108,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
             stopTrickle();
             current = 100;
             render();
-            setTimeout(() => containerEl.classList.add('hidden'), 500);
+            hideTimeoutId = setTimeout(() => containerEl.classList.add('hidden'), 500);
         }
 
         function reset() {
@@ -149,7 +154,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Resolves to `true`/`false` for a plain confirmation, or the entered
     // string / `null` when `showInput` is used (Cancel, overlay click, and
     // Escape all resolve to the "negative" outcome).
+    let activeModalCleanup = null;
     function showModal({ title, message, showInput = false, inputValue = "", confirmText = "Confirm", danger = false }) {
+        if (activeModalCleanup) activeModalCleanup();
         return new Promise((resolve) => {
             modalTitle.textContent = title;
             modalMessage.textContent = message;
@@ -177,7 +184,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 modalCancelBtn.removeEventListener('click', onCancel);
                 modalOverlay.removeEventListener('mousedown', onOverlayClick);
                 document.removeEventListener('keydown', onKeydown);
+                activeModalCleanup = null;
             }
+
+            activeModalCleanup = () => { cleanup(); resolve(showInput ? null : false); };
 
             function onConfirm() {
                 cleanup();
@@ -403,7 +413,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const response = await apiFetch(`/api/export-presets/${encodeURIComponent(name)}`, { method: 'DELETE' });
-            if (!response.ok) throw new Error("Delete failed on server");
+            if (!response.ok) {
+                let detail = "Delete failed on server";
+                try { const err = await response.json(); detail = err.detail || detail; } catch (e) {}
+                throw new Error(detail);
+            }
             state.currentPresetName = "";
             await fetchExportPresets(fmt);
             renderExportPresetOptions(fmt);
@@ -455,6 +469,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function uploadExportTemplate(fmt, file) {
         if (!file) return;
         const state = exportState[fmt];
+        const browseBtn = document.querySelector(`.export-template-browse-btn[data-format="${fmt}"]`);
+        const clearBtn = document.querySelector(`.export-template-clear-btn[data-format="${fmt}"]`);
+        if (browseBtn) browseBtn.disabled = true;
+        if (clearBtn) clearBtn.disabled = true;
         const xhr = new XMLHttpRequest();
         xhr.open('POST', '/api/export-templates');
         xhr.upload.onprogress = () => {
@@ -462,6 +480,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // modal's progress-status text doubles as the upload indicator.
         };
         xhr.onload = () => {
+            if (browseBtn) browseBtn.disabled = false;
+            if (clearBtn) clearBtn.disabled = false;
             if (xhr.status === 401) {
                 showLoginOverlay('Your session expired. Please log in again.');
                 return;
@@ -483,6 +503,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
         xhr.onerror = () => {
+            if (browseBtn) browseBtn.disabled = false;
+            if (clearBtn) clearBtn.disabled = false;
             showOutputMessage(`[TEMPLATE ERROR] Network error uploading template.`, true);
         };
         const formData = new FormData();
@@ -674,6 +696,7 @@ document.addEventListener('DOMContentLoaded', () => {
         uploadedFiles = [];
         savedPresets = [];
         accumulatedOutput = '';
+        promptInput.value = '';
         
         // Reset export modal state per format
         for (const fmt of EXPORT_FORMATS) {
@@ -690,12 +713,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         currentPresetName = '';
         
-        // Reset DOM elements
+        // Reset DOM elements and buttons
         outputBody.innerHTML = '<div class="output-placeholder">AI analysis output will appear here...</div>';
         const rows = fileListBody.querySelectorAll('tr:not(#empty-row)');
         rows.forEach(r => r.remove());
         const emptyRow = document.getElementById('empty-row');
         if (emptyRow) emptyRow.classList.remove('hidden');
+        if (modalOverlay) modalOverlay.classList.add('hidden');
+        if (exportInstructionsOverlay) exportInstructionsOverlay.classList.add('hidden');
+        updateRunButtonState();
+        updateEnhanceButtonState();
+        updateExportButtonsState();
         
         showLoginOverlay();
     });
@@ -740,13 +768,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     presetDropdownToggle.addEventListener('click', (e) => {
         e.stopPropagation();
+        for (const f of EXPORT_FORMATS) closeExportPresetMenu(f);
         presetMenuOpen ? closePresetMenu() : openPresetMenu();
     });
     document.addEventListener('click', (e) => {
         if (presetMenuOpen && !presetDropdown.contains(e.target)) closePresetMenu();
+        for (const f of EXPORT_FORMATS) {
+            const toggle = document.getElementById(`export-preset-dropdown-toggle-${f}`);
+            const menu = document.getElementById(`export-preset-dropdown-menu-${f}`);
+            if (exportState[f].menuOpen && toggle && !toggle.contains(e.target) && menu && !menu.contains(e.target)) {
+                closeExportPresetMenu(f);
+            }
+        }
     });
     window.addEventListener('resize', () => {
         if (presetMenuOpen) closePresetMenu();
+        for (const f of EXPORT_FORMATS) {
+            if (exportState[f].menuOpen) closeExportPresetMenu(f);
+        }
     });
     savePresetBtn.addEventListener('click', savePromptAsPreset);
     deletePresetBtn.addEventListener('click', deleteSelectedPreset);
@@ -774,6 +813,9 @@ document.addEventListener('DOMContentLoaded', () => {
         exportPDFBtn.disabled = !hasOutput;
         exportExcelBtn.disabled = !hasOutput;
         exportWordBtn.disabled = !hasOutput;
+        document.querySelectorAll('.export-from-modal-btn').forEach(btn => {
+            btn.disabled = !hasOutput;
+        });
     }
 
     function formatBytes(bytes, decimals = 2) {
@@ -942,10 +984,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!confirmed) return;
 
         try {
-            const response = await apiFetch(`/api/presets/${encodeURIComponent(name)}`, {
-                method: 'DELETE'
-            });
-            if (!response.ok) throw new Error("Delete failed on server");
+            const response = await apiFetch(`/api/presets/${encodeURIComponent(name)}`, { method: 'DELETE' });
+            if (!response.ok) {
+                let detail = "Delete failed on server";
+                try { const err = await response.json(); detail = err.detail || detail; } catch (e) {}
+                throw new Error(detail);
+            }
             await fetchPresets();
             showOutputMessage(`[SYSTEM] Deleted preset: ${name}`);
         } catch (error) {
@@ -1195,6 +1239,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Flush unconditionally so the final chunk is never dropped by a
             // still-pending animation frame.
+            if (pendingRenderFrame) cancelAnimationFrame(pendingRenderFrame);
+            pendingRenderFrame = null;
             renderAccumulatedMarkdown();
             runProgress.complete();
 
@@ -1228,7 +1274,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderAccumulatedMarkdown() {
         if (window.marked) {
-            outputBody.innerHTML = window.marked.parse(accumulatedOutput);
+            const parsed = window.marked.parse(accumulatedOutput);
+            outputBody.innerHTML = window.DOMPurify ? window.DOMPurify.sanitize(parsed) : parsed;
         } else {
             outputBody.textContent = accumulatedOutput;
         }
@@ -1376,6 +1423,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
+            if (buffer.trim().startsWith("data: ")) {
+                const jsonStr = buffer.replace("data: ", "").trim();
+                try {
+                    const evt = JSON.parse(jsonStr);
+                    if (evt.stage === "file") {
+                        exportProgress.complete();
+                        const bytes = Uint8Array.from(atob(evt.file_b64), c => c.charCodeAt(0));
+                        const blob = new Blob([bytes], { type: evt.mime_type });
+                        const link = document.createElement('a');
+                        const url = URL.createObjectURL(blob);
+                        link.href = url;
+                        link.setAttribute('download', evt.filename || filename);
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        setTimeout(() => URL.revokeObjectURL(url), 100);
+                        showOutputMessage(evt.ai_generated
+                            ? `[SYSTEM] ${label} file exported successfully (AI-designed layout).`
+                            : `[SYSTEM] ${label} file exported successfully (AI layout unavailable, used standard formatting).`);
+                        progressStatus.textContent = "Ready.";
+                        return;
+                    }
+                } catch (e) {}
+            }
+
             // Stream ended without a "file" event - treat as failure.
             throw new Error(lastMessage || `${label} generation ended without producing a file`);
         } catch (error) {
@@ -1455,6 +1527,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         toggle.addEventListener('click', (e) => {
             e.stopPropagation();
+            if (presetMenuOpen) closePresetMenu();
+            for (const f of EXPORT_FORMATS) if (f !== fmt) closeExportPresetMenu(f);
             const state = exportState[fmt];
             if (state.menuOpen) closeExportPresetMenu(fmt);
             else openExportPresetMenu(fmt);

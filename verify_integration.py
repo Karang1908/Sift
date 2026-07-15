@@ -3,7 +3,7 @@ import sys
 import requests
 import json
 
-BASE_URL = "http://127.0.0.1:8001"
+BASE_URL = os.environ.get("SIFT_BASE_URL", "http://127.0.0.1:8000")
 
 # Every /api/* route except /api/login and /api/logout now requires a valid
 # session (see app.py's get_current_user dependency), so this script needs
