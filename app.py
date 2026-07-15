@@ -997,20 +997,51 @@ def _splice_xlsx_template(template_path: str, mapping: dict):
     import openpyxl as _openpyxl
     wb = _openpyxl.load_workbook(template_path)
     applied = 0
+    
+    # Build lookup table of normalized coordinates to (sheet_name, cell_ref)
+    lookup = {}
+    for sname in wb.sheetnames:
+        ws = wb[sname]
+        sname_norm = sname.replace(" ", "").lower()
+        for row in ws.iter_rows():
+            for cell in row:
+                coord = cell.coordinate
+                # Fully qualified: e.g. "sheet1!b4"
+                lookup[f"{sname_norm}!{coord.lower()}"] = (sname, coord)
+                # Spaces in sheet name: "sheet 1!b4"
+                lookup[f"{sname.lower()}!{coord.lower()}"] = (sname, coord)
+                # Coordinate only: "b4" (useful for single sheet workbooks)
+                if coord.lower() not in lookup:
+                    lookup[coord.lower()] = (sname, coord)
+
     for loc_id, value in mapping.items():
-        if "!" not in loc_id:
+        if not loc_id or not isinstance(loc_id, str):
             continue
-        sheet_name, cell_ref = loc_id.split("!", 1)
-        if sheet_name not in wb.sheetnames:
-            continue
-        ws = wb[sheet_name]
-        try:
-            cell = ws[cell_ref]
-        except (KeyError, ValueError):
-            continue
-        coerced, _ = smart_value(str(value))
-        cell.value = coerced
-        applied += 1
+        norm_key = loc_id.replace(" ", "").lower()
+        if norm_key in lookup:
+            sname, coord = lookup[norm_key]
+            ws = wb[sname]
+            coerced, _ = smart_value(str(value))
+            ws[coord].value = coerced
+            applied += 1
+        elif "!" in loc_id:
+            parts = loc_id.split("!", 1)
+            sheet_part = parts[0].strip().lower()
+            cell_part = parts[1].strip().upper()
+            matched_sheet = None
+            for sname in wb.sheetnames:
+                if sname.strip().lower() == sheet_part:
+                    matched_sheet = sname
+                    break
+            if matched_sheet:
+                ws = wb[matched_sheet]
+                try:
+                    ws[cell_part]
+                    coerced, _ = smart_value(str(value))
+                    ws[cell_part].value = coerced
+                    applied += 1
+                except Exception:
+                    pass
     out = io.BytesIO()
     wb.save(out)
     return out.getvalue(), applied
@@ -1035,36 +1066,38 @@ def _splice_docx_template(template_path: str, mapping: dict):
             p.add_run(text)
 
     for loc_id, value in mapping.items():
+        if not loc_id or not isinstance(loc_id, str):
+            continue
+        norm_key = loc_id.replace(" ", "").lower()
         text = str(value)
-        if loc_id.startswith("paragraph:"):
-            try:
-                idx = int(loc_id.split(":", 1)[1])
-            except ValueError:
-                continue
-            if idx >= len(doc.paragraphs):
-                continue
-            _set_paragraph_text(doc.paragraphs[idx], text)
-            applied += 1
-        elif loc_id.startswith("table:"):
-            parts = loc_id.split(":")
-            if len(parts) != 4:
-                continue
-            try:
-                ti, ri, ci = int(parts[1]), int(parts[2]), int(parts[3])
-            except ValueError:
-                continue
-            if ti >= len(doc.tables):
-                continue
-            table = doc.tables[ti]
-            if ri >= len(table.rows) or ci >= len(table.columns):
-                continue
-            cell = table.rows[ri].cells[ci]
-            if cell.paragraphs:
-                _set_paragraph_text(cell.paragraphs[0], text)
-            else:
-                cell.text = text
-            applied += 1
-
+        if "paragraph" in norm_key:
+            num_part = "".join(ch for ch in norm_key if ch.isdigit())
+            if num_part:
+                try:
+                    idx = int(num_part)
+                    if idx < len(doc.paragraphs):
+                        _set_paragraph_text(doc.paragraphs[idx], text)
+                        applied += 1
+                except Exception:
+                    pass
+        elif "table" in norm_key:
+            parts = [int(s) for s in re.findall(r"\d+", norm_key)]
+            if len(parts) >= 3:
+                try:
+                    ti, ri, ci = parts[0], parts[1], parts[2]
+                    if ti < len(doc.tables):
+                        table = doc.tables[ti]
+                        if ri < len(table.rows):
+                            row = table.rows[ri]
+                            if ci < len(row.cells):
+                                cell = row.cells[ci]
+                                if cell.paragraphs:
+                                    _set_paragraph_text(cell.paragraphs[0], text)
+                                else:
+                                    cell.text = text
+                                applied += 1
+                except Exception:
+                    pass
     out = io.BytesIO()
     doc.save(out)
     return out.getvalue(), applied
@@ -1079,17 +1112,32 @@ def _splice_pdf_form_template(template_path: str, mapping: dict):
     writer = _PdfWriter()
     writer.append(reader)
 
-    fields = {}
-    for loc_id, value in mapping.items():
-        if loc_id.startswith("field:"):
-            fields[loc_id.split(":", 1)[1]] = str(value)
+    fields_lookup = {}
+    orig_fields = reader.get_fields() or {}
+    for name in orig_fields.keys():
+        fields_lookup[name.lower().strip()] = name
 
-    for page in writer.pages:
-        writer.update_page_form_field_values(page, fields)
+    applied = 0
+    fields_to_update = {}
+    for loc_id, value in mapping.items():
+        if not loc_id or not isinstance(loc_id, str):
+            continue
+        norm_key = loc_id.lower().strip()
+        if norm_key.startswith("field:"):
+            norm_key = norm_key.split(":", 1)[1].strip()
+        
+        if norm_key in fields_lookup:
+            actual_name = fields_lookup[norm_key]
+            fields_to_update[actual_name] = str(value)
+            applied += 1
+
+    if fields_to_update:
+        for page in writer.pages:
+            writer.update_page_form_field_values(page, fields_to_update)
 
     out = io.BytesIO()
     writer.write(out)
-    return out.getvalue(), len(fields)
+    return out.getvalue(), applied
 
 
 async def _run_template_clone_pipeline(markdown_text: str, fmt: ExportFormat, username: str,
