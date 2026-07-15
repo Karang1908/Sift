@@ -491,10 +491,36 @@ def list_files(user: str = Depends(get_current_user)):
 
 @app.get("/api/admin/users")
 async def admin_list_users(admin: str = Depends(get_current_admin)):
-    return [
-        {"username": name, "is_admin": bool(info.get("is_admin"))}
-        for name, info in sorted(USERS.items())
-    ]
+    results = []
+    for name, info in sorted(USERS.items()):
+        prompt_file = user_presets_file(name)
+        prompt_presets = await asyncio.to_thread(_load_presets_sync, prompt_file)
+        
+        export_file = user_export_presets_file(name)
+        export_presets = await asyncio.to_thread(_load_export_presets_sync, export_file)
+        
+        formatted_prompts = [
+            {"name": k, "prompt": v.get("prompt", ""), "updated_at": v.get("updated_at")}
+            for k, v in sorted(prompt_presets.items())
+        ]
+        formatted_exports = [
+            {
+                "name": k, 
+                "format": v.get("format", ""), 
+                "instructions": v.get("instructions", ""),
+                "template_filename": v.get("template_filename"),
+                "updated_at": v.get("updated_at")
+            }
+            for k, v in sorted(export_presets.items())
+        ]
+        
+        results.append({
+            "username": name,
+            "is_admin": bool(info.get("is_admin")),
+            "prompt_presets": formatted_prompts,
+            "export_presets": formatted_exports
+        })
+    return results
 
 
 @app.get("/api/admin/activity")
@@ -588,6 +614,26 @@ async def admin_download_export(username: str, record_id: str, admin: str = Depe
         raise HTTPException(status_code=404, detail="Archived export not found")
     path, original_filename = result
     return FileResponse(path, filename=original_filename)
+
+
+@app.get("/api/admin/export-templates/{username}/{filename}/download")
+async def admin_download_export_template(
+    username: str, filename: str, original_name: Optional[str] = None, admin: str = Depends(get_current_admin)
+):
+    _validate_admin_target_username(username)
+    if not _is_template_filename_valid(username, filename):
+        raise HTTPException(status_code=400, detail="Invalid template filename")
+    
+    path = _template_path(username, filename)
+    if not os.path.exists(path):
+        raise HTTPException(status_code=404, detail="Template file not found")
+        
+    download_name = original_name or filename
+    return FileResponse(
+        path=path,
+        filename=download_name,
+        media_type="application/octet-stream"
+    )
 
 
 @app.get("/api/presets")

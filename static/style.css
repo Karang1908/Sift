@@ -96,7 +96,7 @@ body {
 .header-username {
     font-size: 0.85rem;
     font-weight: 600;
-    color: #334155;
+    color: #ffffff;
 }
 
 /* Login screen - full-viewport, shown by default until checkAuth() confirms
@@ -326,6 +326,63 @@ body {
     border-bottom: 1px solid #e2e8f0;
     color: #334155;
     vertical-align: middle;
+}
+
+/* Admin Panel Table Grid System */
+.file-table th.col-time,
+.file-table td.col-time {
+    width: 180px;
+    min-width: 180px;
+    white-space: nowrap;
+}
+
+.file-table th.col-user,
+.file-table td.col-user {
+    width: 100px;
+    min-width: 100px;
+    white-space: nowrap;
+}
+
+.file-table th.col-action-type,
+.file-table td.col-action-type {
+    width: 120px;
+    min-width: 120px;
+    white-space: nowrap;
+}
+
+.file-table th.col-number,
+.file-table td.col-number {
+    width: 80px;
+    min-width: 80px;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.file-table th.col-btn,
+.file-table td.col-btn {
+    width: 110px;
+    min-width: 110px;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.file-table td.col-time {
+    color: #64748b; /* Cool grey in light mode */
+    font-size: 0.8rem;
+}
+
+.file-table td.col-text {
+    max-width: 400px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.file-table td.col-text-wrap {
+    max-width: 450px;
+    word-break: break-all;
+    white-space: normal;
+    line-height: 1.4;
 }
 
 .empty-row td {
@@ -728,12 +785,14 @@ textarea:focus {
    JS/DOM state with script.js. Only what has no existing equivalent lives
    here. */
 .admin-container {
-    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 60px);
+    overflow: hidden;
     max-width: 1400px;
     width: 100%;
     margin: 0 auto;
-    padding: 1.5rem;
-    overflow-y: auto;
+    padding: 1.5rem 2rem;
 }
 
 .admin-tabs {
@@ -741,6 +800,7 @@ textarea:focus {
     border-bottom: 1px solid #cbd5e1;
     margin-bottom: 1rem;
     gap: 0.25rem;
+    flex-shrink: 0;
 }
 
 .admin-tab {
@@ -767,10 +827,13 @@ textarea:focus {
 
 .admin-section {
     display: none;
+    flex: 1;
+    min-height: 0;
 }
 
 .admin-section.active {
-    display: block;
+    display: flex;
+    flex-direction: column;
 }
 
 .admin-filters {
@@ -778,6 +841,20 @@ textarea:focus {
     gap: 0.5rem;
     align-items: center;
     margin-bottom: 0.75rem;
+    flex-shrink: 0;
+}
+
+.admin-section .panel {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-section .file-list-container {
+    flex: 1;
+    margin-top: 0;
+    overflow-y: auto;
 }
 
 .admin-filters select {
@@ -805,26 +882,108 @@ textarea:focus {
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem;
+    overflow-y: auto;
+    flex: 1;
 }
 
 .admin-user-card {
     background: #ffffff;
     border: 1px solid #cbd5e1;
     border-radius: 4px;
-    padding: 0.6rem 1rem;
+    padding: 1rem;
     font-size: 0.85rem;
     color: #334155;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-width: 290px;
+    flex: 1 1 340px;
+    height: fit-content;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.admin-user-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.95rem;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 0.5rem;
+    width: 100%;
 }
 
 .admin-user-card .role {
     display: inline-block;
-    margin-left: 0.5rem;
     font-size: 0.7rem;
     font-weight: 600;
     color: #1e3a8a;
     background: #eff6ff;
     padding: 0.1rem 0.4rem;
     border-radius: 3px;
+}
+
+.admin-user-presets-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.admin-user-presets-section h4 {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #475569;
+    margin: 0;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 0.2rem;
+}
+
+.admin-user-presets-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.admin-user-presets-list li {
+    font-size: 0.78rem;
+    margin-bottom: 0.4rem;
+    border-bottom: 1px dashed rgba(0, 0, 0, 0.04);
+    padding-bottom: 0.3rem;
+}
+
+.admin-user-presets-list li:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.preset-name {
+    font-weight: 600;
+    color: #1e3a8a;
+    display: block;
+    margin-bottom: 0.1rem;
+}
+
+.preset-value {
+    display: block;
+    color: #475569;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 320px;
+}
+
+.preset-template-tag {
+    font-size: 0.7rem;
+    color: #64748b;
+    margin-top: 0.15rem;
+    font-style: italic;
+}
+
+.admin-user-presets-empty {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    font-style: italic;
 }
 
 .admin-analysis-content {
@@ -881,6 +1040,10 @@ textarea:focus {
     align-items: center;
     justify-content: center;
     z-index: 2000;
+}
+
+#modal-overlay {
+    z-index: 2500; /* Ensure the generic naming/confirm dialog sits above other modals like export workspace */
 }
 
 .modal-box {
@@ -1010,5 +1173,630 @@ textarea:focus {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   DARK MODE — Claude.ai Warm Palette
+   ──────────────────────────────────────────────────────────────────────
+   Canvas:   #1a1815   Panels:   #22201c   Elevated: #2a2723
+   Border:   #33302a   Border-2: #3d3932   Border-3: #4b473f
+   Text-1:   #e8e6e3   Text-2:   #b0aba2   Text-3:   #6d6961
+   Accent:   #c15f3c   Accent-2: #d87757   Accent-3: #e89b76
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── Base ─────────────────────────────────────────────────────────────── */
+html.dark body {
+    color: #e8e6e3;
+    background-color: #1a1815;
+}
+
+/* ── Header ───────────────────────────────────────────────────────────── */
+html.dark .app-header {
+    background-color: #151311;
+    border-bottom: 2px solid #2d2924;
+}
+
+html.dark .header-username {
+    color: #b0aba2;
+}
+
+html.dark .model-badge {
+    background-color: rgba(193, 95, 60, 0.08);
+    border-color: rgba(193, 95, 60, 0.2);
+    color: #d87757;
+}
+
+/* Theme toggle button */
+#theme-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    color: #e8e6e3;
+    cursor: pointer;
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+
+#theme-toggle-btn:hover {
+    background-color: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: #ffffff;
+}
+
+#theme-toggle-btn svg {
+    width: 15px;
+    height: 15px;
+}
+
+html.dark #theme-toggle-btn {
+    border-color: rgba(193, 95, 60, 0.25);
+    color: #d87757;
+}
+
+html.dark #theme-toggle-btn:hover {
+    background-color: rgba(193, 95, 60, 0.08);
+    border-color: #c15f3c;
+    color: #ffffff;
+}
+
+/* ── Login Screen ─────────────────────────────────────────────────────── */
+html.dark .login-overlay {
+    background: linear-gradient(135deg, #0e0d0b 0%, #1a1815 50%, #22201c 100%);
+}
+
+html.dark .login-box {
+    background-color: #22201c;
+    color: #e8e6e3;
+    border: 1px solid #33302a;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.55);
+}
+
+html.dark .login-logo {
+    color: #c15f3c;
+}
+
+html.dark #login-form label {
+    color: #e8e6e3;
+}
+
+html.dark .login-error {
+    background-color: #3a1d1d;
+    color: #ff8e8e;
+    border-color: #5c1f1f;
+}
+
+/* ── Panels & Panel Headers ───────────────────────────────────────────── */
+html.dark .panel {
+    background-color: #22201c;
+    border-color: #33302a;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+html.dark .panel-header {
+    background-color: #2a2723;
+    border-bottom-color: #33302a;
+}
+
+html.dark .panel-header h2 {
+    color: #e8e6e3;
+}
+
+/* ── Upload Zone ──────────────────────────────────────────────────────── */
+html.dark .upload-zone {
+    border-color: #3d3932;
+    background-color: #1a1815;
+    color: #b0aba2;
+}
+
+html.dark .upload-zone:hover,
+html.dark .upload-zone.dragover {
+    border-color: #c15f3c;
+    background-color: rgba(193, 95, 60, 0.04);
+}
+
+html.dark .upload-zone .browse-link {
+    color: #d87757;
+}
+
+html.dark .file-limits {
+    color: #6d6961;
+}
+
+/* ── File List Container ──────────────────────────────────────────────── */
+html.dark .file-list-container {
+    border-color: #33302a;
+}
+
+/* ── Tables ────────────────────────────────────────────────────────────── */
+html.dark .file-table th {
+    background-color: #2a2723;
+    color: #b0aba2;
+    border-bottom-color: #33302a;
+}
+
+html.dark .file-table td {
+    border-bottom-color: #2a2723;
+    color: #e8e6e3;
+}
+
+html.dark .file-table tbody tr:hover td {
+    background-color: #2a2723;
+}
+
+html.dark .file-table td.col-time {
+    color: #b0aba2;
+}
+
+html.dark .empty-row td {
+    color: #6d6961;
+}
+
+/* ── Status Badges ────────────────────────────────────────────────────── */
+html.dark .status-badge.parsed {
+    background-color: rgba(143, 186, 106, 0.12);
+    color: #8fba6a;
+    border-color: rgba(143, 186, 106, 0.25);
+}
+
+html.dark .status-badge.pending {
+    background-color: rgba(232, 155, 118, 0.12);
+    color: #e89b76;
+    border-color: rgba(232, 155, 118, 0.25);
+}
+
+html.dark .status-badge.error {
+    background-color: rgba(241, 68, 68, 0.12);
+    color: #f14444;
+    border-color: rgba(241, 68, 68, 0.25);
+}
+
+/* ── Buttons ──────────────────────────────────────────────────────────── */
+html.dark .btn-primary {
+    background: linear-gradient(135deg, #c15f3c 0%, #d87757 100%);
+    color: #ffffff;
+    border-color: #c15f3c;
+    box-shadow: 0 4px 14px rgba(193, 95, 60, 0.2);
+}
+
+html.dark .btn-primary:hover:not(:disabled) {
+    background: linear-gradient(135deg, #d87757 0%, #e89b76 100%);
+    border-color: #d87757;
+    box-shadow: 0 6px 18px rgba(193, 95, 60, 0.35);
+    transform: translateY(-1px);
+}
+
+html.dark .btn-primary:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+html.dark .btn-primary:disabled {
+    background: #22201c;
+    border-color: #33302a;
+    color: #5b5750;
+    box-shadow: none;
+    transform: none;
+}
+
+html.dark .btn-secondary {
+    background-color: #2a2723;
+    color: #e8e6e3;
+    border-color: #3d3932;
+}
+
+html.dark .btn-secondary:hover:not(:disabled) {
+    background-color: #3d3932;
+    color: #ffffff;
+    border-color: #4b473f;
+}
+
+html.dark .btn-secondary:disabled {
+    background-color: #22201c;
+    border-color: #33302a;
+    color: #5b5750;
+}
+
+html.dark .btn-danger {
+    background-color: #3a1d1d;
+    color: #ff8e8e;
+    border-color: #5c1f1f;
+}
+
+html.dark .btn-danger:hover {
+    background-color: #5c1f1f;
+    color: #ffb8b8;
+    border-color: #ff8e8e;
+}
+
+html.dark .btn-icon {
+    background-color: #2a2723;
+    border-color: #3d3932;
+    color: #b0aba2;
+}
+
+html.dark .btn-icon:hover:not(:disabled) {
+    background-color: rgba(193, 95, 60, 0.1);
+    border-color: #c15f3c;
+    color: #ffffff;
+}
+
+/* ── Spinners ─────────────────────────────────────────────────────────── */
+html.dark .btn-secondary .spinner {
+    border-top-color: #d87757;
+    border-left-color: rgba(216, 119, 87, 0.3);
+}
+
+/* ── Form Controls (inputs, textareas, selects, labels) ───────────────── */
+html.dark input[type="text"],
+html.dark input[type="password"],
+html.dark textarea,
+html.dark select {
+    background-color: #1a1815;
+    color: #e8e6e3;
+    border-color: #33302a;
+}
+
+html.dark input[type="text"]:focus,
+html.dark input[type="password"]:focus,
+html.dark textarea:focus,
+html.dark select:focus {
+    border-color: #c15f3c;
+    box-shadow: 0 0 0 2px rgba(193, 95, 60, 0.2);
+    outline: none;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+    color: #5b5750;
+}
+
+html.dark label {
+    color: #b0aba2;
+}
+
+html.dark .form-group label {
+    color: #b0aba2;
+}
+
+html.dark .modal-input {
+    background-color: #1a1815;
+    color: #e8e6e3;
+    border-color: #33302a;
+}
+
+html.dark .modal-input:focus {
+    border-color: #c15f3c;
+    box-shadow: 0 0 0 2px rgba(193, 95, 60, 0.2);
+}
+
+/* ── Preset Dropdown ──────────────────────────────────────────────────── */
+html.dark .preset-dropdown-toggle {
+    background-color: #1a1815;
+    color: #e8e6e3;
+    border-color: #33302a;
+}
+
+html.dark .preset-dropdown-toggle:hover {
+    background-color: #22201c;
+    border-color: #c15f3c;
+    color: #ffffff;
+}
+
+html.dark .preset-dropdown.open .preset-dropdown-toggle {
+    border-color: #c15f3c;
+    box-shadow: 0 0 0 2px rgba(193, 95, 60, 0.15);
+}
+
+html.dark .preset-dropdown-caret {
+    color: #6d6961;
+}
+
+html.dark .preset-dropdown-menu {
+    background-color: #22201c;
+    border-color: #33302a;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.45);
+}
+
+html.dark .preset-dropdown-item {
+    color: #e8e6e3;
+}
+
+html.dark .preset-dropdown-item:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
+}
+
+html.dark .preset-dropdown-item.active {
+    background-color: rgba(193, 95, 60, 0.12);
+    color: #d87757;
+}
+
+html.dark .preset-dropdown-empty {
+    color: #6d6961;
+}
+
+/* ── Progress Bars ────────────────────────────────────────────────────── */
+html.dark .progress-bar-track {
+    background-color: #33302a;
+}
+
+html.dark .progress-bar-fill {
+    background: linear-gradient(90deg, #c15f3c 0%, #d87757 100%);
+    box-shadow: 0 0 8px rgba(193, 95, 60, 0.35);
+}
+
+html.dark .progress-bar-label {
+    color: #b0aba2;
+}
+
+html.dark .progress-status {
+    color: #d87757;
+}
+
+/* ── Output Container & Markdown ──────────────────────────────────────── */
+html.dark .output-container {
+    border-color: #33302a;
+    background-color: #1a1815;
+}
+
+html.dark .output-header {
+    background-color: #22201c;
+    border-bottom-color: #33302a;
+    color: #b0aba2;
+}
+
+html.dark .output-body {
+    background-color: #1a1815;
+    color: #e8e6e3;
+}
+
+html.dark .output-placeholder {
+    color: #5b5750;
+}
+
+html.dark .output-body h1,
+html.dark .output-body h2,
+html.dark .output-body h3,
+html.dark .output-body h4 {
+    color: #e8e6e3;
+}
+
+html.dark .output-body h1 {
+    border-bottom-color: #33302a;
+}
+
+html.dark .output-body strong {
+    color: #ffffff;
+}
+
+html.dark .output-body a {
+    color: #d87757;
+}
+
+html.dark .output-body pre {
+    background-color: #1a1815;
+    border: 1px solid #33302a;
+    color: #e8e6e3;
+}
+
+html.dark .output-body code {
+    background-color: rgba(193, 95, 60, 0.08);
+    color: #e89b76;
+}
+
+html.dark .output-body th {
+    background-color: #2a2723;
+    border-color: #33302a;
+    color: #e8e6e3;
+}
+
+html.dark .output-body td {
+    border-color: #33302a;
+    color: #e8e6e3;
+}
+
+html.dark .output-body blockquote {
+    border-left-color: #c15f3c;
+    background-color: #22201c;
+    color: #b0aba2;
+}
+
+html.dark .output-body hr {
+    border-color: #33302a;
+}
+
+/* ── Modals ────────────────────────────────────────────────────────────── */
+html.dark .modal-overlay {
+    background-color: rgba(10, 9, 8, 0.7);
+}
+
+html.dark .modal-box,
+html.dark .modal-box-wide {
+    background-color: #22201c;
+    color: #e8e6e3;
+    border: 1px solid #33302a;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+}
+
+html.dark .modal-title {
+    color: #e8e6e3;
+}
+
+html.dark .modal-message {
+    color: #b0aba2;
+}
+
+/* ── Export Modal Tabs ────────────────────────────────────────────────── */
+html.dark .export-tabs {
+    border-bottom-color: #33302a;
+}
+
+html.dark .export-tab {
+    color: #6d6961;
+}
+
+html.dark .export-tab:hover {
+    color: #d87757;
+}
+
+html.dark .export-tab.active {
+    color: #c15f3c;
+    border-bottom-color: #c15f3c;
+}
+
+html.dark .export-template-name {
+    color: #6d6961;
+}
+
+/* ── File Items (parsed cache list) ───────────────────────────────────── */
+html.dark .file-item {
+    background-color: #1a1815;
+    border-color: #33302a;
+}
+
+html.dark .file-item-name {
+    color: #e8e6e3;
+}
+
+html.dark .file-item-meta {
+    color: #6d6961;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   ADMIN DASHBOARD — Dark Mode
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── Admin Tabs ───────────────────────────────────────────────────────── */
+html.dark .admin-tabs {
+    border-bottom-color: #33302a;
+}
+
+html.dark .admin-tab {
+    color: #6d6961;
+}
+
+html.dark .admin-tab:hover {
+    color: #d87757;
+}
+
+html.dark .admin-tab.active {
+    color: #c15f3c;
+    border-bottom-color: #c15f3c;
+}
+
+/* ── Admin Filters ────────────────────────────────────────────────────── */
+html.dark .admin-filters select {
+    background-color: #1a1815;
+    color: #e8e6e3;
+    border-color: #33302a;
+}
+
+html.dark .admin-filters select:focus {
+    border-color: #c15f3c;
+    box-shadow: 0 0 0 2px rgba(193, 95, 60, 0.2);
+    outline: none;
+}
+
+/* ── Admin User Cards ─────────────────────────────────────────────────── */
+html.dark .admin-user-card {
+    background-color: #22201c;
+    border-color: #33302a;
+    color: #e8e6e3;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+html.dark .admin-user-card-header {
+    border-bottom-color: #33302a;
+}
+
+html.dark .admin-user-card .role {
+    background-color: rgba(193, 95, 60, 0.1);
+    color: #d87757;
+}
+
+html.dark .admin-user-presets-section h4 {
+    color: #d87757;
+    border-bottom-color: #33302a;
+}
+
+html.dark .admin-user-presets-list li {
+    border-bottom-color: rgba(255, 255, 255, 0.04);
+}
+
+html.dark .preset-name {
+    color: #e89b76;
+}
+
+html.dark .preset-value {
+    color: #b0aba2;
+}
+
+html.dark .preset-template-tag {
+    color: #6d6961;
+}
+
+html.dark .admin-user-presets-empty {
+    color: #5b5750;
+}
+
+/* ── Admin Analysis Modal ─────────────────────────────────────────────── */
+html.dark .admin-analysis-content {
+    background-color: #1a1815;
+    border-color: #33302a;
+    color: #e8e6e3;
+}
+
+/* ── Admin Denied Page ────────────────────────────────────────────────── */
+html.dark .admin-denied {
+    color: #b0aba2;
+}
+
+html.dark .admin-denied h2 {
+    color: #f14444;
+}
+
+/* ── Activity Log Viewer ──────────────────────────────────────────────── */
+html.dark .filter-row {
+    background-color: #22201c;
+    border-bottom-color: #33302a;
+}
+
+html.dark .log-record {
+    background-color: #22201c;
+    border-color: #33302a;
+}
+
+html.dark .log-meta {
+    color: #6d6961;
+}
+
+html.dark .log-payload {
+    background-color: #1a1815;
+    border-color: #33302a;
+}
+
+/* ── Scrollbars ───────────────────────────────────────────────────────── */
+html.dark ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+html.dark ::-webkit-scrollbar-track {
+    background: #1a1815;
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+    background: #33302a;
+    border-radius: 4px;
+    border: 2px solid #1a1815;
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+    background: #c15f3c;
 }
 

@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sift Admin</title>
     <link rel="stylesheet" href="style.css">
+    <script>
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
 </head>
 <body>
     <header class="app-header">
@@ -16,6 +21,9 @@
                 <h1>Sift Admin</h1>
             </div>
             <div class="header-right">
+                <button type="button" id="theme-toggle-btn" title="Toggle Theme">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="theme-toggle-icon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                </button>
                 <div class="header-user hidden" id="header-user">
                     <span class="header-username" id="header-username"></span>
                     <a href="/static/index.html" class="btn btn-secondary btn-sm">Back to App</a>
@@ -37,6 +45,7 @@
             <button type="button" class="admin-tab" data-tab="uploads">Uploads</button>
             <button type="button" class="admin-tab" data-tab="analysis">Analysis Runs</button>
             <button type="button" class="admin-tab" data-tab="exports">Exports</button>
+            <button type="button" class="admin-tab" data-tab="presets">Presets & Templates</button>
             <button type="button" class="admin-tab" data-tab="users">Users</button>
         </div>
 
@@ -63,7 +72,7 @@
             <div class="panel">
                 <div class="file-list-container">
                     <table class="file-table">
-                        <thead><tr><th>Time</th><th>User</th><th>Action</th><th>Details</th></tr></thead>
+                        <thead><tr><th class="col-time">Time</th><th class="col-user">User</th><th class="col-action-type">Action</th><th class="col-text">Details</th></tr></thead>
                         <tbody id="activity-tbody"><tr class="empty-row"><td colspan="4">Loading...</td></tr></tbody>
                     </table>
                 </div>
@@ -78,7 +87,7 @@
             <div class="panel">
                 <div class="file-list-container">
                     <table class="file-table">
-                        <thead><tr><th>Time</th><th>User</th><th>Filename</th><th>Size</th><th>Status</th><th></th></tr></thead>
+                        <thead><tr><th class="col-time">Time</th><th class="col-user">User</th><th class="col-text">Filename</th><th class="col-number">Size</th><th class="col-action-type">Status</th><th class="col-btn"></th></tr></thead>
                         <tbody id="uploads-tbody"><tr class="empty-row"><td colspan="6">Loading...</td></tr></tbody>
                     </table>
                 </div>
@@ -93,8 +102,8 @@
             <div class="panel">
                 <div class="file-list-container">
                     <table class="file-table">
-                        <thead><tr><th>Time</th><th>User</th><th>Prompt</th><th>Docs</th><th>Status</th></tr></thead>
-                        <tbody id="analysis-tbody"><tr class="empty-row"><td colspan="5">Loading...</td></tr></tbody>
+                        <thead><tr><th class="col-time">Time</th><th class="col-user">User</th><th class="col-text">Prompt</th><th class="col-number">Docs</th><th class="col-action-type">Status</th><th class="col-btn"></th></tr></thead>
+                        <tbody id="analysis-tbody"><tr class="empty-row"><td colspan="6">Loading...</td></tr></tbody>
                     </table>
                 </div>
             </div>
@@ -108,8 +117,33 @@
             <div class="panel">
                 <div class="file-list-container">
                     <table class="file-table">
-                        <thead><tr><th>Time</th><th>User</th><th>Format</th><th>Filename</th><th>Source</th><th></th></tr></thead>
+                        <thead><tr><th class="col-time">Time</th><th class="col-user">User</th><th class="col-action-type">Format</th><th class="col-text">Filename</th><th class="col-action-type">Source</th><th class="col-btn"></th></tr></thead>
                         <tbody id="exports-tbody"><tr class="empty-row"><td colspan="6">Loading...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-presets" class="admin-section">
+            <div class="admin-filters">
+                <select id="presets-user-filter" class="user-filter"><option value="">All users</option></select>
+                <button type="button" class="btn btn-secondary btn-sm" id="presets-refresh">Refresh</button>
+            </div>
+            <div class="panel">
+                <div class="file-list-container">
+                    <table class="file-table">
+                        <thead>
+                            <tr>
+                                <th class="col-user">User</th>
+                                <th class="col-action-type">Type</th>
+                                <th class="col-action-type">Preset Name</th>
+                                <th class="col-text">Details / Instructions</th>
+                                <th class="col-text">Template File</th>
+                            </tr>
+                        </thead>
+                        <tbody id="presets-tbody">
+                            <tr class="empty-row"><td colspan="5">Loading...</td></tr>
+                        </tbody>
                     </table>
                 </div>
             </div>

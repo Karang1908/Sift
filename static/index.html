@@ -7,6 +7,11 @@
     <link rel="stylesheet" href="style.css">
     <!-- Marked.js for safe, clean Markdown rendering in the output console -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
 </head>
 <body>
     <header class="app-header">
@@ -21,6 +26,9 @@
                 <div class="model-badge">
                     <span>Model: <strong>minimax-m3:cloud</strong></span>
                 </div>
+                <button type="button" id="theme-toggle-btn" title="Toggle Theme">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="theme-toggle-icon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                </button>
                 <div class="header-user hidden" id="header-user">
                     <span class="header-username" id="header-username"></span>
                     <a href="/static/admin.html" class="btn btn-secondary btn-sm hidden" id="admin-panel-link">Admin Panel</a>
