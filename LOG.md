@@ -374,3 +374,17 @@ CLAUDE.md's Environment & secrets section previously said "No .env file, no envi
 - CLAUDE.md's Environment & secrets section still claims "No .env file" and the launchers section still implies Ollama is a local daemon. Both need a one-paragraph update to match the new world.
 - The audit-trail entries from the earlier throwaway e2e run (`sift_test_a`'s 16 activity lines and `audit_uploads`/`audit_analysis`/`audit_exports` folders) are still in the permanent audit log. The audit trail is append-only by design; pruning it needs an explicit owner decision.
 
+---
+
+### July 16, 2026 (night) — Favicon Setup
+
+**Files:** [app.py](file:///Users/karangarg/Desktop/file%20parsing/app.py), [static/index.html](file:///Users/karangarg/Desktop/file%20parsing/static/index.html), [static/admin.html](file:///Users/karangarg/Desktop/file%20parsing/static/admin.html), [static/docs.html](file:///Users/karangarg/Desktop/file%20parsing/static/docs.html), `static/Icon.png` (new)
+
+Configured `Icon.png` as the application's official favicon across all frontend entry points:
+- Copied `Icon.png` from the root directory into `static/Icon.png` so it is served by the static directory mount.
+- Added `<link rel="icon" type="image/png" href="Icon.png">` in `index.html`, `admin.html`, and `docs.html` head tags.
+- Added an explicit `/favicon.ico` route in `app.py` returning `FileResponse` pointing to the static `Icon.png` asset to satisfy native browser favicon lookups and prevent static mount fallback errors.
+
+**Verification:** Verified offline Python compilation passes. Confirmed favicon file presence and routing matches the static directory structure.
+
+

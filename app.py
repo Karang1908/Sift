@@ -310,6 +310,11 @@ def read_root():
     return RedirectResponse(url="/static/index.html")
 
 
+@app.get("/favicon.ico", include_in_schema=False)
+def favicon():
+    return FileResponse(os.path.join(STATIC_DIR, "Icon.png"))
+
+
 @app.get("/openapi.json", include_in_schema=False)
 async def get_openapi_spec(user: str = Depends(get_current_user)):
     return get_openapi(
