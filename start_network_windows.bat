@@ -16,30 +16,35 @@ if errorlevel 1 (
 )
 
 REM --- 2. Start Ollama in the background, if it isn't already running ---
+REM NOTE: the wait loops below deliberately keep every label at the top level
+REM (never inside parentheses) - cmd.exe abandons block parsing when a goto
+REM lands inside a ( ) block, which breaks the surrounding if/else.
 curl -s -o nul -m 2 http://localhost:11434/api/tags
-if errorlevel 1 (
-    echo Starting Ollama in the background...
-    start "Ollama" /min ollama serve
-    echo Waiting for Ollama to become ready...
-    set OLLAMA_READY=0
-    for /l %%i in (1,1,30) do (
-        curl -s -o nul -m 2 http://localhost:11434/api/tags
-        if not errorlevel 1 (
-            set OLLAMA_READY=1
-            goto ollama_ready
-        )
-        timeout /t 1 /nobreak >nul
-    )
-    :ollama_ready
-    if "%OLLAMA_READY%"=="0" (
-        echo ERROR: Ollama did not start within 30 seconds.
-        pause
-        exit /b 1
-    )
-    echo Ollama is ready.
-) else (
+if not errorlevel 1 (
     echo Ollama is already running.
+    goto ollama_done
 )
+echo Starting Ollama in the background...
+start "Ollama" /min ollama serve
+echo Waiting for Ollama to become ready...
+set OLLAMA_TRIES=0
+
+:ollama_wait
+curl -s -o nul -m 2 http://localhost:11434/api/tags
+if not errorlevel 1 (
+    echo Ollama is ready.
+    goto ollama_done
+)
+set /a OLLAMA_TRIES+=1
+if %OLLAMA_TRIES% geq 30 (
+    echo ERROR: Ollama did not start within 30 seconds.
+    pause
+    exit /b 1
+)
+timeout /t 1 /nobreak >nul
+goto ollama_wait
+
+:ollama_done
 
 REM --- 3. Make sure the required model is available ---
 ollama list | findstr /C:"minimax-m3:cloud" >nul
@@ -77,29 +82,31 @@ for /f "usebackq tokens=*" %%a in (`powershell -Command "Get-NetIPAddress -Addre
 
 REM --- 6. Start the app server in the background bound to 0.0.0.0 ---
 curl -s -o nul -m 2 http://localhost:8000/api/files
-if errorlevel 1 (
-    echo Starting the app server on the network...
-    start "Sift Server" /min python -m uvicorn app:app --host 0.0.0.0 --port 8000
-    echo Waiting for the app server to become ready...
-    set SERVER_READY=0
-    for /l %%i in (1,1,30) do (
-        curl -s -o nul -m 2 http://localhost:8000/api/files
-        if not errorlevel 1 (
-            set SERVER_READY=1
-            goto server_ready
-        )
-        timeout /t 1 /nobreak >nul
-    )
-    :server_ready
-    if "%SERVER_READY%"=="0" (
-        echo ERROR: App server did not start within 30 seconds.
-        pause
-        exit /b 1
-    )
-    echo App server is ready.
-) else (
+if not errorlevel 1 (
     echo App server is already running.
+    goto server_done
 )
+echo Starting the app server on the network...
+start "Sift Server" /min python -m uvicorn app:app --host 0.0.0.0 --port 8000
+echo Waiting for the app server to become ready...
+set SERVER_TRIES=0
+
+:server_wait
+curl -s -o nul -m 2 http://localhost:8000/api/files
+if not errorlevel 1 (
+    echo App server is ready.
+    goto server_done
+)
+set /a SERVER_TRIES+=1
+if %SERVER_TRIES% geq 30 (
+    echo ERROR: App server did not start within 30 seconds.
+    pause
+    exit /b 1
+)
+timeout /t 1 /nobreak >nul
+goto server_wait
+
+:server_done
 
 echo.
 echo ====================================================

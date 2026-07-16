@@ -125,3 +125,77 @@ Depth is conveyed through solid flat borders (`1px solid #e1dfd5`) and structura
 - **Don't** use drop shadows on primary workspace panels.
 - **Don't** use raw unstyled terminal designs for dashboard logs.
 - **Don't** use generic SaaS purple-to-blue gradients or heavily nested cards.
+
+## 7. Docs page (`static/docs.html`) — claude.ai-exact palette
+
+The docs page is a standalone, self-contained reference (architecture, request flows,
+API surface) with its own light/dark theme toggle (system-preference default,
+persisted to `localStorage` under `sift-docs-theme`). It is visually independent from
+the rest of the app: **sections 1–6 above describe the main app's fixed, light-only
+palette** (Sift's own "Slate Workdesk" system) and are unaffected by anything below —
+`static/index.html`, `static/style.css`, and `static/admin.html` still use those tokens
+exactly as documented. The docs page alone carries a second, separate token set,
+mapped as closely as possible to claude.ai's own visual language rather than Sift's.
+
+### Tokens
+
+Light (`:root`):
+
+| Role | Value |
+| --- | --- |
+| Page background | `#FAF9F5` |
+| Raised surface (cards, sidebar) | `#F0EEE6` |
+| Subtle surface (hover states) | `#F5F4EF` |
+| Border (hairline) | `rgba(20,20,19,0.12)` |
+| Border (strong) | `rgba(20,20,19,0.22)` |
+| Text | `#141413` |
+| Text secondary | `#6E6E6C` |
+| Text faded | `#91918D` |
+| Accent (terracotta) | `#D97757` |
+| Accent hover | `#C6613F` |
+| Danger | `#BF4D43` |
+| Accent-on (text on accent) | `#FFFFFF` |
+
+Dark (`html[data-theme="dark"]`):
+
+| Role | Value |
+| --- | --- |
+| Page background | `#262624` |
+| Raised surface | `#30302E` |
+| Subtle/elevated surface | `#3D3D3B` |
+| Border (hairline) | `rgba(255,255,255,0.12)` |
+| Border (strong) | `rgba(255,255,255,0.22)` |
+| Text | `#F5F4EF` |
+| Text secondary | `#A6A39A` |
+| Text faded | `#7C7A72` |
+| Accent (terracotta, same as light) | `#D97757` |
+| Accent hover (lighter, for dark) | `#E08B6F` |
+| Danger | `#E5766A` |
+| Accent-on | `#FFFFFF` |
+
+Both `:root` and the dark override set `color-scheme` (`light` / `dark`) so native
+scrollbars and form controls follow. `@media print` re-declares the light values on
+both roots so a printed page is always light regardless of the active toggle state.
+Accent usage follows claude.ai's own restraint (roughly a ≤10% rule): links, the
+sidebar brand's italic initial, hero highlights, callout accents, sequence-diagram
+numbers, and the theme-toggle hover — not large fills or backgrounds. Radii: 12px for
+cards/containers, 8px for buttons/controls/nav links, fully rounded for pills/badges.
+Shadows are flat by default; only true floating elements (the fullscreen diagram
+overlay, the scroll-to-top button, a hovered feature card) get
+`0 4px 16px rgba(0,0,0,0.08)` (light) / `0 4px 16px rgba(0,0,0,0.4)` (dark).
+
+### Typography
+
+claude.ai's own display/UI faces (Copernicus and Styrene B) are proprietary and not
+available to ship here — the docs page uses the closest free equivalents instead:
+**Source Serif 4** (a variable serif with an optical-size axis, weights 400/600 plus a
+400 italic cut) for display headings, paired with **Inter** (400/500/600) for body and
+UI text, `Georgia` as the declared serif fallback (claude.ai's own fallback choice) and
+a system `ui-monospace` stack for code. Headings use the serif at weight 600 with
+normal letter-spacing — calm, not tightly tracked.
+
+### Scope
+
+This theme system exists **only** in `static/docs.html` — its own token block, its own
+toggle button, its own Mermaid theme-variable pair. It does not touch, and is not
+touched by, the main app's palette in sections 1–6, which remains light-only.

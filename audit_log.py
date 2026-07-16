@@ -62,6 +62,10 @@ def _write_meta(user_dir: str, record_id: str, meta: dict) -> None:
     tmp_path = meta_path + ".tmp"
     with open(tmp_path, "w", encoding="utf-8") as f:
         json.dump(meta, f, ensure_ascii=False, indent=2)
+        # fsync before replace, same durability guarantee as app.py's
+        # _write_cache_atomic - these records are the permanent audit trail.
+        f.flush()
+        os.fsync(f.fileno())
     os.replace(tmp_path, meta_path)
 
 

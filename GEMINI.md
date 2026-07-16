@@ -10,7 +10,7 @@ Sift is a single-screen FastAPI dashboard that allows uploading documents, parsi
 |---|---|---|
 | Smoke/Unit tests | `python3 test_backend.py` | Verified (2026-07-15): checks local Ollama server connectivity (ping) and basic plain-text file parser round-trip. |
 | Dev server start | `python3 -m uvicorn app:app --host 127.0.0.1 --port 8000 --reload` | Starts FastAPI app on port 8000. Wipes session keys on auto-reload. |
-| E2E Integration test | `SIFT_TEST_PASSWORD="your_password" python3 verify_integration.py` | Requires server to be already running. Note: `verify_integration.py` specifies `BASE_URL = "http://127.0.0.1:8001"` by default; make sure port match matches uvicorn port. |
+| E2E Integration test | `SIFT_TEST_PASSWORD="your_password" python3 verify_integration.py` | Requires server to be already running. Note: `verify_integration.py` defaults to `http://127.0.0.1:8000` (override with `SIFT_BASE_URL`), matching the dev-server port. |
 
 ---
 

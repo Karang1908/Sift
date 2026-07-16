@@ -1159,6 +1159,10 @@ document.addEventListener('DOMContentLoaded', () => {
         exportPDFBtn.disabled = true;
         exportExcelBtn.disabled = true;
         exportWordBtn.disabled = true;
+        // Also the export buttons inside the instructions modal - if it's
+        // left open from a previous run, they must not export the new run's
+        // partial, still-streaming output as if it were final.
+        document.querySelectorAll('.export-from-modal-btn').forEach(b => { b.disabled = true; });
         progressStatus.textContent = "Streaming document parsing results...";
         // No knowable total length up front (no chunking/token budget by
         // design - see CLAUDE.md) - trickle toward a ceiling, nudged forward
@@ -1273,9 +1277,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderAccumulatedMarkdown() {
-        if (window.marked) {
+        // Fail closed: rich rendering requires BOTH marked and DOMPurify.
+        // The model can echo uploaded-document content verbatim, so the
+        // parsed HTML is untrusted - never innerHTML it unsanitized.
+        if (window.marked && window.DOMPurify) {
             const parsed = window.marked.parse(accumulatedOutput);
-            outputBody.innerHTML = window.DOMPurify ? window.DOMPurify.sanitize(parsed) : parsed;
+            outputBody.innerHTML = window.DOMPurify.sanitize(parsed);
         } else {
             outputBody.textContent = accumulatedOutput;
         }
@@ -1328,6 +1335,10 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => URL.revokeObjectURL(url), 100);
     }
 
+    // Guards against two runSkillExport() calls running concurrently (e.g.
+    // starting a PDF export, switching to the Excel tab, starting a second).
+    let exportInFlight = false;
+
     // Streamed export: all three AI-driven exports (PDF/Excel/Word) hit a
     // shared SSE endpoint that pushes real per-stage progress (model prompt
     // -> model generate -> validate script -> run in sandbox -> download)
@@ -1335,6 +1346,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // download lands as the terminal event with a base64 file body.
     async function runSkillExport({ endpoint, button, label, filename, extraBody = {} }) {
         if (!accumulatedOutput) return;
+        // Only one export at a time - switching modal tabs mid-run must not
+        // let a second concurrent export race the shared progress bar and
+        // button state.
+        if (exportInFlight) return;
+        exportInFlight = true;
 
         // Disable all export buttons during the run - only one can be active
         // at a time and the others shouldn't be clickable while we're mid-flight.
@@ -1342,6 +1358,7 @@ document.addEventListener('DOMContentLoaded', () => {
         exportPDFBtn.disabled = true;
         exportExcelBtn.disabled = true;
         exportWordBtn.disabled = true;
+        document.querySelectorAll('.export-from-modal-btn').forEach(b => { b.disabled = true; });
         button.disabled = true;
 
         progressStatus.textContent = `AI is designing your ${label}...`;
@@ -1456,6 +1473,7 @@ document.addEventListener('DOMContentLoaded', () => {
             showOutputMessage(`[EXPORT ERROR] ${error.message}`, true);
             progressStatus.textContent = "Ready.";
         } finally {
+            exportInFlight = false;
             exportMDBtn.disabled = false;
             exportPDFBtn.disabled = false;
             exportExcelBtn.disabled = false;

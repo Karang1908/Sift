@@ -72,6 +72,14 @@ No lint/typecheck/build/DB-migration tooling exists in this repo — don't inven
   extension; add new format support as another `elif` branch here, not a new module.
 - `static/index.html`, `static/style.css`, `static/script.js` — the whole frontend,
   including the login screen. Vanilla JS, no build step, no bundler.
+  `static/marked.min.js` (Marked 15.0.12) and `static/purify.min.js`
+  (DOMPurify 3.2.7) are vendored, pinned local copies — no CDN dependency, so
+  the app renders markdown fully offline. DOMPurify sanitizes LLM markdown
+  before `innerHTML` injection in `renderAccumulatedMarkdown()`, which fails
+  closed to plain text if either library is missing. Don't remove them or
+  downgrade the renderer to unsanitized HTML: the model can echo hostile
+  uploaded-document content verbatim, and this app is multi-tenant behind
+  login.
 - `start_mac.command` / `start_windows.bat` — double-click launchers (see Flows).
 - `test_backend.py` — offline-ish smoke test (Ollama ping + parser round-trip). Doesn't
   touch auth - unaffected by login being required now.

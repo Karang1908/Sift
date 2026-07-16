@@ -305,6 +305,11 @@ async def login(data: dict, response: Response):
     username = (data.get("username") or "").strip()
     password = data.get("password") or ""
 
+    # Prune here too - failed logins with unique usernames are exactly the
+    # path that grows _login_attempts, and it otherwise only gets pruned on
+    # successful auth.
+    _prune_sessions_and_lockouts()
+
     attempt = _login_attempts.get(username)
     if attempt and attempt["locked_until"] > time.time():
         retry_in = int(attempt["locked_until"] - time.time())
@@ -410,8 +415,13 @@ def _load_presets_sync(presets_file: str) -> dict:
 @app.post("/api/upload")
 async def upload_file(file: UploadFile = File(...), user: str = Depends(get_current_user)):
     filename = file.filename
+    if not filename:
+        raise HTTPException(status_code=400, detail="Invalid filename")
     safe_filename = os.path.basename(filename)
-    if not safe_filename:
+    # basename("..") is ".." - joining it would resolve to the shared upload
+    # root and _save_upload_sync would then 500 on IsADirectoryError; reject
+    # it up front like delete_file() does.
+    if not safe_filename or safe_filename in (".", ".."):
         raise HTTPException(status_code=400, detail="Invalid filename")
 
     _, ext = os.path.splitext(safe_filename.lower())
@@ -810,6 +820,7 @@ def _extract_template_schema(template_path: str, fmt_key: str, max_items: int = 
         wb = _openpyxl.load_workbook(template_path, data_only=True)
         lines = []
         count = 0
+        emitted_blank_ids = set()
         for ws in wb.worksheets:
             lines.append(f"SHEET {ws.title!r} (dimensions={ws.dimensions})")
             if ws.merged_cells.ranges:
@@ -829,25 +840,32 @@ def _extract_template_schema(template_path: str, fmt_key: str, max_items: int = 
                         f"(number_format={cell.number_format!r})"
                     )
                     count += 1
-                    
-                    # Detect and include empty neighbor cells as target slots
+
+                    # Detect and include empty neighbor cells as target slots.
+                    # A blank cell adjacent to two labels (right of one, below
+                    # another) must only be emitted once - duplicates waste the
+                    # max_items budget and prompt tokens.
                     if count < max_items:
                         try:
                             right_cell = ws.cell(row=cell.row, column=cell.column + 1)
                             if right_cell.value in (None, ""):
                                 right_loc_id = f"{ws.title}!{right_cell.coordinate}"
-                                lines.append(f"  [ID={right_loc_id}] current='' (blank target cell to the right of {cell.coordinate})")
-                                count += 1
+                                if right_loc_id not in emitted_blank_ids:
+                                    emitted_blank_ids.add(right_loc_id)
+                                    lines.append(f"  [ID={right_loc_id}] current='' (blank target cell to the right of {cell.coordinate})")
+                                    count += 1
                         except Exception:
                             pass
-                    
+
                     if count < max_items:
                         try:
                             below_cell = ws.cell(row=cell.row + 1, column=cell.column)
                             if below_cell.value in (None, ""):
                                 below_loc_id = f"{ws.title}!{below_cell.coordinate}"
-                                lines.append(f"  [ID={below_loc_id}] current='' (blank target cell below {cell.coordinate})")
-                                count += 1
+                                if below_loc_id not in emitted_blank_ids:
+                                    emitted_blank_ids.add(below_loc_id)
+                                    lines.append(f"  [ID={below_loc_id}] current='' (blank target cell below {cell.coordinate})")
+                                    count += 1
                         except Exception:
                             pass
                 if stop:
@@ -1042,8 +1060,13 @@ def _splice_xlsx_template(template_path: str, mapping: dict):
     wb = _openpyxl.load_workbook(template_path)
     applied = 0
     
-    # Build lookup table of normalized coordinates to (sheet_name, cell_ref)
+    # Build lookup table of normalized coordinates to (sheet_name, cell_ref).
+    # Two sheets whose names differ only by spaces/quotes/$/case ("My Sheet"
+    # vs "MySheet") collapse onto one normalized key - those keys are tracked
+    # as ambiguous and resolved against the un-normalized sheet name below,
+    # instead of silently writing to whichever sheet registered last.
     lookup = {}
+    ambiguous_keys = set()
     for sname in wb.sheetnames:
         ws = wb[sname]
         sname_norm = re.sub(r"[\s$'\"]", "", sname).lower()
@@ -1051,7 +1074,11 @@ def _splice_xlsx_template(template_path: str, mapping: dict):
             for cell in row:
                 coord = cell.coordinate
                 coord_norm = re.sub(r"[\s$'\"]", "", coord).lower()
-                lookup[f"{sname_norm}!{coord_norm}"] = (sname, coord)
+                key = f"{sname_norm}!{coord_norm}"
+                if key in lookup and lookup[key][0] != sname:
+                    ambiguous_keys.add(key)
+                else:
+                    lookup[key] = (sname, coord)
                 if coord_norm not in lookup:
                     lookup[coord_norm] = (sname, coord)
 
@@ -1060,7 +1087,7 @@ def _splice_xlsx_template(template_path: str, mapping: dict):
             continue
         loc_clean = re.sub(r"^\[?ID=", "", loc_id, flags=re.I).rstrip("]").strip()
         norm_key = re.sub(r"[\s$'\"]", "", loc_clean).lower()
-        if norm_key in lookup:
+        if norm_key in lookup and norm_key not in ambiguous_keys:
             sname, coord = lookup[norm_key]
             ws = wb[sname]
             coerced, _ = smart_value(str(value))
@@ -1068,13 +1095,27 @@ def _splice_xlsx_template(template_path: str, mapping: dict):
             applied += 1
         elif "!" in loc_clean:
             parts = loc_clean.split("!", 1)
+            sheet_raw = parts[0].strip().strip("'\"")
             sheet_part = re.sub(r"[\s$'\"]", "", parts[0]).lower()
             cell_part = re.sub(r"[\s$'\"]", "", parts[1]).upper()
+            # Prefer exact sheet-name match, then case-insensitive, then the
+            # fully normalized form - so ambiguous_keys entries land on the
+            # sheet the mapping actually named.
             matched_sheet = None
             for sname in wb.sheetnames:
-                if re.sub(r"[\s$'\"]", "", sname).lower() == sheet_part:
+                if sname == sheet_raw:
                     matched_sheet = sname
                     break
+            if matched_sheet is None:
+                for sname in wb.sheetnames:
+                    if sname.lower() == sheet_raw.lower():
+                        matched_sheet = sname
+                        break
+            if matched_sheet is None:
+                for sname in wb.sheetnames:
+                    if re.sub(r"[\s$'\"]", "", sname).lower() == sheet_part:
+                        matched_sheet = sname
+                        break
             if matched_sheet:
                 ws = wb[matched_sheet]
                 try:
@@ -1213,6 +1254,12 @@ async def _run_template_clone_pipeline(markdown_text: str, fmt: ExportFormat, us
     except Exception as e:
         logger.exception("Template splice failed for %s", fmt.key)
         return None, False, f"Template splice failed: {e}"
+
+    if applied == 0:
+        # A well-formed mapping whose keys all failed to resolve would
+        # otherwise return the untouched template as a "successful" export.
+        logger.warning("Template mapping for %s matched 0 locations; falling back", fmt.key)
+        return None, False, "the AI field mapping did not match any locations in the template"
 
     if progress_cb:
         progress_cb("done", f"Filled {applied} field(s) in your {fmt.label} template.")
@@ -1636,6 +1683,11 @@ async def process_files(data: dict, user: str = Depends(get_current_user)):
                     await asyncio.shield(persist_task)
                 except asyncio.CancelledError:
                     pass
+                except Exception:
+                    # Archiving is best-effort bookkeeping - a disk/audit
+                    # failure must not surface as a stream error after the
+                    # analysis itself already streamed to the client.
+                    logger.exception("Analysis archive persist failed (stream already delivered)")
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 
@@ -1860,6 +1912,11 @@ async def _stream_export(data: dict, fmt: ExportFormat, user: str):
                     await asyncio.shield(persist_task)
                 except asyncio.CancelledError:
                     pass
+                except Exception:
+                    # Archiving is best-effort bookkeeping - a disk/audit
+                    # failure here must never block delivery of the file the
+                    # pipeline already produced.
+                    logger.exception("Export archive persist failed (export still delivered)")
 
                 progress_cb("done", f"{fmt.label} ready.")
                 await queue.put({

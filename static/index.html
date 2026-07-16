@@ -5,8 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sift</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Marked.js for safe, clean Markdown rendering in the output console -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Marked.js (vendored locally, pinned 15.0.12) for Markdown rendering
+         in the output console - local so it works offline and can't drift
+         to an unvetted latest version -->
+    <script src="marked.min.js"></script>
+    <!-- DOMPurify (vendored locally, pinned 3.2.7) - sanitizes the parsed
+         markdown before innerHTML injection; without it the renderer falls
+         back to plain-text output, never raw HTML -->
+    <script src="purify.min.js"></script>
     <script>
         if (localStorage.getItem('theme') === 'dark') {
             document.documentElement.classList.add('dark');
