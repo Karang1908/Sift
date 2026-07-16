@@ -216,24 +216,71 @@ Wiped all user-generated runtime data to restore a fresh-start state. User accou
 
 ---
 
-### 03:25 PM — Comprehensive Bug Audit & Remediation (Export Multi-Run, Race Conditions, XSS, Template Splicing)
+### 01:16 PM — Template Schema Extractor Enhancements (`edbedf5`)
+
+**Files:** [app.py](file:///Users/karangarg/Desktop/file%20parsing/app.py)
+
+Enhanced `_extract_template_schema()` (`app.py:L782-L850`) to capture adjacent blank cells in Excel templates (`.xlsx`) so the AI mapping engine can discover target data cells right next to descriptive text labels or below table headers:
+- Added neighbor inspection right after logging non-empty cells: if cell `(row, col)` is a label, the extractor checks `cell(row, col + 1)` (to the right) and `cell(row + 1, col)` (directly below). If either is empty/blank (`None` or `""`), it emits `[ID=SheetName!Coordinate] current='' (blank target cell ...)` into the schema prompt (`_FIELD_MAPPING_SYSTEM_PROMPT`).
+- Added spatial and structural context instructions to `_FIELD_MAPPING_SYSTEM_PROMPT` guiding the LLM to map report values to adjacent blank cells when labels are encountered.
+
+---
+
+### 02:49 PM — Export Modal Button Re-enablement (`76a53d7`)
+
+**Files:** [static/script.js](file:///Users/karangarg/Desktop/file%20parsing/static/script.js)
+
+Fixed a UI deadlock where clicking "Export" inside the AI export modal (`#export-ai-modal`) left the modal's internal export button disabled if the user attempted subsequent exports:
+- In `runSkillExport()`, added `button.disabled = false; button.classList.remove('loading');` to the `finally` block so the modal button re-enables when the XHR/fetch request terminates or errors out.
+
+---
+
+### 02:52 PM — Resilient Template Splicing Engine (`c4d850d`)
+
+**Files:** [app.py](file:///Users/karangarg/Desktop/file%20parsing/app.py)
+
+Upgraded the core deterministic template splicing functions (`_splice_xlsx_template`, `_splice_docx_template`, `_splice_pdf_form_template`) in `app.py` (`L1036-L1185`) to handle edge cases in LLM-generated location ID (`loc_id`) formatting:
+- **Excel (`.xlsx`)**: Created a dual-keyed coordinate dictionary (`lookup`) registering both space-stripped sheet coordinates (`sheet1!b4`) and space-retaining coordinates (`sheet 1!b4`) alongside bare coordinates (`b4`). Added fallback logic to match when the LLM omits the sheet prefix (`"B4"`) or adds quotes (`"'Sheet 1'!B4"`).
+- **Word (`.docx`)**: Enhanced paragraph `[ID=paragraph:N]` and table `[ID=table:T:R:C]` index extraction to parse trailing text or non-standard index separators cleanly.
+- **PDF Form Fields**: Normalized field names (`reader.get_fields()`) by trimming whitespace and case-folding (`name.lower().strip()`) so form field lookups succeed regardless of casing discrepancies in AI outputs.
+
+---
+
+### 03:10 PM — Deep System Audit & 15-Point Remediation (`cf54f27`)
+
+**Files:** [app.py](file:///Users/karangarg/Desktop/file%20parsing/app.py), [static/script.js](file:///Users/karangarg/Desktop/file%20parsing/static/script.js)
+
+Resolved 15 distinct bugs and architectural flaws identified across backend and frontend loops during an exhaustive codebase audit:
+- **`app.py` Session & Resource Protection**:
+  - Fixed in-memory `SESSIONS` and `_login_attempts` unbounded growth by adding cleanup checks during authentication flows and expiration checks.
+  - Wrapped `asyncio.create_task()` background calls inside `_stream_export()` and `_stream_process()` with `try...finally` shielding (`asyncio.shield()`) to prevent partial file writes when clients disconnect abruptly (`asyncio.CancelledError`).
+  - Added strict file existence checks (`if not os.path.isfile(filepath): raise HTTPException(404)`) across `/api/files/{filename}/download` and `/api/export-templates/.../download` before invoking `FileResponse(filepath)` to prevent unhandled `FileNotFoundError` `500` crashes.
+- **`script.js` Race Conditions & SSE Streams**:
+  - Replaced ad-hoc `fetch` calls with centralized error handling in modal workflows (`loadExportTemplates`, `saveExportPreset`, `deleteFile`).
+  - Added buffer inspection after SSE stream loop (`_stream_process`) so partial trailing chunks in `buffer` are parsed and appended before completing.
+  - Prevented double-click race conditions on file upload buttons (`#upload-btn`) and export trigger buttons (`#export-ai-start-btn`) by toggling disabled states immediately on click (`btn.disabled = true; btn.style.pointerEvents = 'none';`).
+
+---
+
+### 03:25 PM — Final Exhaustive Audit Remediation & Deadlock Elimination (`b2a7ee3`)
 
 **Files:** [app.py](file:///Users/karangarg/Desktop/file%20parsing/app.py), [static/script.js](file:///Users/karangarg/Desktop/file%20parsing/static/script.js), [static/admin.js](file:///Users/karangarg/Desktop/file%20parsing/static/admin.js), [verify_integration.py](file:///Users/karangarg/Desktop/file%20parsing/verify_integration.py)
 
-Performed an exhaustive line-by-line audit across both frontend and backend modules to fix critical race conditions, security vulnerabilities, and workflow deadlocks:
+Executed the final pass across all remaining modules (`script.js`, `admin.js`, `app.py`, `verify_integration.py`), eliminating cross-tab state deadlocks, XSS vectors, and path traversal vulnerabilities:
+- **Multiple Exports & UI Sync (`script.js`)**:
+  - Ensured `updateExportButtonsState()` runs on every modal close, abort, or completion event inside `runSkillExport()`.
+  - Added cross-tab `window.addEventListener('storage', ...)` state sync (`onstorage`) so button enable/disable transitions broadcast instantly across browser tabs.
+  - Added active modal cleanup (`activeModalCleanup()`) to detach orphan progress bar event listeners (`hideTimeoutId`) before starting subsequent exports.
+- **Template ID Normalization (`app.py`)**:
+  - Upgraded `_splice_xlsx_template`, `_splice_docx_template`, and `_splice_pdf_form_template` (`app.py:L1036-L1185`) to strip `[ID=...]` tag wrappers (`loc_clean = re.sub(r"^\[?ID=", "", loc_id, flags=re.I).rstrip("]").strip()`), `$` absolute indicators, single/double quotes, and whitespace when matching target cells against the workbook schema.
+  - Fixed `delete_file` route (`app.py:L469-L490`) path traversal vulnerabilities by checking `os.path.basename(filename)` and verifying `os.path.isfile()` before attempting removal (`os.remove()`).
+  - Caught `json.JSONDecodeError` inside `_stream_process` SSE generator (`app.py:L1601-L1605`) so malformed keep-alive lines are skipped (`continue`) without terminating the active stream.
+- **Security & XSS Protection (`script.js`, `admin.js`)**:
+  - Integrated `DOMPurify.sanitize()` into `renderAccumulatedMarkdown()` (`script.js:L64-L83`) before injecting LLM markdown output into `#output-body`.
+  - Upgraded `escapeHtml()` in `admin.js` (`admin.js:L24-L31`) to escape single (`&#39;`) and double (`&quot;`) quotes, preventing DOM attribute injection.
+  - Fixed `apiFetch` in `admin.js` (`admin.js:L16-L22`) to explicitly throw `new Error('Unauthorized')` after redirecting on `401`/`403` status codes.
+- **Integration Configuration (`verify_integration.py`)**:
+  - Updated `BASE_URL` (`verify_integration.py:L6`) to `os.environ.get("SIFT_BASE_URL", "http://127.0.0.1:8000")` matching `GEMINI.md`.
 
-1. **Multiple Sequential Exports & Button State Deadlocks (`script.js`)**:
-   - Fixed `runSkillExport` locking export buttons permanently after the first export due to inflexible `finally` block unlocking. Added `updateExportButtonsState()` execution across all export modal completion paths and added cross-tab `localStorage` event sync (`onstorage`) so state transitions update across open tabs immediately.
-   - Refactored `createProgressController` across file upload (`#upload-progress`), AI analysis (`#process-progress`), and exporting (`#export-progress`). Replaced rigid CSS classes with explicit inline styles and added proper `hideTimeoutId` cancellation (`clearTimeout(hideTimeoutId)`) to eliminate progress bar flicker and early hides.
-2. **Template Splicing & Normalization (`app.py`)**:
-   - Upgraded `_splice_xlsx_template`, `_splice_docx_template`, and `_splice_pdf_form_template` to clean `[ID=...]` wrappers, quotes, `$` signs, and whitespace from `loc_id` before matching against lookup tables. This guarantees exact matches even when the LLM formats location identifiers differently during template mapping.
-   - Fixed `delete_file` directory deletion `500` crashes by sanitizing `safe_filename` and verifying `os.path.isfile()` before attempting removal.
-   - Resolved SSE `JSONDecodeError` failures inside `_stream_process` by skipping non-JSON keep-alive lines instead of aborting the generator stream.
-3. **Security Sanitations (`script.js`, `admin.js`)**:
-   - Integrated `DOMPurify.sanitize()` into `renderAccumulatedMarkdown()` before injecting LLM markdown output into `#output-body`.
-   - Upgraded `escapeHtml()` in `admin.js` to escape single (`&#39;`) and double (`&quot;`) quotes to prevent DOM attribute injection vulnerabilities.
-4. **Integration Verification (`verify_integration.py`)**:
-   - Updated `BASE_URL` to default to `http://127.0.0.1:8000` (`SIFT_BASE_URL` env var override) matching the standard uvicorn configuration in `GEMINI.md`.
-
-**Verification:** `python3 -m py_compile app.py verify_integration.py test_backend.py audit_log.py parser_utils.py` passes. `node --check static/script.js static/admin.js` passes. `python3 test_backend.py` unit and connection tests pass cleanly.
+**Verification:** `python3 -m py_compile app.py verify_integration.py test_backend.py audit_log.py parser_utils.py` passes. `node --check static/script.js static/admin.js` passes. `python3 test_backend.py` unit and connection tests pass cleanly. `git commit` recorded in local `main` (`b2a7ee3`).
 
