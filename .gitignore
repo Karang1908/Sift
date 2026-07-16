@@ -35,3 +35,7 @@ build/
 # OS-specific metadata
 .DS_Store
 Thumps.db
+
+# Environment secrets
+.env
+

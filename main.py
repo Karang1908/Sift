@@ -4,9 +4,12 @@ import time
 import webbrowser
 import threading
 import multiprocessing
-import subprocess
-import urllib.request
+from dotenv import load_dotenv
 import uvicorn
+
+# Load .env from the script's own location so the PyInstaller-bundled exe
+# and the dev checkout work the same way.
+load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 
 # Redirect stdout/stderr in windowed mode to prevent uvicorn/python write crashes
 if sys.stdout is None:
@@ -20,67 +23,17 @@ if getattr(sys, 'frozen', False):
 
 from app import app
 
-def is_ollama_running() -> bool:
-    try:
-        # Check Ollama server status endpoint
-        with urllib.request.urlopen("http://localhost:11434/api/tags", timeout=2) as response:
-            return response.status == 200
-    except Exception:
-        return False
+# Ollama is now reached as the cloud API at https://ollama.com (authenticated
+# with OLLAMA_API_KEY from .env). No local `ollama serve` daemon is needed
+# or started - all the daemon-management code from the previous version is
+# removed because there is nothing for it to manage.
 
-def find_ollama_binary() -> str:
-    # macOS binary search in standard installation paths
-    if sys.platform == "darwin":
-        paths = [
-            "/usr/local/bin/ollama",
-            "/opt/homebrew/bin/ollama",
-            "/Applications/Ollama.app/Contents/Resources/ollama"
-        ]
-        for p in paths:
-            if os.path.exists(p):
-                return p
-        return "ollama"  # Fallback to PATH search
-        
-    # Windows binary search in standard installer path
-    elif sys.platform == "win32":
-        local_appdata = os.environ.get("LOCALAPPDATA", "")
-        paths = [
-            os.path.join(local_appdata, "Programs", "Ollama", "ollama.exe")
-        ]
-        for p in paths:
-            if os.path.exists(p):
-                return p
-        return "ollama"  # Fallback to PATH search
-        
-    return "ollama"
-
-def start_ollama():
-    if is_ollama_running():
-        return
-    
-    ollama_bin = find_ollama_binary()
-    
-    # Headless startup using the CLI daemon in the background
-    try:
-        if sys.platform == "win32":
-            subprocess.Popen([ollama_bin, "serve"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-        else:
-            subprocess.Popen([ollama_bin, "serve"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    except Exception:
-        pass
-
-def ensure_ollama_running():
-    if is_ollama_running():
-        return True
-    
-    start_ollama()
-    
-    # Wait up to 10 seconds for the service to bind and respond
-    for _ in range(10):
-        if is_ollama_running():
-            return True
-        time.sleep(1)
-    return False
+if not os.environ.get("OLLAMA_API_KEY"):
+    print("=" * 60)
+    print("  OLLAMA_API_KEY is not set.")
+    print("  Copy .env.example to .env and add your Ollama API key,")
+    print("  or set the OLLAMA_API_KEY environment variable.")
+    print("=" * 60)
 
 def open_browser():
     # Wait for the uvicorn server to spin up
@@ -90,12 +43,9 @@ def open_browser():
 if __name__ == "__main__":
     # Essential for PyInstaller on Windows to prevent recursive process spawning
     multiprocessing.freeze_support()
-    
-    # Auto-start Ollama in the background if it is shut down
-    ensure_ollama_running()
-    
+
     # Start thread to open web browser
     threading.Thread(target=open_browser, daemon=True).start()
-    
+
     # Run uvicorn server on localhost
     uvicorn.run(app, host="127.0.0.1", port=8000, log_level="info")

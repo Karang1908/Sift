@@ -1,11 +1,18 @@
 import os
 import requests
+from dotenv import load_dotenv
+
+load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 
 def test_ollama():
-    print("Testing connection to Ollama local server...")
-    url = "http://localhost:11434/api/chat"
+    print("Testing connection to Ollama cloud API...")
+    url = os.environ.get("OLLAMA_URL", "https://ollama.com/api/chat")
+    api_key = os.environ.get("OLLAMA_API_KEY")
+    if not api_key:
+        print("Ollama connection test: SKIPPED - OLLAMA_API_KEY not set in .env or environment")
+        return False
     payload = {
-        "model": "minimax-m3:cloud",
+        "model": os.environ.get("OLLAMA_MODEL", "minimax-m3:cloud"),
         "messages": [
             {"role": "user", "content": "Respond with the word 'OK' if you can hear me."}
         ],
@@ -13,7 +20,7 @@ def test_ollama():
     }
 
     try:
-        response = requests.post(url, json=payload, timeout=30)
+        response = requests.post(url, json=payload, timeout=30, headers={"Authorization": f"Bearer {api_key}"})
         print(f"Ollama response code: {response.status_code}")
         if response.status_code == 200:
             result = response.json()

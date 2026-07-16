@@ -472,12 +472,9 @@ or simply junk that accumulates during local dev/compile runs. Delete freely:
 
 ## Environment & secrets
 
-- No `.env` file, no environment variables read by `app.py`. Account credentials
-  (bcrypt hashes) live directly in the `USERS` dict in `app.py` - see Authentication
-  above for why storing a bcrypt hash in source is fine, unlike a plaintext password
-  or API key.
-- The app assumes Ollama is already running, unauthenticated from this app's own
-  perspective, on `http://localhost:11434` — but see the Gotcha above about the
+- The app reads configuration from a `.env` file via `python-dotenv` at module load (`app.py`, `test_backend.py`). A template `.env.example` is provided; `.env` itself must stay local and uncommitted (included in `.gitignore`).
+- Specifically, `OLLAMA_API_KEY` must be configured in `.env` to authenticate with the **Ollama cloud API** at `https://ollama.com/api/chat` (`OLLAMA_URL`), which runs `minimax-m3:cloud` (`MODEL_NAME`). If `OLLAMA_API_KEY` is missing, the server logs a warning at startup and returns HTTP 503 with a copy-pasteable configuration guide when AI endpoints are called.
+- Account credentials (bcrypt hashes) live directly in the `USERS` dict in `app.py` — see Authentication above for why storing a bcrypt hash in source is fine.
   recipient still needing their own Ollama account for the `:cloud` model proxy to
   work.
 

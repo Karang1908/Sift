@@ -1,5 +1,11 @@
 from __future__ import annotations
 import os
+from dotenv import load_dotenv
+
+# Load .env from BASE_DIR (the script's own location) so the app works
+# no matter where it's launched from. Safe to call multiple times.
+load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
+
 import shutil
 import json
 import asyncio
@@ -161,8 +167,31 @@ EXPORT_TEMPLATE_FORMATS = {
 }
 EXPORT_TEMPLATE_MAX_BYTES = 20 * 1024 * 1024  # 20 MB
 
-OLLAMA_URL = "http://localhost:11434/api/chat"
-MODEL_NAME = "minimax-m3:cloud"
+OLLAMA_URL = os.environ.get("OLLAMA_URL", "https://ollama.com/api/chat")
+MODEL_NAME = os.environ.get("OLLAMA_MODEL", "minimax-m3:cloud")
+OLLAMA_API_KEY = os.environ.get("OLLAMA_API_KEY")
+if not OLLAMA_API_KEY:
+    # Surfaced at first model call too, but failing loudly at import catches
+    # the "started the app without .env" case before the user has a chance to
+    # click anything. The .env.example file documents how to set this.
+    logger.warning(
+        "OLLAMA_API_KEY is not set - all model calls (enhance-prompt, /api/process, "
+        "exports) will return 503 until you add it to .env or your environment."
+    )
+
+
+def _missing_api_key_error() -> str:
+    return ("OLLAMA_API_KEY is not configured. Copy .env.example to .env and add "
+            "your Ollama API key, or set OLLAMA_API_KEY in your environment.")
+
+
+def _ollama_headers() -> dict:
+    """Auth header for every Ollama call. The cloud API requires
+    Authorization: Bearer <key> - the local daemon accepted anonymous requests,
+    so this is the one place that actually has to know about the key."""
+    if not OLLAMA_API_KEY:
+        raise HTTPException(status_code=503, detail=_missing_api_key_error())
+    return {"Authorization": f"Bearer {OLLAMA_API_KEY}"}
 
 
 # ── Authentication ───────────────────────────────────────────────────
@@ -175,12 +204,18 @@ MODEL_NAME = "minimax-m3:cloud"
 #   2. Add/edit an entry below with that hash - NEVER a plaintext password.
 #   3. Restart the server (or let --reload pick up the file change).
 USERS = {
-    "admin": {
-        "password_hash": b"$2b$12$lzQFPbHpcC8dJgr2UTKjQuwORJ0ezjXdy2VBrzljnY71xVAuQyl3a", # Password: admin
+    "Nitin": {
+        "password_hash": b"$2b$12$sjQFdoD9LB1LwGisn53YrOJWObFMCTxs388ragC9QOTsFFaUiV6VK", # Password: Hitachi@Nitin
         "is_admin": True,
     },
-    "testuser": {
-        "password_hash": b"$2b$12$y8p14vX8fPulwqIf7LZpfO19BjuTn.NS7j/37J5nEoZoGy2ym05YK", # Password: test1234
+    "Ashish": {
+        "password_hash": b"$2b$12$fqLY.x/lniacDUadUFH90.3iURIfQU/kLcXkFazhrl56B7XGlj3nG", # Password: Hitachi@Ashish
+    },
+    "Yogesh": {
+        "password_hash": b"$2b$12$ueGN0bk8rYIylU2RgvtOfOgWpwh6lcYXA8mi2IeJUdGN5U/oI60Oa", # Password: Hitachi@Yogesh
+    },
+    "Piyush": {
+        "password_hash": b"$2b$12$M00jIi7csTegYlgSuvrQde2OtJYw1jdpVBCseTAH3XZGhoKiaspSO", # Password: Hitachi@Piyush
     },
 }
 
@@ -1023,6 +1058,7 @@ async def _generate_field_mapping(template_schema: str, markdown_text: str, inst
                 response = await client.post(
                     OLLAMA_URL,
                     json={"model": MODEL_NAME, "messages": messages, "stream": False},
+                    headers=_ollama_headers(),
                 )
         except httpx.RequestError as e:
             return None, f"Error connecting to Ollama: {str(e)}"
@@ -1485,6 +1521,7 @@ async def enhance_instructions(data: dict, user: str = Depends(get_current_user)
             response = await client.post(
                 OLLAMA_URL,
                 json={"model": MODEL_NAME, "messages": messages, "stream": False},
+                headers=_ollama_headers(),
             )
     except httpx.RequestError as e:
         raise HTTPException(status_code=500, detail=f"Error connecting to Ollama: {str(e)}")
@@ -1547,7 +1584,8 @@ async def enhance_prompt(data: dict, user: str = Depends(get_current_user)):
                     "model": MODEL_NAME,
                     "messages": messages,
                     "stream": False
-                }
+                },
+                headers=_ollama_headers(),
             )
     except httpx.RequestError as e:
         raise HTTPException(status_code=500, detail=f"Error connecting to Ollama: {str(e)}")
@@ -1638,7 +1676,8 @@ async def process_files(data: dict, user: str = Depends(get_current_user)):
                         "model": MODEL_NAME,
                         "messages": messages,
                         "stream": True
-                    }
+                    },
+                    headers=_ollama_headers(),
                 ) as response:
                     if response.status_code != 200:
                         yield f"data: {json.dumps({'error': f'Ollama error: status code {response.status_code}'})}\n\n"
@@ -2290,6 +2329,7 @@ async def _generate_ai_export(markdown_text: str, fmt: ExportFormat, max_attempt
                 response = await client.post(
                     OLLAMA_URL,
                     json={"model": MODEL_NAME, "messages": messages, "stream": False},
+                    headers=_ollama_headers(),
                 )
         except httpx.RequestError as e:
             return None, False, f"Error connecting to Ollama: {str(e)}"

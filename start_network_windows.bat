@@ -1,67 +1,37 @@
 @echo off
 REM Start Sift bound to 0.0.0.0 to allow local network (LAN) connections.
+REM
+REM Ollama is now the cloud API: there's no local daemon to start. Make sure
+REM your .env file contains OLLAMA_API_KEY before launching (see .env.example).
 
 cd /d "%~dp0"
 
 echo === Sift - Network Startup ===
 echo.
 
-REM --- 1. Check Ollama is installed ---
-where ollama >nul 2>nul
-if errorlevel 1 (
-    echo ERROR: Ollama is not installed.
-    echo Install it from https://ollama.com/download, then run this script again.
+REM --- 1. Check .env / OLLAMA_API_KEY ---
+if not exist .env (
+    echo ERROR: .env file is missing.
+    echo Copy .env.example to .env and add your Ollama API key, then run this script again.
     pause
     exit /b 1
 )
+findstr /B /C:"OLLAMA_API_KEY=" .env >nul
+if errorlevel 1 goto no_key
+findstr /B /C:"OLLAMA_API_KEY=." .env >nul
+if errorlevel 1 goto no_key
+goto key_ok
 
-REM --- 2. Start Ollama in the background, if it isn't already running ---
-REM NOTE: the wait loops below deliberately keep every label at the top level
-REM (never inside parentheses) - cmd.exe abandons block parsing when a goto
-REM lands inside a ( ) block, which breaks the surrounding if/else.
-curl -s -o nul -m 2 http://localhost:11434/api/tags
-if not errorlevel 1 (
-    echo Ollama is already running.
-    goto ollama_done
-)
-echo Starting Ollama in the background...
-start "Ollama" /min ollama serve
-echo Waiting for Ollama to become ready...
-set OLLAMA_TRIES=0
+:no_key
+echo ERROR: OLLAMA_API_KEY is not set in .env.
+echo Open .env and add a line like:  OLLAMA_API_KEY=your-key-here
+echo (you can get a key from https://ollama.com)
+pause
+exit /b 1
 
-:ollama_wait
-curl -s -o nul -m 2 http://localhost:11434/api/tags
-if not errorlevel 1 (
-    echo Ollama is ready.
-    goto ollama_done
-)
-set /a OLLAMA_TRIES+=1
-if %OLLAMA_TRIES% geq 30 (
-    echo ERROR: Ollama did not start within 30 seconds.
-    pause
-    exit /b 1
-)
-timeout /t 1 /nobreak >nul
-goto ollama_wait
+:key_ok
 
-:ollama_done
-
-REM --- 3. Make sure the required model is available ---
-ollama list | findstr /C:"minimax-m3:cloud" >nul
-if errorlevel 1 (
-    echo Pulling minimax-m3:cloud ^(this uses Ollama's cloud proxy - you need an Ollama account^)...
-    ollama pull minimax-m3:cloud
-    if errorlevel 1 (
-        echo ERROR: Could not pull minimax-m3:cloud.
-        echo This model requires an Ollama account - run "ollama login" and try again.
-        pause
-        exit /b 1
-    )
-) else (
-    echo Model minimax-m3:cloud is already available.
-)
-
-REM --- 4. Check Python and dependencies ---
+REM --- 2. Check Python and dependencies ---
 where python >nul 2>nul
 if errorlevel 1 (
     echo ERROR: python is not installed. Install Python 3.13+ from https://python.org and try again.
@@ -70,17 +40,20 @@ if errorlevel 1 (
     exit /b 1
 )
 
-python -c "import fastapi, uvicorn" >nul 2>nul
+python -c "import fastapi, uvicorn, dotenv" >nul 2>nul
 if errorlevel 1 (
     echo Installing required Python packages ^(first run only, may take a minute^)...
     python -m pip install -r requirements.txt
 )
 
-REM --- 5. Resolve local IP address ---
+REM --- 3. Resolve local IP address ---
 set LOCAL_IP=127.0.0.1
 for /f "usebackq tokens=*" %%a in (`powershell -Command "Get-NetIPAddress -AddressFamily IPv4 | Where-Object {$_.IPAddress -notlike '127.*' -and $_.InterfaceAlias -notlike '*Loopback*'} | Select-Object -ExpandProperty IPAddress | Select-Object -First 1"`) do set LOCAL_IP=%%a
 
-REM --- 6. Start the app server in the background bound to 0.0.0.0 ---
+REM --- 4. Start the app server in the background bound to 0.0.0.0 ---
+REM NOTE: the wait loop below deliberately keeps every label at the top level
+REM (never inside parentheses) - cmd.exe abandons block parsing when a goto
+REM lands inside a ( ) block, which breaks the surrounding if/else.
 curl -s -o nul -m 2 http://localhost:8000/api/files
 if not errorlevel 1 (
     echo App server is already running.

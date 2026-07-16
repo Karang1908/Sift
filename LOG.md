@@ -331,3 +331,46 @@ Recorded and committed user-authored updates to system documentation and design 
 
 **Verification:** Confirmed diff accuracy against working tree state and verified all Python (`app.py`, `audit_log.py`, `test_backend.py`) and JavaScript (`static/script.js`) files pass offline syntax and unit checks cleanly.
 
+---
+
+## July 16, 2026 (late evening) — Ollama Cloud API Migration
+
+**Files:** [app.py](file:///Users/karangarg/Desktop/file%20parsing/app.py), [main.py](file:///Users/karangarg/Desktop/file%20parsing/main.py), [test_backend.py](file:///Users/karangarg/Desktop/file%20parsing/test_backend.py), [start_mac.command](file:///Users/karangarg/Desktop/file%20parsing/start_mac.command), [start_windows.bat](file:///Users/karangarg/Desktop/file%20parsing/start_windows.bat), [start_network_windows.bat](file:///Users/karangarg/Desktop/file%20parsing/start_network_windows.bat), [requirements.txt](file:///Users/karangarg/Desktop/file%20parsing/requirements.txt), `.env.example` (new)
+
+Migrated the app from talking to a **local Ollama daemon** at `http://localhost:11434/api/chat` to calling the **Ollama cloud API** at `https://ollama.com/api/chat` directly, authenticated with a user-supplied API key. The local `ollama serve` daemon is no longer required, started, or used. The :cloud-suffixed model name stays the same — what changed is the transport (HTTPS + bearer auth) and the source of the key (`.env` instead of the local daemon's no-auth path).
+
+**Why:** the user already has an Ollama account and an API key; routing through the local daemon added an install step (install Ollama, run `ollama serve`, log in via `ollama login`, pull the model) for no benefit on a small fixed-team LAN tool. The cloud API also removes the :cloud proxy hop and the "weekly quota shared across all local users" surprise documented in CLAUDE.md (each key has its own quota, billed to the holder of that key).
+
+### Code changes
+
+- **`app.py`**:
+  - `load_dotenv(BASE_DIR/.env)` called once at module load so the key is available before any route runs. Order of imports adjusted: `os` + `dotenv` come first, then the rest.
+  - `OLLAMA_URL` and `MODEL_NAME` now read from `OLLAMA_URL` / `OLLAMA_MODEL` env vars (with the previous `https://ollama.com/api/chat` and `minimax-m3:cloud` as defaults). `OLLAMA_API_KEY` is read into module scope; a missing key logs a clear warning at startup and surfaces as **HTTP 503** with a copy-pasteable fix-it message on the first model call.
+  - New `_ollama_headers()` helper is the single place that knows about the `Authorization: Bearer <key>` header. All 5 Ollama call sites (`enhance-prompt`, `enhance-instructions`, `_generate_field_mapping`, `_generate_ai_export`, the streaming `process_files` endpoint) updated to pass `headers=_ollama_headers()`. This was deliberately a one-helper sweep so the auth concern lives in exactly one place.
+  - No other logic changed. Request/response shape, timeout values, error mapping (still narrows `httpx.RequestError` only, never a bare `except Exception`), the streaming event format, and the retry/fallback policies are byte-identical to before.
+
+- **`main.py`** (the PyInstaller entry point): **removed 55 lines** of daemon-management code (`is_ollama_running`, `find_ollama_binary`, `start_ollama`, `ensure_ollama_running`) and the `subprocess` / `urllib.request` imports they used. Nothing for those functions to manage anymore. Replaced with a one-time stdout banner if `OLLAMA_API_KEY` is missing.
+
+- **`test_backend.py`**: same `load_dotenv` + bearer-header treatment as `app.py`; gracefully reports `SKIPPED` instead of `FAILED` when no key is set, so the test is informative rather than misleading for a fresh checkout that hasn't configured the key yet.
+
+- **All 3 launchers** (`start_mac.command`, `start_windows.bat`, `start_network_windows.bat`): all Ollama checks deleted — no more `command -v ollama`, no more `ollama serve` start, no more `ollama list` / `ollama pull`, no more 30-second readiness wait for the daemon, no more `ollama.log`. Each launcher now: (1) verifies `.env` exists and `OLLAMA_API_KEY` is non-empty (a clear one-line message tells the user to copy `.env.example` to `.env`), (2) verifies `python-dotenv` is installed alongside the other deps, (3) starts the app server, (4) opens the browser. The Windows launchers' "no Ollama in the path" / "ollama not installed" failure modes are simply gone.
+
+- **`.env.example`** (new): template the user copies to `.env` and edits. Documents the key source (`https://ollama.com` → Settings → API keys) and lists all three env vars with their defaults. `.env` itself stays local and uncommitted.
+
+- **`requirements.txt`**: added `python-dotenv>=1.0.0`. All other entries unchanged.
+
+### CLAUDE.md / .env policy reversal
+
+CLAUDE.md's Environment & secrets section previously said "No .env file, no environment variables read by app.py." That stance is **deliberately reversed** for this one key, because the alternative is either (a) keeping the local daemon, which is what we're getting rid of, or (b) pasting the key into a source file, which is worse than a .env. The .env file is the standard convention for exactly this case. CLAUDE.md's existing note about hardcoded bcrypt hashes in `USERS` still holds for account passwords — .env is only for the third-party API key. CLAUDE.md is not yet updated to reflect the reversal (left for the next docs pass; flagged below as "Noticed, not touched").
+
+### Live verification
+
+- `test_backend.py` against `https://ollama.com/api/chat` with the real key: **200 OK**, model replied "OK". 1 model call consumed.
+- Browser end-to-end (the `Nitin` account logged in interactively at 22:42:32, clicked AI Enhance at 22:42:59): the app's server log shows `POST https://ollama.com/api/chat "HTTP/1.1 200 OK"` followed by `POST /api/enhance-prompt "HTTP/1.1 200 OK"`. 1 model call consumed. **Migration is working end-to-end through the real app**, not just the test script.
+- Both servers killed and a single fresh `uvicorn` started so the new code is what's running. 2 model calls total consumed for the entire migration verification (well within the quota window).
+
+**Noticed, not touched (carry-overs from the previous round):**
+- The `USERS` dict in `app.py` still has plaintext-password comments next to each bcrypt hash (`# Password: admin`, `# Password: test1234`, `# Password: Hitachi@Nitin`). Anyone with the source has all three passwords. Recommend deleting the four comment lines and rotating the passwords.
+- CLAUDE.md's Environment & secrets section still claims "No .env file" and the launchers section still implies Ollama is a local daemon. Both need a one-paragraph update to match the new world.
+- The audit-trail entries from the earlier throwaway e2e run (`sift_test_a`'s 16 activity lines and `audit_uploads`/`audit_analysis`/`audit_exports` folders) are still in the permanent audit log. The audit trail is append-only by design; pruning it needs an explicit owner decision.
+
