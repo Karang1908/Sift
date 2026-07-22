@@ -388,3 +388,80 @@ Configured `Icon.png` as the application's official favicon across all frontend 
 **Verification:** Verified offline Python compilation passes. Confirmed favicon file presence and routing matches the static directory structure.
 
 
+
+---
+
+## July 17, 2026 — SIFT // BLACKFORGE Redesign
+
+**Files:** [static/style.css](file:///Users/karangarg/Desktop/file%20parsing/static/style.css), [static/index.html](file:///Users/karangarg/Desktop/file%20parsing/static/index.html), [static/admin.html](file:///Users/karangarg/Desktop/file%20parsing/static/admin.html), [static/premium.js](file:///Users/karangarg/Desktop/file%20parsing/static/premium.js), [DESIGN.md](file:///Users/karangarg/Desktop/file%20parsing/DESIGN.md), `static/fonts/` (Clash Display, JetBrains Mono added; Sentient deleted), `static/gsap.min.js`, `static/anime.min.js`
+
+The previous warm/terracotta "Claude-paper" look was rejected outright as soft and generic. Replaced wholesale with **BLACKFORGE**, a direction synthesized from a research pass over Mistral AI (flame-on-black technical restraint), Apple (deep-void drama, huge heavy display type, hairline precision) and Linear (engineered exactness), then hardened by an adversarial critic pass.
+
+**The law:** relentless warm-black grayscale broken by a SINGLE incandescent channel — the flame (`#FF3B00` → `#FF1500`). No second saturated colour exists anywhere in the system (no status green, no accent blue). Dark is now the **default** theme and where the identity lives; light is a cold, equally hard inversion (`#E8E9E7` / `#0A0806` / `#D42A00`), never a warm-cream retreat.
+
+- **Type:** Clash Display 600/700 (forged display — wordmark, hero, panel titles, report headings; never lighter than 600), Satoshi (quiet body/controls), JetBrains Mono (the machine-fact voice — section indices, metadata, counts, state words, buttons; `tabular-nums`; never body prose). **Sentient was deleted entirely** — serif warmth was the single most "literary/soft" tell in the old build.
+- **Geometry crushed to 0–2px.** The old 6–18px radii are gone; `--radius-*` tokens were remapped rather than removed, so every existing component hardened automatically. Anything ≥4px is now treated as a regression.
+- **Soft neutral shadows banned.** `--shadow-*` tokens remapped to `none`; depth now comes from surface steps (`#070503 → #0F0C0A → #171310`) plus 1px hairlines. The one permitted shadow is a flame glow on live elements.
+- **Signature effects:** forged-grain overlay (inline SVG feTurbulence), 12-column drafting-paper grid, viewport registration/crop marks, mono corner readouts, targeting brackets that ignite on the working panel, scanline sheen on the output header, ignite-on-contact (`inset 2px 0 0` flame) instead of hover fills, and a flame-gradient progress bar that sweeps while `/api/process` streams.
+- **Login → the forge:** near-void canvas, one breathing flame orb, enormous Clash Display `Sift.` with the terminal tick flame-clipped, mono tagline, ignition sweep, hairline card with mono-indexed field labels (`01 / Username`), and a 160ms shake on failed login.
+- **Motion re-cut as machined:** `cubic-bezier(0.2,0,0,1)`, 120–200ms, no spring/overshoot/bounce anywhere. `premium.js` rewritten accordingly; still fully decoupled from `script.js` (MutationObserver-driven), still short-circuits under `prefers-reduced-motion`.
+- **Legacy cleanup:** stripped ~560 lines of hardcoded warm-palette `html.dark` overrides that would have fought the new token system, plus the orphan selector fragments that removal left behind.
+
+**Verification:** real-browser render (headless Chromium) of login, dashboard (dark + light) and the export modal — **0 unexpected console errors, 0 failed requests**, all three animation libraries present. WCAG AA verified on the new palette (body 18.2:1, muted 5.8:1, flame-as-text 5.5:1, button ink on flame 5.6:1; `--color-text-faint` was caught failing at 2.58:1 and raised to 4.52:1 dark / 5.25:1 light). **DOM integrity confirmed: all 58 element IDs and every class selector `script.js` depends on still exist**, so the export pipelines and app logic are untouched by the redesign — no JS logic or backend code was modified.
+
+---
+
+### July 17, 2026 (later) — Accent Channel: Flame → Plasma Arc (blue)
+
+**Files:** [static/style.css](file:///Users/karangarg/Desktop/file%20parsing/static/style.css), [DESIGN.md](file:///Users/karangarg/Desktop/file%20parsing/DESIGN.md)
+
+The BLACKFORGE structure was kept exactly as-is; only the single saturated channel was swapped from flame orange/red to **plasma-arc blue** for office use. The concept survives intact — a blue flame burns hotter than an orange one, so the forge simply became an arc cutter and all the ignition language still holds.
+
+- **Accent:** `#FF3B00 → #3B8CFF` (dark, hover `#6FB8FF`), `#D42A00 → #0B57D0` (light). Gradient ramp re-cut as a plasma arc: `#DFF4FF → #9BDCFF → #4FB0FF → #3B8CFF → #1E5FE0 → #0B2E9E`. Button ink `#140603 → #04101F`.
+- **Neutrals cooled to match.** The BLACKFORGE greys were deliberately *warm* (`#070503`/`#F6F2EB`/`#948A81`) because the accent was fire; warm greys under a blue accent read muddy. Every neutral was shifted to the identical lightness at a cold hue (`#05070B`/`#EEF2F7`/`#8C97A5`), so the structure, contrast hierarchy and hardness are unchanged — only the temperature follows the accent.
+- The one-channel law still holds: error/danger states continue to use the accent rather than introducing a second saturated colour, so there is now **zero** red or orange anywhere in the system (verified by grep).
+- Everything else — Clash Display / Satoshi / JetBrains Mono, 0–2px geometry, banned shadows, grain, drafting grid, crop marks, targeting brackets, scanline, ignite-on-contact, machined motion — is untouched.
+
+**Verification:** WCAG AA re-run on the full blue palette — **12/12 pairs pass**, and better than the flame version (body 17.9:1, muted 6.5:1, faint 5.3:1, arc-as-text 5.8:1, button ink on arc 5.8:1; light: text 16.7:1, blue-on-white 6.4:1). Real-browser render of login / dashboard / export modal / light: 0 unexpected console errors, 0 failed requests, all animation libs present. No JS, markup, or backend changes — CSS token values only.
+
+---
+
+### July 17, 2026 (later still) — Office Type, Liquid Glass, Professionalism Pass
+
+**Files:** [static/style.css](file:///Users/karangarg/Desktop/file%20parsing/static/style.css), [static/index.html](file:///Users/karangarg/Desktop/file%20parsing/static/index.html), [DESIGN.md](file:///Users/karangarg/Desktop/file%20parsing/DESIGN.md), `static/fonts/` (ClashDisplay removed)
+
+- **Clash Display retired.** The stylized industrial face was replaced by **Satoshi** across display *and* body (900 for the wordmark, 700 for titles/report headings) — one office-grade neutral grotesque, with JetBrains Mono retained for machine facts. Drama now comes from size and weight rather than a distinctive face, which is materially more corporate-appropriate. Satoshi ships no 600, so every display rule tuned at 600/700 for Clash was bumped to 700/900 to preserve the heavy look. The three ClashDisplay woff2 files were deleted (verified 404).
+- **Stopped shouting.** Full sentences (upload instructions, the format list, the query label, empty/placeholder states) returned to sentence-case Satoshi. Uppercase tracked mono is now reserved for **short** precise labels only — indices, table headers, metadata, buttons — where it reads as precision rather than noise. This was the single biggest professionalism/readability win.
+- **Liquid glass, sparingly.** `backdrop-filter: blur(30px) saturate(180%)` over a ~76% surface plus a specular `inset 0 1px 0` highlight, applied **only** to genuinely floating layers: the command bar, modal overlay + boxes, dropdown menus and the sign-in card. Feature-gated behind `@supports`, degrading to the solid surface. Deliberately NOT applied to static panels — glass-as-decoration is a known slop tell.
+- **Honesty pass.** The login corner readouts carried fake telemetry (`BLD 07C4·F1`, `LAT 00.00 / LON 00.00`), which reads as cosplay rather than professional. Replaced with true strings: `Sift · v1.0`, `Document intelligence`, `Authorized access only`, `minimax-m3 // cloud`.
+
+**Verification:** real-browser render of login / dashboard / export modal / light — 0 unexpected console errors, 0 failed requests, all animation libs present. `Satoshi-900.woff2` serves 200; `ClashDisplay-700.woff2` correctly 404s. CSS/markup only — no JS logic or backend touched, so the export pipelines remain untouched.
+
+---
+
+### July 17, 2026 — Sign-in Wordmark: Italic Times, Split Colour, Typewriter
+
+**Files:** [static/index.html](file:///Users/karangarg/Desktop/file%20parsing/static/index.html), [static/style.css](file:///Users/karangarg/Desktop/file%20parsing/static/style.css), [static/premium.js](file:///Users/karangarg/Desktop/file%20parsing/static/premium.js), [DESIGN.md](file:///Users/karangarg/Desktop/file%20parsing/DESIGN.md)
+
+Reworked the sign-in hero wordmark only — the rest of the app is untouched.
+
+- **Italic Times New Roman (700)** replaces Satoshi 900 for the wordmark. Times is office-native (it reads as letterhead, not decoration) and a genuine contrast-axis pairing against the Satoshi/mono UI, so it lands as a deliberate editorial signature rather than a font clash. It is a system font — no vendoring, no new request.
+- **Split colour:** `Si` in ink white `#EEF2F7`, `ft.` in arc blue `#3B8CFF` (verified by computed style, not eyeball).
+- **Typewriter on load**, typing `Si` then `ft.` at 115ms/char with a blinking arc caret, after which the tagline, ignition sweep and sign-in card land in sequence (the GSAP timeline was re-anchored to the typing duration so nothing overlaps).
+- **Progressive enhancement:** the complete wordmark is authored in the HTML and the typewriter only ever *replaces already-visible* text, so it degrades to a static wordmark with no JS. `prefers-reduced-motion` skips the typing entirely and hides the caret.
+- Documented in DESIGN.md as the **one** permitted serif in the system, explicitly scoped to the sign-in screen.
+
+**Verification:** captured the live DOM every 60ms during load — the wordmark types progressively `"S" → "Si" → "Sif" → "Sift" → "Sift."`, confirming real animation rather than an instant swap. Computed styles confirm `Times New Roman` / `italic` / `rgb(238,242,247)` + `rgb(59,140,255)`. 0 page errors. CSS/markup/motion-layer only — no JS logic or backend touched.
+
+---
+
+### July 17, 2026 — Wordmark Everywhere, Looping Typewriter, White Light Header, More Glass
+
+**Files:** [static/style.css](file:///Users/karangarg/Desktop/file%20parsing/static/style.css), [static/index.html](file:///Users/karangarg/Desktop/file%20parsing/static/index.html), [static/admin.html](file:///Users/karangarg/Desktop/file%20parsing/static/admin.html), [static/premium.js](file:///Users/karangarg/Desktop/file%20parsing/static/premium.js), [DESIGN.md](file:///Users/karangarg/Desktop/file%20parsing/DESIGN.md)
+
+- **The italic-Times split-colour wordmark is now the mark everywhere** — sign-in hero plus the command bar of both the app and the admin panel. Extending it is brand consistency rather than decoration, so the rule in DESIGN.md was widened from "sign-in only" to "the wordmark, wherever it appears — and nothing else." Admin's "Admin" qualifier is set in mono, deliberately not serif, so the serif stays reserved for the mark itself.
+- **Typewriter now loops**: type → hold 1.9s → delete (faster, 55ms/char) → hold 0.45s → retype. It renders from a single source string split across the two coloured spans, so the white/blue boundary stays correct at every frame. The loop **stops itself** once the sign-in overlay is dismissed rather than timing out forever in the background.
+- **Light-mode header fixed.** It was `#070A0F` (near-black); at 72% glass over a light body that composited to a washed grey, which is what looked bad. The light command bar is now a true **white** glass bar (`#FFFFFF`) with dark text (`#070A0F`), muted `#515A64` and a `#D3D8DE` hairline.
+- **More glass**: the command bar was strengthened (72% surface, `blur(26px) saturate(170%)`, specular inset edge), and panels/output/file-list picked up a whisper of translucency (88% + `blur(16px)`) so the drafting grid reads faintly through them. 88% was chosen deliberately — it keeps body text within a hair of the solid-surface contrast rather than trading legibility for effect.
+
+**Verification:** the loop was confirmed by sampling the live DOM every 50ms — observed `"S"→"Si"→"Sif"→"Sift"→"Sift."→"Sift"→…→""→"S"→…` i.e. type, delete AND retype across multiple cycles. White-header contrast re-checked: header text 19.8:1, muted 7.0:1, wordmark `ft.` 6.4:1 on white — all AA. Full render of login/dashboard/export/light: 0 unexpected console errors, 0 failed requests. CSS/markup/motion-layer only — `app.py` and `script.js` still have zero diff, so the export pipelines are untouched.

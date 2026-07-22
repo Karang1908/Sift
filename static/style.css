@@ -1,41 +1,109 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500;600;700&display=swap');
+/* ══════════════════════════════════════════════════════════════════════
+   SIFT // BLACKFORGE
+   Document intelligence as a flame-cutting instrument on forged near-black.
+   ONE LAW: relentless warm-black grayscale, broken by a SINGLE incandescent
+   channel — the flame. No second saturated colour exists in this system.
+   Dark is the default and where the identity lives; light is a cold, equally
+   hard inversion — never a warm-cream retreat.
+   Geometry is brutal (0–2px). Soft neutral shadows are BANNED.
+   ══════════════════════════════════════════════════════════════════════ */
 
+/* ── Vendored fonts (local woff2, no CDN) ─────────────────────────────
+   Satoshi        — the single office-grade grotesque: display AND body.
+   Satoshi        — quiet grotesque: body, controls, buttons.
+   JetBrains Mono — the machine-fact voice: indices, metadata, counts, state. */
+@font-face { font-family:'Satoshi'; src:url('fonts/Satoshi-400.woff2') format('woff2'); font-weight:400; font-style:normal; font-display:swap; }
+@font-face { font-family:'Satoshi'; src:url('fonts/Satoshi-500.woff2') format('woff2'); font-weight:500; font-style:normal; font-display:swap; }
+@font-face { font-family:'Satoshi'; src:url('fonts/Satoshi-700.woff2') format('woff2'); font-weight:700; font-style:normal; font-display:swap; }
+@font-face { font-family:'Satoshi'; src:url('fonts/Satoshi-900.woff2') format('woff2'); font-weight:900; font-style:normal; font-display:swap; }
+@font-face { font-family:'JetBrains Mono'; src:url('fonts/JetBrainsMono-400.woff2') format('woff2'); font-weight:400; font-style:normal; font-display:swap; }
+@font-face { font-family:'JetBrains Mono'; src:url('fonts/JetBrainsMono-500.woff2') format('woff2'); font-weight:500; font-style:normal; font-display:swap; }
+@font-face { font-family:'JetBrains Mono'; src:url('fonts/JetBrainsMono-700.woff2') format('woff2'); font-weight:700; font-style:normal; font-display:swap; }
+
+/* ── LIGHT: cold hard inversion (opt-in). Never warm, never cream. ──── */
 :root {
-    /* Fonts */
-    --font-display: 'DM Serif Display', Georgia, 'Times New Roman', serif;
-    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-display:'Satoshi',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    --font-body:'Satoshi',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    --font-mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;
 
-    /* Colors (Claude.ai Light Theme) */
-    --color-bg: #f9f8f6;            /* Warm paper */
-    --color-panel-bg: #ffffff;      /* Clean white card */
-    --color-panel-header-bg: #f1f0e8; /* Subtle warm paper header */
-    --color-text-main: #191919;     /* Near-black dark ink */
-    --color-text-muted: #706f6a;    /* Muted charcoal */
-    --color-border: #e1dfd5;        /* Slate border */
-    --color-border-hover: #b0aea5;
-    --color-primary: #cc6a4f;       /* Terracotta orange accent */
-    --color-primary-hover: #b35338; /* Terracotta orange hover */
-    --color-primary-light: rgba(204, 106, 79, 0.08);
-    --color-header-bg: #191919;     /* Premium dark header */
-    --color-header-text: #ffffff;
-    --color-header-border: #000000;
+    --color-bg:#E9ECF0;
+    --color-panel-bg:#FFFFFF;
+    --color-panel-header-bg:#F2F5F8;
+    --color-surface-2:#F2F5F8;
+    --color-text-main:#070A0F;
+    --color-text-muted:#515A64;
+    --color-text-faint:#697380;
+    --color-border:#D3D8DE;
+    --color-border-hover:#BFC6CE;
+    --color-primary:#0B57D0;
+    --color-primary-hover:#0842A8;
+    --color-primary-strong:#0B57D0;
+    --color-primary-strong-hover:#0842A8;
+    --color-primary-light:rgba(11,87,208,0.08);
+    --color-on-primary:#FFFFFF;
+    --color-focus:#0B57D0;
+    --color-danger:#0B57D0;
+    --color-danger-bg:rgba(11,87,208,0.08);
+    --color-success:#515A64;
+    --color-header-bg:#FFFFFF;
+    --color-header-text:#070A0F;
+    --color-header-border:#D3D8DE;
+    --grid-line:rgba(7,10,15,0.05);
+    --grain-opacity:0.035;
+    --scan-line:rgba(11,87,208,0.03);
+
+    /* Geometry — brutal. 0–2px is the ENTIRE vocabulary. ≥4px is a bug. */
+    --radius-0:0px;
+    --radius-sm:1px;
+    --radius-md:2px;
+    --radius-lg:2px;
+    --radius-xl:2px;
+    --radius-full:999px;   /* status dots / flame mark ONLY */
+
+    /* Soft neutral shadows are BANNED — depth is surface steps + hairlines. */
+    --shadow-xs:none; --shadow-sm:none; --shadow-md:none; --shadow-lg:none;
+
+    /* The ONE permitted shadow: flame glow, live elements only. */
+    --glow-flame:0 0 20px rgba(11,87,208,0.28);
+    --flame-gradient:linear-gradient(90deg,#DFF4FF,#9BDCFF,#4FB0FF,#3B8CFF,#1E5FE0,#0B2E9E);
+
+    /* Motion — machined. No spring, no overshoot, no bounce. */
+    --ease-out:cubic-bezier(0.2,0,0,1);
+    --ease-out-quart:cubic-bezier(0.2,0,0,1);
+    --dur-fast:120ms; --dur:160ms; --dur-slow:200ms;
+
+    --z-dropdown:1000; --z-sticky:1100; --z-backdrop:1200;
+    --z-modal:1300; --z-toast:1400; --z-tooltip:1500;
 }
 
+/* ── DARK: BLACKFORGE. The default; where the identity lives. ───────── */
 html.dark {
-    /* Colors (Claude.ai Dark Theme) */
-    --color-bg: #1a1815;            /* Canvas background */
-    --color-panel-bg: #22201c;      /* Panels background */
-    --color-panel-header-bg: #2a2723; /* Elevated/header background */
-    --color-text-main: #e8e6e3;     /* Text-1 light warm gray */
-    --color-text-muted: #b0aba2;    /* Text-2 mid gray */
-    --color-border: #33302a;        /* Border */
-    --color-border-hover: #4b473f;  /* Border-3 */
-    --color-primary: #c15f3c;       /* Accent */
-    --color-primary-hover: #d87757; /* Accent-2 */
-    --color-primary-light: rgba(193, 95, 60, 0.08);
-    --color-header-bg: #151311;     /* Darker canvas header */
-    --color-header-text: #e8e6e3;
-    --color-header-border: #2d2924;
+    --color-bg:#05070B;
+    --color-panel-bg:#0B0F16;
+    --color-panel-header-bg:#141A23;
+    --color-surface-2:#141A23;
+    --color-text-main:#EEF2F7;
+    --color-text-muted:#8C97A5;
+    --color-text-faint:#7C8794;
+    --color-border:#1C232D;
+    --color-border-hover:#303A47;
+    --color-primary:#3B8CFF;
+    --color-primary-hover:#6FB8FF;
+    --color-primary-strong:#3B8CFF;
+    --color-primary-strong-hover:#6FB8FF;
+    --color-primary-light:rgba(59,140,255,0.10);
+    --color-on-primary:#04101F;   /* dark ink on flame — max contrast */
+    --color-focus:#3B8CFF;
+    --color-danger:#6FB8FF;
+    --color-danger-bg:rgba(59,140,255,0.10);
+    --color-success:#8C97A5;
+    --color-header-bg:#03050A;
+    --color-header-text:#EEF2F7;
+    --color-header-border:#1C232D;
+    --grid-line:rgba(238,242,247,0.035);
+    --grain-opacity:0.05;
+    --scan-line:rgba(59,140,255,0.03);
+    --glow-flame:0 0 20px rgba(59,140,255,0.34);
 }
 
 * {
@@ -54,16 +122,21 @@ body {
     color: var(--color-text-main);
     background-color: var(--color-bg);
     line-height: 1.5;
+    font-size: 14px;
+    letter-spacing: -0.005em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
     display: flex;
     flex-direction: column;
-    transition: background-color 0.15s, color 0.15s;
+    transition: background-color var(--dur) var(--ease-out), color var(--dur) var(--ease-out);
 }
 
 /* Header */
 .app-header {
     background-color: var(--color-header-bg);
     color: var(--color-header-text);
-    border-bottom: 3px solid var(--color-header-border);
+    border-bottom: 1px solid var(--color-header-border);
     padding: 0.75rem 2rem;
     height: 60px;
     box-sizing: border-box;
@@ -106,19 +179,25 @@ body {
 
 .logo h1 {
     font-family: var(--font-display);
-    font-size: 1.2rem;
-    font-weight: 700;
-    font-style: italic;
-    letter-spacing: 0.02em;
+    font-size: 1.35rem;
+    font-weight: 500;
+    letter-spacing: -0.01em;
 }
 
 .model-badge {
-    background-color: var(--color-bg);
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--color-header-text);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    padding: 0.3rem 0.65rem;
+    border-radius: var(--radius-full);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.model-badge strong {
     color: var(--color-primary);
-    font-size: 0.8rem;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    border: 1px solid var(--color-border);
+    font-weight: 600;
 }
 
 .header-right {
@@ -139,49 +218,107 @@ body {
     color: #ffffff;
 }
 
-/* Login screen - full-viewport, shown by default until checkAuth() confirms
-   an active session. Not a .modal-overlay: no backdrop-dismiss/Escape-close,
-   since there's no app underneath to reveal yet. */
+/* Login screen — a premium hero. Ambient terracotta glows drift slowly behind
+   a crisp card. Content is visible by default; premium.js layers entrance
+   motion on top and skips it under prefers-reduced-motion. */
 .login-overlay {
     position: fixed;
     inset: 0;
-    background: linear-gradient(135deg, var(--color-bg) 0%, var(--color-panel-header-bg) 100%);
+    background:
+        radial-gradient(1100px 760px at 18% 18%, color-mix(in oklch, var(--color-primary) 10%, transparent), transparent 60%),
+        radial-gradient(900px 680px at 84% 88%, color-mix(in oklch, var(--color-primary) 7%, transparent), transparent 58%),
+        var(--color-bg);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 3000;
+    overflow: hidden;
+    isolation: isolate;
+}
+
+.login-overlay::before,
+.login-overlay::after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(72px);
+    opacity: 0.5;
+    z-index: -1;
+    pointer-events: none;
+    will-change: transform;
+}
+
+.login-overlay::before {
+    width: 46vmax; height: 46vmax;
+    top: -14vmax; left: -10vmax;
+    background: radial-gradient(circle, color-mix(in oklch, var(--color-primary) 42%, transparent), transparent 70%);
+    animation: login-drift-a 24s ease-in-out infinite alternate;
+}
+
+.login-overlay::after {
+    width: 40vmax; height: 40vmax;
+    bottom: -16vmax; right: -8vmax;
+    background: radial-gradient(circle, color-mix(in oklch, var(--color-primary) 28%, transparent), transparent 70%);
+    animation: login-drift-b 30s ease-in-out infinite alternate;
+}
+
+@keyframes login-drift-a {
+    from { transform: translate(0, 0) scale(1); }
+    to   { transform: translate(6vmax, 5vmax) scale(1.14); }
+}
+@keyframes login-drift-b {
+    from { transform: translate(0, 0) scale(1); }
+    to   { transform: translate(-5vmax, -4vmax) scale(1.1); }
 }
 
 .login-box {
+    position: relative;
     background-color: var(--color-panel-bg);
-    border-radius: 4px;
+    border-radius: var(--radius-xl);
     border: 1px solid var(--color-border);
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
-    width: 360px;
-    max-width: 90vw;
-    padding: 2rem;
+    box-shadow: var(--shadow-lg);
+    width: 400px;
+    max-width: 92vw;
+    padding: 2.5rem 2.25rem;
 }
 
 .login-logo {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.6rem;
-    margin-bottom: 1.5rem;
+    gap: 0.7rem;
+    margin-bottom: 0.4rem;
+}
+
+.login-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    background: var(--color-primary-light);
     color: var(--color-primary);
 }
 
-.login-logo .icon {
-    width: 26px;
-    height: 26px;
+.login-badge .icon {
+    width: 21px;
+    height: 21px;
 }
 
 .login-logo h1 {
     font-family: var(--font-display);
-    font-size: 1.5rem;
-    font-weight: 700;
-    font-style: italic;
-    letter-spacing: 0.02em;
+    font-size: 2rem;
+    font-weight: 500;
+    letter-spacing: -0.015em;
+    color: var(--color-text-main);
+}
+
+.login-tagline {
+    text-align: center;
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 1.9rem;
 }
 
 #login-form .form-group {
@@ -190,10 +327,11 @@ body {
 
 #login-form label {
     display: block;
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     font-weight: 600;
     color: var(--color-text-main);
-    margin-bottom: 0.35rem;
+    letter-spacing: -0.005em;
+    margin-bottom: 0.4rem;
 }
 
 #login-form .modal-input {
@@ -201,11 +339,11 @@ body {
 }
 
 .login-error {
-    background-color: #fee2e2;
-    color: #b91c1c;
-    border: 1px solid #fca5a5;
-    border-radius: 4px;
-    padding: 0.5rem 0.7rem;
+    background-color: var(--color-danger-bg);
+    color: var(--color-danger);
+    border: 1px solid color-mix(in oklch, var(--color-danger) 35%, transparent);
+    border-radius: var(--radius-md);
+    padding: 0.55rem 0.75rem;
     font-size: 0.82rem;
     margin-bottom: 1rem;
 }
@@ -213,7 +351,9 @@ body {
 .login-submit-btn {
     width: 100%;
     justify-content: center;
-    padding: 0.6rem;
+    padding: 0.7rem;
+    margin-top: 0.6rem;
+    font-size: 0.9rem;
 }
 
 /* App Container Layout */
@@ -253,8 +393,8 @@ body {
 .panel {
     background: var(--color-panel-bg);
     border: 1px solid var(--color-border);
-    border-radius: 4px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -288,12 +428,11 @@ body {
 }
 
 .panel-header h2 {
-    font-family: var(--font-display);
-    font-size: 0.95rem;
-    font-weight: 600;
-    font-style: italic;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    font-weight: 700;
     color: var(--color-text-main);
-    letter-spacing: 0.02em;
+    letter-spacing: -0.01em;
 }
 
 .panel-body {
@@ -307,19 +446,46 @@ body {
 
 /* File Upload Drag & Drop Zone */
 .upload-zone {
-    border: 2px dashed var(--color-border);
-    border-radius: 4px;
-    padding: 1rem;
+    border: 1.5px dashed var(--color-border-hover);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem 1rem;
     text-align: center;
-    background-color: var(--color-bg);
+    background-color: var(--color-surface-2);
     cursor: pointer;
-    transition: background-color 0.2s, border-color 0.2s;
+    transition: background-color var(--dur) var(--ease-out),
+                border-color var(--dur) var(--ease-out);
     flex-shrink: 0;
 }
 
 .upload-zone:hover, .upload-zone.dragover {
-    background-color: var(--color-panel-header-bg);
+    background-color: var(--color-primary-light);
     border-color: var(--color-primary);
+}
+
+.upload-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    margin-bottom: 0.6rem;
+    border-radius: var(--radius-full);
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+    transition: transform var(--dur) var(--ease-out);
+}
+
+.upload-icon svg { width: 20px; height: 20px; }
+
+.upload-zone:hover .upload-icon,
+.upload-zone.dragover .upload-icon {
+    transform: translateY(-2px);
+}
+
+.upload-title {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--color-text-main);
 }
 
 .hidden-input {
@@ -327,15 +493,16 @@ body {
 }
 
 .browse-link {
-    color: var(--color-primary);
+    color: var(--color-primary-hover);
     text-decoration: underline;
+    text-underline-offset: 2px;
     font-weight: 600;
 }
 
 .file-limits {
-    font-size: 0.7rem;
+    font-size: 0.72rem;
     color: var(--color-text-muted);
-    margin-top: 0.25rem;
+    margin-top: 0.3rem;
 }
 
 /* File Table */
@@ -432,8 +599,7 @@ body {
 .empty-row td {
     text-align: center;
     color: var(--color-text-muted);
-    padding: 1rem;
-    font-style: italic;
+    padding: 1.5rem 1rem;
 }
 
 .text-right {
@@ -441,29 +607,42 @@ body {
 }
 
 .status-badge {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
     padding: 0.15rem 0.5rem;
     font-size: 0.7rem;
     font-weight: 600;
-    border-radius: 3px;
+    letter-spacing: 0.005em;
+    border-radius: var(--radius-full);
 }
 
+.status-badge::before {
+    content: "";
+    width: 5px;
+    height: 5px;
+    border-radius: var(--radius-full);
+    background-color: currentColor;
+}
+
+/* Tinted over the current surface so both themes read correctly (the token
+   text colors flip in dark; the low-alpha fill works on either). */
 .status-badge.parsed {
-    background-color: #dcfce7;
-    color: #15803d;
-    border: 1px solid #bbf7d0;
+    background-color: rgba(74, 124, 89, 0.13);
+    color: var(--color-success);
+    border: 1px solid rgba(74, 124, 89, 0.28);
 }
 
 .status-badge.pending {
-    background-color: #fef9c3;
-    color: #854d0e;
-    border: 1px solid #fef08a;
+    background-color: rgba(176, 124, 42, 0.14);
+    color: #9a6a1c;
+    border: 1px solid rgba(176, 124, 42, 0.30);
 }
 
 .status-badge.error {
-    background-color: #fee2e2;
-    color: #b91c1c;
-    border: 1px solid #fca5a5;
+    background-color: var(--color-danger-bg);
+    color: var(--color-danger);
+    border: 1px solid rgba(192, 57, 43, 0.30);
 }
 
 /* Buttons */
@@ -471,31 +650,50 @@ body {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 0.4rem 0.8rem;
+    padding: 0.5rem 0.9rem;
+    font-family: var(--font-body);
     font-size: 0.85rem;
-    font-weight: 600;
-    border-radius: 4px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    border-radius: var(--radius-md);
     cursor: pointer;
     border: 1px solid transparent;
-    transition: background-color 0.15s, border-color 0.15s;
-    gap: 0.4rem;
+    transition: background-color var(--dur-fast) var(--ease-out),
+                border-color var(--dur-fast) var(--ease-out),
+                box-shadow var(--dur-fast) var(--ease-out),
+                transform var(--dur-fast) var(--ease-out);
+    gap: 0.45rem;
+    white-space: nowrap;
+    user-select: none;
+}
+
+.btn:active:not(:disabled) {
+    transform: translateY(0.5px) scale(0.985);
+}
+
+.btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--color-focus);
 }
 
 .btn-primary {
-    background-color: var(--color-primary);
-    color: #ffffff;
-    border-color: var(--color-primary);
+    background-color: var(--color-primary-strong);
+    color: var(--color-on-primary);
+    border-color: var(--color-primary-strong);
+    box-shadow: var(--shadow-xs);
 }
 
 .btn-primary:hover:not(:disabled) {
-    background-color: var(--color-primary-hover);
-    border-color: var(--color-primary-hover);
+    background-color: var(--color-primary-strong-hover);
+    border-color: var(--color-primary-strong-hover);
+    box-shadow: var(--shadow-sm);
 }
 
 .btn-primary:disabled {
     background-color: var(--color-border);
     border-color: var(--color-border);
-    color: var(--color-text-muted);
+    color: var(--color-text-faint);
+    box-shadow: none;
     cursor: not-allowed;
 }
 
@@ -503,6 +701,7 @@ body {
     background-color: var(--color-panel-bg);
     color: var(--color-text-main);
     border-color: var(--color-border);
+    box-shadow: var(--shadow-xs);
 }
 
 .btn-secondary:hover:not(:disabled) {
@@ -512,34 +711,47 @@ body {
 
 .btn-secondary:disabled {
     opacity: 0.5;
+    box-shadow: none;
     cursor: not-allowed;
 }
 
 .btn-danger {
     background-color: var(--color-panel-bg);
-    color: #b91c1c;
-    border-color: #fca5a5;
-    padding: 0.2rem 0.4rem;
+    color: var(--color-danger);
+    border-color: var(--color-border);
+    padding: 0.25rem 0.5rem;
     font-size: 0.75rem;
 }
 
-.btn-danger:hover {
-    background-color: #fee2e2;
-    border-color: #b91c1c;
+.btn-danger:hover:not(:disabled) {
+    background-color: var(--color-danger-bg);
+    border-color: var(--color-danger);
 }
 
 .btn-icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: none;
     border: 1px solid var(--color-border);
-    border-radius: 4px;
-    padding: 0.3rem 0.4rem;
+    border-radius: var(--radius-md);
+    padding: 0.35rem 0.45rem;
     cursor: pointer;
     font-size: 0.85rem;
-    color: var(--color-text-main);
+    color: var(--color-text-muted);
     background-color: var(--color-panel-bg);
+    transition: background-color var(--dur-fast) var(--ease-out),
+                border-color var(--dur-fast) var(--ease-out),
+                color var(--dur-fast) var(--ease-out),
+                transform var(--dur-fast) var(--ease-out);
+}
+
+.btn-icon:active:not(:disabled) {
+    transform: scale(0.94);
+}
+
+.btn-icon:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--color-focus);
 }
 
 .btn-icon:disabled {
@@ -550,6 +762,7 @@ body {
 .btn-icon:hover:not(:disabled) {
     background-color: var(--color-panel-header-bg);
     border-color: var(--color-border-hover);
+    color: var(--color-text-main);
 }
 
 /* Forms */
@@ -570,21 +783,28 @@ body {
 textarea {
     width: 100%;
     flex: 1;
-    padding: 0.6rem;
+    padding: 0.7rem 0.8rem;
     border: 1px solid var(--color-border);
-    border-radius: 4px;
+    border-radius: var(--radius-md);
     font-family: inherit;
     font-size: 0.9rem;
+    line-height: 1.55;
     color: var(--color-text-main);
     background-color: var(--color-panel-bg);
     resize: none; /* Disable manual resize to let box fit viewport exactly */
     overflow-y: auto; /* Make it scrollable */
+    transition: border-color var(--dur-fast) var(--ease-out),
+                box-shadow var(--dur-fast) var(--ease-out);
+}
+
+textarea::placeholder {
+    color: var(--color-text-muted);
 }
 
 textarea:focus {
     outline: none;
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 2px var(--color-primary-light);
+    box-shadow: 0 0 0 3px var(--color-focus);
 }
 
 .action-bar {
@@ -612,15 +832,17 @@ textarea:focus {
     justify-content: space-between;
     gap: 0.5rem;
     width: 160px;
-    padding: 0.3rem 0.5rem;
+    padding: 0.4rem 0.6rem;
     border: 1px solid var(--color-border);
-    border-radius: 4px;
+    border-radius: var(--radius-md);
     background-color: var(--color-panel-bg);
     color: var(--color-text-main);
     font-family: inherit;
     font-size: 0.78rem;
     cursor: pointer;
-    transition: border-color 0.15s, background-color 0.15s;
+    transition: border-color var(--dur-fast) var(--ease-out),
+                background-color var(--dur-fast) var(--ease-out),
+                box-shadow var(--dur-fast) var(--ease-out);
 }
 
 .preset-dropdown-toggle:hover {
@@ -630,7 +852,7 @@ textarea:focus {
 
 .preset-dropdown.open .preset-dropdown-toggle {
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 2px var(--color-primary-light);
+    box-shadow: 0 0 0 3px var(--color-focus);
 }
 
 .preset-dropdown-label {
@@ -653,21 +875,23 @@ textarea:focus {
     overflow-y: auto;
     background-color: var(--color-panel-bg);
     border: 1px solid var(--color-border);
-    border-radius: 4px;
-    box-shadow: 0 4px 12px rgba(25, 25, 25, 0.08);
-    z-index: 1000;
-    padding: 0.25rem;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    z-index: var(--z-dropdown);
+    padding: 0.3rem;
 }
 
 .preset-dropdown-item {
-    padding: 0.4rem 0.6rem;
+    padding: 0.45rem 0.6rem;
     font-size: 0.8rem;
     color: var(--color-text-main);
-    border-radius: 3px;
+    border-radius: var(--radius-sm);
     cursor: pointer;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    transition: background-color var(--dur-fast) var(--ease-out),
+                color var(--dur-fast) var(--ease-out);
 }
 
 .preset-dropdown-item:hover,
@@ -680,7 +904,6 @@ textarea:focus {
     padding: 0.5rem 0.6rem;
     font-size: 0.78rem;
     color: var(--color-text-muted);
-    font-style: italic;
 }
 
 /* Execute Section */
@@ -712,17 +935,16 @@ textarea:focus {
 
 .output-header {
     background-color: var(--color-panel-header-bg);
-    padding: 0.4rem 0.75rem;
+    padding: 0.5rem 0.85rem;
     border-bottom: 1px solid var(--color-border);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-family: var(--font-display);
+    font-family: var(--font-body);
     font-size: 0.85rem;
-    font-style: italic;
     color: var(--color-text-main);
-    font-weight: 600;
-    letter-spacing: 0.02em;
+    font-weight: 700;
+    letter-spacing: -0.01em;
     flex-shrink: 0;
 }
 
@@ -749,7 +971,6 @@ textarea:focus {
 
 .output-placeholder {
     color: var(--color-text-muted);
-    font-style: italic;
 }
 
 /* Rendered markdown formatting inside white output body */
@@ -769,7 +990,7 @@ textarea:focus {
 .output-body table { width: 100%; border-collapse: collapse; margin: 1.25rem 0; font-size: 0.85rem; }
 .output-body th { background-color: var(--color-panel-header-bg); color: var(--color-text-main); border: 1px solid var(--color-border); padding: 0.5rem 0.7rem; font-weight: 600; text-align: left; }
 .output-body td { border: 1px solid var(--color-border); padding: 0.5rem 0.7rem; }
-.output-body blockquote { border-left: 4px solid var(--color-border); padding-left: 0.75rem; color: var(--color-text-muted); margin: 1rem 0; font-style: italic; background-color: var(--color-panel-header-bg); padding: 0.4rem 0.75rem; }
+.output-body blockquote { color: var(--color-text-muted); margin: 1rem 0; background-color: var(--color-surface-2); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 0.7rem 0.95rem; }
 
 /* Progress Bars */
 .progress-bar-container {
@@ -783,17 +1004,20 @@ textarea:focus {
 .progress-bar-track {
     flex: 1;
     height: 6px;
-    background-color: #e2e8f0;
-    border-radius: 3px;
+    background-color: var(--color-surface-2);
+    border-radius: var(--radius-full);
     overflow: hidden;
 }
 
+/* Width is the correct affordance for a progress fill (it literally
+   represents completion); the bar has no inner content to reflow, so this
+   is domain-appropriate, not layout thrash. */
 .progress-bar-fill {
     height: 100%;
     width: 0%;
     background-color: var(--color-primary);
-    border-radius: 3px;
-    transition: width 0.15s ease-out;
+    border-radius: var(--radius-full);
+    transition: width var(--dur) var(--ease-out);
 }
 
 .progress-bar-label {
@@ -1049,8 +1273,6 @@ textarea:focus {
     margin-top: 0.5rem;
 }
 
-
-
 /* Responsive Overrides */
 @media (max-width: 1024px) {
     html, body {
@@ -1123,20 +1345,22 @@ textarea:focus {
 
 .modal-input {
     width: 100%;
-    padding: 0.5rem 0.6rem;
+    padding: 0.6rem 0.7rem;
     border: 1px solid var(--color-border);
-    border-radius: 4px;
+    border-radius: var(--radius-md);
     font-family: inherit;
     font-size: 0.9rem;
     color: var(--color-text-main);
     background-color: var(--color-panel-bg);
     margin-bottom: 1rem;
+    transition: border-color var(--dur-fast) var(--ease-out),
+                box-shadow var(--dur-fast) var(--ease-out);
 }
 
 .modal-input:focus {
     outline: none;
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 2px var(--color-primary-light);
+    box-shadow: 0 0 0 3px var(--color-focus);
 }
 
 .modal-actions {
@@ -1228,9 +1452,7 @@ textarea:focus {
     white-space: nowrap;
 }
 
-
 /* ══════════════════════════════════════════════════════════════════════
-   DARK MODE — Claude.ai Warm Palette
    ──────────────────────────────────────────────────────────────────────
    Canvas:   #1a1815   Panels:   #22201c   Elevated: #2a2723
    Border:   #33302a   Border-2: #3d3932   Border-3: #4b473f
@@ -1239,26 +1461,11 @@ textarea:focus {
    ══════════════════════════════════════════════════════════════════════ */
 
 /* ── Base ─────────────────────────────────────────────────────────────── */
-html.dark body {
-    color: #e8e6e3;
-    background-color: #1a1815;
-}
 
 /* ── Header ───────────────────────────────────────────────────────────── */
-html.dark .app-header {
-    background-color: #151311;
-    border-bottom: 2px solid #2d2924;
-}
 
-html.dark .header-username {
-    color: #b0aba2;
-}
-
-html.dark .model-badge {
-    background-color: rgba(193, 95, 60, 0.08);
-    border-color: rgba(193, 95, 60, 0.2);
-    color: #d87757;
-}
+/* .model-badge sits on the always-dark header in both themes; the base
+   white-overlay chip is correct for both, so no dark override. */
 
 /* Theme toggle button */
 #theme-toggle-btn {
@@ -1267,9 +1474,9 @@ html.dark .model-badge {
     justify-content: center;
     background: none;
     border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 4px;
-    width: 32px;
-    height: 32px;
+    border-radius: var(--radius-md);
+    width: 34px;
+    height: 34px;
     padding: 0;
     color: #e8e6e3;
     cursor: pointer;
@@ -1287,569 +1494,382 @@ html.dark .model-badge {
     height: 15px;
 }
 
-html.dark #theme-toggle-btn {
-    border-color: rgba(193, 95, 60, 0.25);
-    color: #d87757;
-}
-
-html.dark #theme-toggle-btn:hover {
-    background-color: rgba(193, 95, 60, 0.08);
-    border-color: #c15f3c;
-    color: #ffffff;
-}
-
 /* ── Login Screen ─────────────────────────────────────────────────────── */
-html.dark .login-overlay {
-    background: linear-gradient(135deg, #0e0d0b 0%, #1a1815 50%, #22201c 100%);
-}
-
-html.dark .login-box {
-    background-color: #22201c;
-    color: #e8e6e3;
-    border: 1px solid #33302a;
-    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.55);
-}
-
-html.dark .login-logo {
-    color: #c15f3c;
-}
-
-html.dark #login-form label {
-    color: #e8e6e3;
-}
-
-html.dark .login-error {
-    background-color: #3a1d1d;
-    color: #ff8e8e;
-    border-color: #5c1f1f;
-}
+/* The login hero (ambient glow bg, card, badge, tagline, error) is fully
+   token-driven and adapts to dark via the token flip — no overrides needed.
+   Deepen the canvas a touch so the terracotta glows read richer on dark. */
 
 /* ── Panels & Panel Headers ───────────────────────────────────────────── */
-html.dark .panel {
-    background-color: #22201c;
-    border-color: #33302a;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-}
-
-html.dark .panel-header {
-    background-color: #2a2723;
-    border-bottom-color: #33302a;
-}
-
-html.dark .panel-header h2 {
-    color: #e8e6e3;
-}
 
 /* ── Upload Zone ──────────────────────────────────────────────────────── */
-html.dark .upload-zone {
-    border-color: #3d3932;
-    background-color: #1a1815;
-    color: #b0aba2;
-}
-
-html.dark .upload-zone:hover,
-html.dark .upload-zone.dragover {
-    border-color: #c15f3c;
-    background-color: rgba(193, 95, 60, 0.04);
-}
-
-html.dark .upload-zone .browse-link {
-    color: #d87757;
-}
-
-html.dark .file-limits {
-    color: #6d6961;
-}
 
 /* ── File List Container ──────────────────────────────────────────────── */
-html.dark .file-list-container {
-    border-color: #33302a;
-}
 
 /* ── Tables ────────────────────────────────────────────────────────────── */
-html.dark .file-table th {
-    background-color: #2a2723;
-    color: #b0aba2;
-    border-bottom-color: #33302a;
-}
-
-html.dark .file-table td {
-    border-bottom-color: #2a2723;
-    color: #e8e6e3;
-}
-
-html.dark .file-table tbody tr:hover td {
-    background-color: #2a2723;
-}
-
-html.dark .file-table td.col-time {
-    color: #b0aba2;
-}
-
-html.dark .empty-row td {
-    color: #6d6961;
-}
 
 /* ── Status Badges ────────────────────────────────────────────────────── */
-html.dark .status-badge.parsed {
-    background-color: rgba(143, 186, 106, 0.12);
-    color: #8fba6a;
-    border-color: rgba(143, 186, 106, 0.25);
-}
-
-html.dark .status-badge.pending {
-    background-color: rgba(232, 155, 118, 0.12);
-    color: #e89b76;
-    border-color: rgba(232, 155, 118, 0.25);
-}
-
-html.dark .status-badge.error {
-    background-color: rgba(241, 68, 68, 0.12);
-    color: #f14444;
-    border-color: rgba(241, 68, 68, 0.25);
-}
 
 /* ── Buttons ──────────────────────────────────────────────────────────── */
-html.dark .btn-primary {
-    background: linear-gradient(135deg, #c15f3c 0%, #d87757 100%);
-    color: #ffffff;
-    border-color: #c15f3c;
-    box-shadow: 0 4px 14px rgba(193, 95, 60, 0.2);
-}
-
-html.dark .btn-primary:hover:not(:disabled) {
-    background: linear-gradient(135deg, #d87757 0%, #e89b76 100%);
-    border-color: #d87757;
-    box-shadow: 0 6px 18px rgba(193, 95, 60, 0.35);
-    transform: translateY(-1px);
-}
-
-html.dark .btn-primary:active:not(:disabled) {
-    transform: translateY(0);
-}
-
-html.dark .btn-primary:disabled {
-    background: #22201c;
-    border-color: #33302a;
-    color: #5b5750;
-    box-shadow: none;
-    transform: none;
-}
-
-html.dark .btn-secondary {
-    background-color: #2a2723;
-    color: #e8e6e3;
-    border-color: #3d3932;
-}
-
-html.dark .btn-secondary:hover:not(:disabled) {
-    background-color: #3d3932;
-    color: #ffffff;
-    border-color: #4b473f;
-}
-
-html.dark .btn-secondary:disabled {
-    background-color: #22201c;
-    border-color: #33302a;
-    color: #5b5750;
-}
-
-html.dark .btn-danger {
-    background-color: #3a1d1d;
-    color: #ff8e8e;
-    border-color: #5c1f1f;
-}
-
-html.dark .btn-danger:hover {
-    background-color: #5c1f1f;
-    color: #ffb8b8;
-    border-color: #ff8e8e;
-}
-
-html.dark .btn-icon {
-    background-color: #2a2723;
-    border-color: #3d3932;
-    color: #b0aba2;
-}
-
-html.dark .btn-icon:hover:not(:disabled) {
-    background-color: rgba(193, 95, 60, 0.1);
-    border-color: #c15f3c;
-    color: #ffffff;
-}
+/* .btn-primary is fully token-driven now (flat --color-primary-strong fill,
+   white text passes AA in both themes) — no dark override needed. */
 
 /* ── Spinners ─────────────────────────────────────────────────────────── */
-html.dark .btn-secondary .spinner {
-    border-top-color: #d87757;
-    border-left-color: rgba(216, 119, 87, 0.3);
-}
 
 /* ── Form Controls (inputs, textareas, selects, labels) ───────────────── */
-html.dark input[type="text"],
-html.dark input[type="password"],
-html.dark textarea,
-html.dark select {
-    background-color: #1a1815;
-    color: #e8e6e3;
-    border-color: #33302a;
-}
 
-html.dark input[type="text"]:focus,
-html.dark input[type="password"]:focus,
-html.dark textarea:focus,
-html.dark select:focus {
-    border-color: #c15f3c;
-    box-shadow: 0 0 0 2px rgba(193, 95, 60, 0.2);
-    outline: none;
-}
+/* Focus rings are token-driven (3px var(--color-focus)) in both themes. */
 
-html.dark input::placeholder,
-html.dark textarea::placeholder {
-    color: #5b5750;
-}
-
-html.dark label {
-    color: #b0aba2;
-}
-
-html.dark .form-group label {
-    color: #b0aba2;
-}
-
-html.dark .modal-input {
-    background-color: #1a1815;
-    color: #e8e6e3;
-    border-color: #33302a;
-}
-
-html.dark .modal-input:focus {
-    border-color: #c15f3c;
-    box-shadow: 0 0 0 2px rgba(193, 95, 60, 0.2);
-}
+/* .modal-input:focus is token-driven (3px var(--color-focus)) in both themes. */
 
 /* ── Preset Dropdown ──────────────────────────────────────────────────── */
-html.dark .preset-dropdown-toggle {
-    background-color: #1a1815;
-    color: #e8e6e3;
-    border-color: #33302a;
-}
-
-html.dark .preset-dropdown-toggle:hover {
-    background-color: #22201c;
-    border-color: #c15f3c;
-    color: #ffffff;
-}
-
-html.dark .preset-dropdown.open .preset-dropdown-toggle {
-    border-color: #c15f3c;
-    box-shadow: 0 0 0 2px rgba(193, 95, 60, 0.15);
-}
-
-html.dark .preset-dropdown-caret {
-    color: #6d6961;
-}
-
-html.dark .preset-dropdown-menu {
-    background-color: #22201c;
-    border-color: #33302a;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.45);
-}
-
-html.dark .preset-dropdown-item {
-    color: #e8e6e3;
-}
-
-html.dark .preset-dropdown-item:hover {
-    background-color: rgba(255, 255, 255, 0.05);
-    color: #ffffff;
-}
-
-html.dark .preset-dropdown-item.active {
-    background-color: rgba(193, 95, 60, 0.12);
-    color: #d87757;
-}
-
-html.dark .preset-dropdown-empty {
-    color: #6d6961;
-}
 
 /* ── Progress Bars ────────────────────────────────────────────────────── */
-html.dark .progress-bar-track {
-    background-color: #33302a;
-}
 
-html.dark .progress-bar-fill {
-    background: linear-gradient(90deg, #c15f3c 0%, #d87757 100%);
-    box-shadow: 0 0 8px rgba(193, 95, 60, 0.35);
-}
-
-html.dark .progress-bar-label {
-    color: #b0aba2;
-}
-
-html.dark .progress-status {
-    color: #d87757;
-}
+/* progress-bar-fill is token-driven (flat --color-primary); no glow — the
+   restraint reads more production-grade than a neon bar. */
 
 /* ── Output Container & Markdown ──────────────────────────────────────── */
-html.dark .output-container {
-    border-color: #33302a;
-    background-color: #1a1815;
-}
 
-html.dark .output-header {
-    background-color: #22201c;
-    border-bottom-color: #33302a;
-    color: #b0aba2;
-}
+/* Report headings stay terracotta (var(--color-primary)) in both themes for a
+   consistent editorial identity; base rule + token flip handle it. */
 
-html.dark .output-body {
-    background-color: #1a1815;
-    color: #e8e6e3;
-}
-
-html.dark .output-placeholder {
-    color: #5b5750;
-}
-
-html.dark .output-body h1,
-html.dark .output-body h2,
-html.dark .output-body h3,
-html.dark .output-body h4 {
-    color: #e8e6e3;
-}
-
-html.dark .output-body h1 {
-    border-bottom-color: #33302a;
-}
-
-html.dark .output-body strong {
-    color: #ffffff;
-}
-
-html.dark .output-body a {
-    color: #d87757;
-}
-
-html.dark .output-body pre {
-    background-color: #1a1815;
-    border: 1px solid #33302a;
-    color: #e8e6e3;
-}
-
-html.dark .output-body code {
-    background-color: rgba(193, 95, 60, 0.08);
-    color: #e89b76;
-}
-
-html.dark .output-body th {
-    background-color: #2a2723;
-    border-color: #33302a;
-    color: #e8e6e3;
-}
-
-html.dark .output-body td {
-    border-color: #33302a;
-    color: #e8e6e3;
-}
-
-html.dark .output-body blockquote {
-    border-left-color: #c15f3c;
-    background-color: #22201c;
-    color: #b0aba2;
-}
-
-html.dark .output-body hr {
-    border-color: #33302a;
-}
+/* blockquote is a bordered tinted box now (no side-stripe); token-driven in
+   both themes, so no dark override. */
 
 /* ── Modals ────────────────────────────────────────────────────────────── */
-html.dark .modal-overlay {
-    background-color: rgba(10, 9, 8, 0.7);
-}
-
-html.dark .modal-box,
-html.dark .modal-box-wide {
-    background-color: #22201c;
-    color: #e8e6e3;
-    border: 1px solid #33302a;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-}
-
-html.dark .modal-title {
-    color: #e8e6e3;
-}
-
-html.dark .modal-message {
-    color: #b0aba2;
-}
 
 /* ── Export Modal Tabs ────────────────────────────────────────────────── */
-html.dark .export-tabs {
-    border-bottom-color: #33302a;
-}
-
-html.dark .export-tab {
-    color: #6d6961;
-}
-
-html.dark .export-tab:hover {
-    color: #d87757;
-}
-
-html.dark .export-tab.active {
-    color: #c15f3c;
-    border-bottom-color: #c15f3c;
-}
-
-html.dark .export-template-name {
-    color: #6d6961;
-}
 
 /* ── File Items (parsed cache list) ───────────────────────────────────── */
-html.dark .file-item {
-    background-color: #1a1815;
-    border-color: #33302a;
-}
-
-html.dark .file-item-name {
-    color: #e8e6e3;
-}
-
-html.dark .file-item-meta {
-    color: #6d6961;
-}
 
 /* ══════════════════════════════════════════════════════════════════════
    ADMIN DASHBOARD — Dark Mode
    ══════════════════════════════════════════════════════════════════════ */
 
 /* ── Admin Tabs ───────────────────────────────────────────────────────── */
-html.dark .admin-tabs {
-    border-bottom-color: #33302a;
-}
-
-html.dark .admin-tab {
-    color: #6d6961;
-}
-
-html.dark .admin-tab:hover {
-    color: #d87757;
-}
-
-html.dark .admin-tab.active {
-    color: #c15f3c;
-    border-bottom-color: #c15f3c;
-}
 
 /* ── Admin Filters ────────────────────────────────────────────────────── */
-html.dark .admin-filters select {
-    background-color: #1a1815;
-    color: #e8e6e3;
-    border-color: #33302a;
-}
-
-html.dark .admin-filters select:focus {
-    border-color: #c15f3c;
-    box-shadow: 0 0 0 2px rgba(193, 95, 60, 0.2);
-    outline: none;
-}
 
 /* ── Admin User Cards ─────────────────────────────────────────────────── */
-html.dark .admin-user-card {
-    background-color: #22201c;
-    border-color: #33302a;
-    color: #e8e6e3;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-html.dark .admin-user-card-header {
-    border-bottom-color: #33302a;
-}
-
-html.dark .admin-user-card .role {
-    background-color: rgba(193, 95, 60, 0.1);
-    color: #d87757;
-}
-
-html.dark .admin-user-presets-section h4 {
-    color: #d87757;
-    border-bottom-color: #33302a;
-}
-
-html.dark .admin-user-presets-list li {
-    border-bottom-color: rgba(255, 255, 255, 0.04);
-}
-
-html.dark .preset-name {
-    color: #e89b76;
-}
-
-html.dark .preset-value {
-    color: #b0aba2;
-}
-
-html.dark .preset-template-tag {
-    color: #6d6961;
-}
-
-html.dark .admin-user-presets-empty {
-    color: #5b5750;
-}
 
 /* ── Admin Analysis Modal ─────────────────────────────────────────────── */
-html.dark .admin-analysis-content {
-    background-color: #1a1815;
-    border-color: #33302a;
-    color: #e8e6e3;
-}
 
 /* ── Admin Denied Page ────────────────────────────────────────────────── */
-html.dark .admin-denied {
-    color: #b0aba2;
-}
-
-html.dark .admin-denied h2 {
-    color: #f14444;
-}
 
 /* ── Activity Log Viewer ──────────────────────────────────────────────── */
-html.dark .filter-row {
-    background-color: #22201c;
-    border-bottom-color: #33302a;
-}
-
-html.dark .log-record {
-    background-color: #22201c;
-    border-color: #33302a;
-}
-
-html.dark .log-meta {
-    color: #6d6961;
-}
-
-html.dark .log-payload {
-    background-color: #1a1815;
-    border-color: #33302a;
-}
 
 /* ── Scrollbars ───────────────────────────────────────────────────────── */
-html.dark ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+
+/* ══════════════════════════════════════════════════════════════════════
+   PREMIUM POLISH — scrollbars, row hover, reduced-motion
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* Thin, themed scrollbars (token-driven; the html.dark block above refines
+   the track/thumb further). */
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+    background: var(--color-border-hover);
+    border-radius: var(--radius-full);
+    border: 2px solid var(--color-panel-bg);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--color-text-faint); }
+* { scrollbar-width: thin; scrollbar-color: var(--color-border-hover) transparent; }
+
+/* File-row hover (light mode had none; dark is handled above). */
+.file-table tbody tr:hover td { background-color: var(--color-panel-header-bg); }
+.file-table tbody tr td { transition: background-color var(--dur-fast) var(--ease-out); }
+
+/* Reduced-motion: neutralize every animation/transition and the ambient
+   login drift. Content stays fully visible; premium.js also short-circuits. */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+        scroll-behavior: auto !important;
+    }
 }
 
-html.dark ::-webkit-scrollbar-track {
-    background: #1a1815;
+/* ══════════════════════════════════════════════════════════════════════
+   BLACKFORGE — COMPONENT LAYER
+   One law: warm-black grayscale, one incandescent channel. 0–2px corners.
+   No soft shadows. Mono = machine facts. Satoshi carries display + body.
+   ══════════════════════════════════════════════════════════════════════ */
+
+:root { --color-header-muted:#515A64; }
+html.dark { --color-header-muted:#8C97A5; }
+
+/* ── Atmosphere: forged grain + drafting-paper column rules ─────────── */
+.forge-grain{position:fixed;inset:0;pointer-events:none;z-index:9999;opacity:var(--grain-opacity);mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");}
+
+body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:repeating-linear-gradient(90deg,transparent 0,transparent calc(100%/12 - 1px),var(--grid-line) calc(100%/12));}
+.app-header,.app-container{position:relative;z-index:1;}
+/* login-overlay keeps its own position:fixed / z-index:3000 — never override */
+
+/* ── Viewport registration / crop marks ─────────────────────────────── */
+.forge-frame{position:fixed;inset:8px;pointer-events:none;z-index:9998;}
+.forge-frame i{position:absolute;width:12px;height:12px;border:1px solid var(--color-border-hover);}
+.forge-frame i:nth-child(1){top:0;left:0;border-right:0;border-bottom:0;}
+.forge-frame i:nth-child(2){top:0;right:0;border-left:0;border-bottom:0;}
+.forge-frame i:nth-child(3){bottom:0;left:0;border-right:0;border-top:0;}
+.forge-frame i:nth-child(4){bottom:0;right:0;border-left:0;border-top:0;}
+
+/* ── Command bar ────────────────────────────────────────────────────── */
+.app-header{background:var(--color-header-bg);border-bottom:1px solid var(--color-header-border);height:60px;padding:0 1.25rem;}
+.header-container{max-width:none;}
+.logo{gap:.6rem;}
+.logo-icon{color:var(--color-primary);}
+.logo h1{font-family:'Times New Roman',Times,'Liberation Serif',Georgia,serif;font-style:italic;font-weight:700;
+  font-size:1.5rem;letter-spacing:-.01em;text-transform:none;color:var(--color-header-text);line-height:1;}
+.logo h1 .wm-a{color:var(--color-header-text);}
+.logo h1 .wm-b{color:var(--color-primary);}
+.model-badge{font-family:var(--font-mono);font-size:9.5px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;
+  background:transparent;border:1px solid var(--color-border-hover);border-radius:0;color:var(--color-header-muted);padding:.35rem .55rem;}
+.model-badge strong{color:var(--color-primary);font-weight:700;}
+.header-username{font-family:var(--font-mono);font-size:10px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--color-header-muted);}
+#theme-toggle-btn{border-radius:0;border-color:var(--color-border-hover);color:var(--color-header-muted);width:32px;height:32px;}
+#theme-toggle-btn:hover{border-color:var(--color-primary);color:var(--color-primary);background:transparent;}
+
+/* ── Panels as instrument faceplates ────────────────────────────────── */
+.app-container{gap:1px;padding:1rem;}
+.column{gap:1px;}
+.panel{background:var(--color-panel-bg);border:1px solid var(--color-border);border-radius:0;box-shadow:none;position:relative;}
+.panel-header{background:transparent;border-bottom:1px solid var(--color-border);padding:.7rem .9rem;}
+.panel-header h2{display:flex;flex-direction:column;gap:.28rem;font-family:var(--font-body);font-size:inherit;letter-spacing:normal;}
+.panel-index{font-family:var(--font-mono);font-size:9.5px;font-weight:500;letter-spacing:.24em;text-transform:uppercase;color:var(--color-text-faint);transition:color var(--dur-fast) var(--ease-out);}
+.panel-title{font-family:var(--font-display);font-weight:700;font-size:.9rem;letter-spacing:-.005em;text-transform:uppercase;color:var(--color-text-main);}
+.panel.is-live .panel-index{color:var(--color-primary);}
+/* targeting brackets — the reticle locks onto the working panel */
+.panel::before,.panel::after{content:"";position:absolute;width:9px;height:9px;border:1px solid transparent;pointer-events:none;
+  transition:border-color var(--dur-fast) var(--ease-out);z-index:2;}
+.panel::before{top:-1px;left:-1px;border-right:0;border-bottom:0;}
+.panel::after{bottom:-1px;right:-1px;border-left:0;border-top:0;}
+.panel.is-live::before,.panel.is-live::after{border-color:var(--color-primary);}
+
+/* ── Buttons — flat, square, ignite on contact ──────────────────────── */
+.btn{border-radius:var(--radius-md);font-family:var(--font-body);font-weight:500;font-size:.8rem;box-shadow:none;letter-spacing:0;}
+.btn:active:not(:disabled){transform:none;}
+.btn:focus-visible{outline:1px solid var(--color-primary);outline-offset:2px;box-shadow:none;}
+.btn-primary{background:var(--color-primary);color:var(--color-on-primary);border-color:var(--color-primary);
+  font-family:var(--font-mono);font-weight:700;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;box-shadow:none;}
+.btn-primary:hover:not(:disabled){background:var(--color-primary-hover);border-color:var(--color-primary-hover);box-shadow:var(--glow-flame);}
+.btn-primary:disabled{background:transparent;border-color:var(--color-border);color:var(--color-text-faint);box-shadow:none;}
+.btn-secondary{background:transparent;border-color:var(--color-border-hover);color:var(--color-text-muted);
+  font-family:var(--font-mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;box-shadow:none;}
+.btn-secondary:hover:not(:disabled){background:transparent;border-color:var(--color-primary);color:var(--color-primary);box-shadow:inset 2px 0 0 var(--color-primary);}
+.btn-danger{background:transparent;border-color:var(--color-border);color:var(--color-text-faint);font-family:var(--font-mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;}
+.btn-danger:hover:not(:disabled){background:transparent;border-color:var(--color-primary);color:var(--color-primary);}
+.btn-icon{border-radius:var(--radius-sm);background:transparent;border-color:var(--color-border-hover);color:var(--color-text-faint);}
+.btn-icon:hover:not(:disabled){background:transparent;border-color:var(--color-primary);color:var(--color-primary);}
+.btn-icon:active:not(:disabled){transform:none;}
+.btn-icon:focus-visible{outline:1px solid var(--color-primary);outline-offset:2px;box-shadow:none;}
+
+/* ── Inputs — square, hard flame focus ─────────────────────────────── */
+textarea,.modal-input{border-radius:var(--radius-sm);background:var(--color-bg);border-color:var(--color-border);font-family:var(--font-body);}
+textarea:focus,.modal-input:focus{outline:1px solid var(--color-primary);outline-offset:2px;border-color:var(--color-primary);box-shadow:none;}
+textarea::placeholder,.modal-input::placeholder{color:var(--color-text-faint);}
+.form-group label,#login-form label{font-family:var(--font-mono);font-size:9.5px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:var(--color-text-muted);}
+
+/* ── Intake zone ────────────────────────────────────────────────────── */
+.upload-zone{border:1px dashed var(--color-border-hover);border-radius:0;background:transparent;padding:1.4rem 1rem;}
+.upload-zone:hover,.upload-zone.dragover{border-color:var(--color-primary);background:var(--color-primary-light);}
+.upload-icon{width:36px;height:36px;border-radius:0;background:transparent;border:1px solid var(--color-border-hover);color:var(--color-primary);}
+.upload-zone:hover .upload-icon,.upload-zone.dragover .upload-icon{transform:none;border-color:var(--color-primary);}
+.upload-title{font-family:var(--font-mono);font-size:10.5px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--color-text-muted);}
+.browse-link{color:var(--color-primary);text-decoration:none;border-bottom:1px solid var(--color-primary);font-weight:500;}
+.file-limits{font-family:var(--font-mono);font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--color-text-faint);}
+
+/* ── Ledger table ───────────────────────────────────────────────────── */
+.file-list-container{border-radius:0;border-color:var(--color-border);}
+.file-table{font-family:var(--font-mono);font-size:11px;font-variant-numeric:tabular-nums;}
+.file-table th{font-family:var(--font-mono);font-size:9px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--color-text-faint);background:var(--color-panel-bg);border-bottom:1px solid var(--color-border);}
+.file-table td{border-bottom:1px solid var(--color-border);padding:.45rem .6rem;}
+.file-table tbody tr:hover td{background:transparent;}
+.file-table tbody tr:hover td:first-child{box-shadow:inset 2px 0 0 var(--color-primary);}
+.empty-row td{font-family:var(--font-mono);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--color-text-faint);}
+
+/* Status badges — grayscale by law; only failure earns the flame. */
+.status-badge{border-radius:0;background:transparent;border:1px solid var(--color-border-hover);
+  font-family:var(--font-mono);font-size:8.5px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;padding:.18rem .4rem;}
+.status-badge::before{width:4px;height:4px;}
+.status-badge.parsed{color:var(--color-text-muted);border-color:var(--color-border-hover);}
+.status-badge.pending{color:var(--color-text-faint);border-color:var(--color-border);}
+.status-badge.error{color:var(--color-primary);border-color:var(--color-primary);}
+
+/* ── Flame progress: the machine actually working ──────────────────── */
+.progress-bar-track{height:2px;background:var(--color-border);border-radius:0;}
+.progress-bar-fill{border-radius:0;background:var(--flame-gradient);background-size:200% 100%;
+  box-shadow:var(--glow-flame);animation:flame-sweep 1.1s linear infinite;}
+@keyframes flame-sweep{from{background-position:0 0}to{background-position:-200% 0}}
+.progress-bar-label,.progress-status{font-family:var(--font-mono);font-size:9.5px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--color-text-muted);}
+
+/* ── Output: the streaming surface (flame lives here) ──────────────── */
+.output-container{border-radius:0;border-color:var(--color-border);}
+.output-header{background:transparent;border-bottom:1px solid var(--color-border);
+  font-family:var(--font-mono);font-size:9.5px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:var(--color-text-muted);position:relative;overflow:hidden;}
+.output-header::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent 0,transparent 2px,var(--scan-line) 3px);}
+.output-body{font-family:var(--font-body);}
+.output-body h1,.output-body h2,.output-body h3{font-family:var(--font-display);font-weight:700;letter-spacing:-.015em;color:var(--color-text-main);}
+.output-body h1{border-bottom:1px solid var(--color-border);}
+.output-body strong{color:var(--color-text-main);}
+.output-body code,.output-body pre{font-family:var(--font-mono);}
+.output-body blockquote{border-radius:0;background:var(--color-surface-2);border:1px solid var(--color-border);}
+.output-body table{font-family:var(--font-mono);font-size:11px;font-variant-numeric:tabular-nums;}
+.output-body th{background:transparent;border:1px solid var(--color-border);font-family:var(--font-mono);
+  font-size:9px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--color-text-faint);}
+.output-body td{border:1px solid var(--color-border);}
+.output-placeholder{font-family:var(--font-mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--color-text-faint);}
+
+/* ── Dropdowns / tabs / modals ─────────────────────────────────────── */
+.preset-dropdown-toggle{border-radius:var(--radius-sm);background:transparent;border-color:var(--color-border-hover);
+  font-family:var(--font-mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-text-muted);}
+.preset-dropdown-toggle:hover{background:transparent;border-color:var(--color-primary);color:var(--color-primary);}
+.preset-dropdown.open .preset-dropdown-toggle{border-color:var(--color-primary);box-shadow:none;outline:1px solid var(--color-primary);outline-offset:1px;}
+.preset-dropdown-menu{border-radius:0;box-shadow:none;border-color:var(--color-border-hover);background:var(--color-panel-header-bg);}
+.preset-dropdown-item{border-radius:0;font-family:var(--font-mono);font-size:9.5px;letter-spacing:.1em;}
+.preset-dropdown-item:hover,.preset-dropdown-item.active{background:transparent;color:var(--color-primary);box-shadow:inset 2px 0 0 var(--color-primary);}
+.preset-dropdown-empty{font-family:var(--font-mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--color-text-faint);}
+.modal-overlay{background:rgba(3,2,1,.86);}
+.modal-box,.modal-box-wide{border-radius:var(--radius-md);border:1px solid var(--color-border-hover);background:var(--color-panel-bg);box-shadow:none;}
+.modal-title{font-family:var(--font-display);font-weight:700;text-transform:uppercase;letter-spacing:-.02em;}
+.modal-message{font-family:var(--font-body);color:var(--color-text-muted);}
+.export-tabs{border-bottom-color:var(--color-border);}
+.export-tab{border-radius:0;font-family:var(--font-mono);font-size:9.5px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--color-text-faint);}
+.export-tab:hover{color:var(--color-primary);}
+.export-tab.active{color:var(--color-primary);border-bottom-color:var(--color-primary);}
+.export-template-name{font-family:var(--font-mono);font-size:9.5px;letter-spacing:.1em;color:var(--color-text-faint);}
+
+/* ── Scrollbars ─────────────────────────────────────────────────────── */
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:var(--color-bg)}
+::-webkit-scrollbar-thumb{background:var(--color-border-hover);border-radius:0;border:3px solid var(--color-bg)}
+::-webkit-scrollbar-thumb:hover{background:var(--color-primary)}
+*{scrollbar-color:var(--color-border-hover) transparent;}
+
+/* ── LOGIN // THE FORGE ─────────────────────────────────────────────── */
+.login-overlay{background:var(--color-bg);}
+html.dark .login-overlay{background:#03050A;}
+/* one flame orb — the single warm light source in a cold black room */
+.login-overlay::before{
+  content:"";position:absolute;top:-22vmax;left:50%;bottom:auto;right:auto;
+  width:90vmax;height:64vmax;border-radius:50%;filter:blur(100px);opacity:1;z-index:-1;
+  background:radial-gradient(circle at 50% 42%,rgba(59,140,255,.34),rgba(30,95,224,.12) 34%,transparent 62%);
+  transform:translateX(-50%);animation:orb-breathe 22s ease-in-out infinite alternate;}
+.login-overlay::after{content:"";position:absolute;inset:0;width:auto;height:auto;border-radius:0;filter:none;opacity:1;
+  background:repeating-linear-gradient(90deg,transparent 0,transparent calc(100%/12 - 1px),var(--grid-line) calc(100%/12));
+  animation:none;z-index:-1;}
+@keyframes orb-breathe{from{transform:translateX(-50%) scale(1);opacity:.88}to{transform:translateX(-50%) scale(1.06);opacity:1}}
+
+.login-forge{position:relative;width:min(1080px,92vw);display:grid;grid-template-columns:1.15fr .85fr;gap:4rem;align-items:center;}
+@media (max-width:940px){.login-forge{grid-template-columns:1fr;gap:2.5rem;}}
+
+/* The sign-in wordmark is the one deliberate editorial moment in the system:
+   italic Times New Roman (office-native, and a true contrast axis against the
+   Satoshi/mono UI), split "Si" white + "ft." arc blue, typed on load. */
+.forge-wordmark{font-family:'Times New Roman',Times,'Liberation Serif',Georgia,serif;
+  font-style:italic;font-weight:700;font-size:clamp(3.4rem,12vw,8.5rem);line-height:1;
+  letter-spacing:-.015em;text-transform:none;color:var(--color-text-main);margin:0;
+  white-space:nowrap;min-height:1em;}
+.forge-wordmark .wm-a{color:var(--color-text-main);}
+.forge-wordmark .wm-b{color:var(--color-primary);}
+.wm-caret{display:inline-block;width:.055em;height:.78em;margin-left:.05em;
+  background:var(--color-primary);vertical-align:-.06em;
+  animation:wm-blink 1.05s steps(1,end) infinite;}
+@keyframes wm-blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+/* Reduced motion: no typing, no blink — the full wordmark is already in the DOM. */
+@media (prefers-reduced-motion: reduce){ .wm-caret{display:none;} }
+.forge-tagline{font-family:var(--font-mono);font-size:9.5px;font-weight:500;letter-spacing:.3em;text-transform:uppercase;
+  color:var(--color-text-muted);margin-top:1.1rem;}
+.ignition{height:2px;margin-top:1.6rem;max-width:460px;background:var(--flame-gradient);background-size:200% 100%;
+  box-shadow:var(--glow-flame);animation:flame-sweep 1.1s linear infinite;}
+
+.login-marks{position:fixed;inset:22px;pointer-events:none;z-index:2;}
+.login-marks .lm{position:absolute;font-family:var(--font-mono);font-size:8.5px;font-weight:500;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--color-text-faint);}
+.login-marks .tl{top:0;left:0}.login-marks .tr{top:0;right:0}.login-marks .bl{bottom:0;left:0}.login-marks .br{bottom:0;right:0}
+
+.login-box{background:var(--color-panel-bg);border:1px solid var(--color-border-hover);border-radius:var(--radius-md);
+  box-shadow:none;width:100%;max-width:420px;padding:1.9rem 1.7rem;}
+.login-logo,.login-tagline{display:none;}
+.login-submit-btn{font-family:var(--font-mono);font-weight:700;letter-spacing:.16em;text-transform:uppercase;font-size:.74rem;padding:.8rem;}
+.login-error{border-radius:0;font-family:var(--font-mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;
+  border-color:var(--color-primary);background:var(--color-danger-bg);color:var(--color-primary);}
+@keyframes forge-shake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(3px)}30%,50%,70%{transform:translateX(-4px)}40%,60%{transform:translateX(4px)}}
+.login-box.shake{animation:forge-shake .16s linear;border-color:var(--color-primary-hover);}
+@keyframes flame-flicker{0%{opacity:1}18%{opacity:.82}34%{opacity:1}52%{opacity:.9}70%{opacity:1}86%{opacity:.86}100%{opacity:1}}
+.flicker{animation:flame-flicker 2.4s infinite;}
+
+/* ── ADMIN // CONTROL DECK ──────────────────────────────────────────── */
+.admin-tabs{border-bottom:1px solid var(--color-border);gap:0;}
+.admin-tab{border-radius:0;font-family:var(--font-mono);font-size:9.5px;font-weight:500;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--color-text-faint);border-bottom:2px solid transparent;padding:.7rem .9rem;background:transparent;}
+.admin-tab:hover{color:var(--color-primary);}
+.admin-tab.active{color:var(--color-primary);border-bottom-color:var(--color-primary);}
+.admin-section .panel,.admin-section .file-list-container{border-radius:0;border-color:var(--color-border);box-shadow:none;}
+.admin-filters select{border-radius:var(--radius-sm);background:var(--color-bg);border:1px solid var(--color-border-hover);
+  color:var(--color-text-main);font-family:var(--font-mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;padding:.45rem .6rem;}
+.admin-filters select:focus{outline:1px solid var(--color-primary);outline-offset:2px;border-color:var(--color-primary);box-shadow:none;}
+.admin-user-card{border-radius:0;border:1px solid var(--color-border);background:var(--color-panel-bg);box-shadow:none;}
+.admin-user-card-header{font-family:var(--font-display);font-weight:700;text-transform:uppercase;letter-spacing:-.02em;}
+.admin-user-card .role{border-radius:0;font-family:var(--font-mono);font-size:8.5px;letter-spacing:.18em;
+  text-transform:uppercase;border:1px solid var(--color-primary);color:var(--color-primary);background:transparent;}
+.admin-user-presets-section h4{font-family:var(--font-mono);font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--color-text-faint);}
+.admin-user-presets-list li{border-radius:0;border-color:var(--color-border);}
+.admin-user-presets-empty,.admin-analysis-content{font-family:var(--font-mono);font-size:10px;color:var(--color-text-faint);}
+.admin-denied{font-family:var(--font-mono);letter-spacing:.16em;text-transform:uppercase;color:var(--color-primary);}
+.preset-name{font-family:var(--font-mono);color:var(--color-text-main);}
+.preset-value{font-family:var(--font-body);color:var(--color-text-muted);}
+.preset-template-tag{border-radius:0;font-family:var(--font-mono);font-size:8.5px;letter-spacing:.16em;
+  text-transform:uppercase;border:1px solid var(--color-border-hover);color:var(--color-text-muted);background:transparent;}
+
+/* ══════════════════════════════════════════════════════════════════════
+   PROFESSIONAL PASS + LIQUID GLASS
+   Glass is applied ONLY to genuinely floating layers (command bar, modals,
+   dropdowns, sign-in card) where translucency communicates depth — never as
+   decoration on static surfaces. Long strings return to sentence-case
+   Satoshi; mono stays for SHORT precise labels only.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* — Readability: stop shouting. Full sentences read as sentences. — */
+.upload-title{font-family:var(--font-body);font-size:.86rem;font-weight:500;letter-spacing:-.005em;
+  text-transform:none;color:var(--color-text-main);}
+.file-limits{font-family:var(--font-body);font-size:.73rem;letter-spacing:0;text-transform:none;color:var(--color-text-faint);}
+.output-placeholder{font-family:var(--font-body);font-size:.85rem;letter-spacing:0;text-transform:none;color:var(--color-text-faint);}
+.empty-row td{font-family:var(--font-body);font-size:.82rem;letter-spacing:.01em;text-transform:none;color:var(--color-text-faint);}
+.form-group label{font-family:var(--font-body);font-size:.78rem;font-weight:500;letter-spacing:0;
+  text-transform:none;color:var(--color-text-muted);}
+/* the sign-in card keeps its mono indices — short, and they read as precise */
+#login-form label{font-family:var(--font-mono);font-size:9.5px;font-weight:500;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--color-text-muted);}
+.export-template-name{font-family:var(--font-body);font-size:.78rem;letter-spacing:0;text-transform:none;}
+.browse-link{font-weight:600;}
+
+/* — Liquid glass. Feature-gated; degrades to the solid surface. — */
+@supports ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))) {
+  .app-header{background:color-mix(in srgb,var(--color-header-bg) 72%,transparent);
+    -webkit-backdrop-filter:blur(26px) saturate(170%);backdrop-filter:blur(26px) saturate(170%);
+    box-shadow:inset 0 -1px 0 rgba(255,255,255,.05);}
+  /* panels pick up a whisper of translucency so the drafting grid reads through —
+     88% keeps body text within a hair of the solid-surface contrast */
+  .panel,.output-container,.file-list-container{
+    background:color-mix(in srgb,var(--color-panel-bg) 88%,transparent);
+    -webkit-backdrop-filter:blur(16px) saturate(140%);backdrop-filter:blur(16px) saturate(140%);}
+  .panel{box-shadow:inset 0 1px 0 rgba(255,255,255,.045);}
+  .upload-zone{-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);}
+  .modal-overlay{-webkit-backdrop-filter:blur(12px) saturate(115%);backdrop-filter:blur(12px) saturate(115%);}
+  .modal-box,.modal-box-wide,.login-box,.preset-dropdown-menu{
+    background:color-mix(in srgb,var(--color-panel-bg) 76%,transparent);
+    -webkit-backdrop-filter:blur(30px) saturate(180%);backdrop-filter:blur(30px) saturate(180%);
+    /* specular top edge — an inset hairline, NOT a soft drop shadow */
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.07);}
 }
 
-html.dark ::-webkit-scrollbar-thumb {
-    background: #33302a;
-    border-radius: 4px;
-    border: 2px solid #1a1815;
-}
-
-html.dark ::-webkit-scrollbar-thumb:hover {
-    background: #c15f3c;
-}
-
+/* "Admin" qualifier sits beside the wordmark as mono, not serif — the italic
+   Times treatment belongs to the wordmark itself, never to a suffix. */
+.logo h1 .wm-sub{font-family:var(--font-mono);font-style:normal;font-weight:500;font-size:.62rem;
+  letter-spacing:.22em;text-transform:uppercase;color:var(--color-header-muted);vertical-align:.35em;margin-left:.15rem;}

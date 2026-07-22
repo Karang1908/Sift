@@ -15,19 +15,25 @@
          back to plain-text output, never raw HTML -->
     <script src="purify.min.js"></script>
     <script>
-        if (localStorage.getItem('theme') === 'dark') {
+        /* BLACKFORGE is dark by default — light is opt-in only. */
+        if (localStorage.getItem('theme') !== 'light') {
             document.documentElement.classList.add('dark');
         }
     </script>
 </head>
 <body>
+    <!-- Atmosphere: forged grain + viewport registration marks. Decorative
+         only — no functional hooks, safe to remove. -->
+    <div class="forge-grain" aria-hidden="true"></div>
+    <div class="forge-frame" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+
     <header class="app-header">
         <div class="header-container">
             <div class="logo">
                 <span class="logo-icon">
                     <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
                 </span>
-                <h1>Sift</h1>
+                <h1><span class="wm-a">Si</span><span class="wm-b">ft.</span></h1>
             </div>
             <div class="header-right">
                 <div class="model-badge">
@@ -51,13 +57,14 @@
             <!-- Panel 1: File Operations -->
             <section class="panel file-panel">
                 <div class="panel-header">
-                    <h2>1. File Upload & Processing Cache</h2>
+                    <h2><span class="panel-index">01 / Intake</span><span class="panel-title">Source Documents</span></h2>
                 </div>
                 <div class="panel-body">
                     <div class="upload-zone" id="upload-zone">
                         <input type="file" id="file-input" multiple class="hidden-input">
-                        <p>Drag and drop files here, or <span class="browse-link">browse files</span></p>
-                        <p class="file-limits">Supports PDF, Word (.docx/.doc), Excel (.xlsx/.xls), PowerPoint (.pptx), images (OCR), and text formats. No size limit. Video files are not supported.</p>
+                        <span class="upload-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 13v8"></path><path d="m8 17 4-4 4 4"></path><path d="M20 16.7A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path></svg></span>
+                        <p class="upload-title">Drag and drop files here, or <span class="browse-link">browse files</span></p>
+                        <p class="file-limits">PDF, Word, Excel, PowerPoint, images (OCR), and text. No size limit. Video is not supported.</p>
                     </div>
 
                     <div class="progress-bar-container hidden" id="upload-progress-container">
@@ -90,7 +97,7 @@
             <!-- Panel 2: Prompt Input -->
             <section class="panel prompt-panel">
                 <div class="panel-header flex-header">
-                    <h2>2. Analysis Query</h2>
+                    <h2><span class="panel-index">02 / Analyze</span><span class="panel-title">Analysis Query</span></h2>
                     <div class="preset-controls">
                         <div class="preset-dropdown" id="preset-dropdown">
                             <button type="button" class="preset-dropdown-toggle" id="preset-dropdown-toggle">
@@ -136,7 +143,7 @@
         <div class="column right-column">
             <section class="panel output-panel">
                 <div class="panel-header flex-header">
-                    <h2>3. Action & Results</h2>
+                    <h2><span class="panel-index">03 / Export</span><span class="panel-title">Action &amp; Results</span></h2>
                     <div class="progress-status" id="progress-status">Ready.</div>
                 </div>
                 <div class="panel-body">
@@ -197,26 +204,38 @@
          .modal-overlay (no backdrop-dismiss, no Escape-to-close - there's
          nothing behind it to reveal). -->
     <div class="login-overlay" id="login-overlay">
-        <div class="login-box">
-            <div class="login-logo">
-                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                <h1>Sift</h1>
+        <div class="login-marks" aria-hidden="true">
+            <span class="lm tl">Sift · v1.0</span>
+            <span class="lm tr">Document intelligence</span>
+            <span class="lm bl">Authorized access only</span>
+            <span class="lm br">minimax-m3 // cloud</span>
+        </div>
+        <div class="login-forge">
+            <div class="forge-hero">
+                <!-- Full text is authored here so it renders without JS; the
+                     typewriter in premium.js clears and retypes it only when
+                     motion is allowed. -->
+                <h1 class="forge-wordmark" id="forge-wordmark"><span class="wm-a">Si</span><span class="wm-b">ft.</span><span class="wm-caret" aria-hidden="true"></span></h1>
+                <p class="forge-tagline">Document intelligence engine // parse · analyze · export</p>
+                <div class="ignition" aria-hidden="true"></div>
             </div>
-            <form id="login-form">
-                <div class="form-group">
-                    <label for="login-username">Username</label>
-                    <input type="text" id="login-username" class="modal-input" autocomplete="username" required>
-                </div>
-                <div class="form-group">
-                    <label for="login-password">Password</label>
-                    <input type="password" id="login-password" class="modal-input" autocomplete="current-password" required>
-                </div>
-                <div class="login-error hidden" id="login-error"></div>
-                <button type="submit" class="btn btn-primary login-submit-btn" id="login-submit-btn">
-                    <span class="btn-text">Log In</span>
-                    <span class="spinner hidden" id="login-spinner"></span>
-                </button>
-            </form>
+            <div class="login-box">
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="login-username">01 / Username</label>
+                        <input type="text" id="login-username" class="modal-input" autocomplete="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">02 / Password</label>
+                        <input type="password" id="login-password" class="modal-input" autocomplete="current-password" required>
+                    </div>
+                    <div class="login-error hidden" id="login-error"></div>
+                    <button type="submit" class="btn btn-primary login-submit-btn" id="login-submit-btn">
+                        <span class="btn-text">Sign In</span>
+                        <span class="spinner hidden" id="login-spinner"></span>
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -401,5 +420,11 @@
     </div>
 
     <script src="script.js"></script>
+    <!-- Premium motion layer (vendored, local). Additive and decoupled from
+         script.js — driven only by MutationObservers, honors reduced-motion. -->
+    <script src="gsap.min.js"></script>
+    <script src="motion.min.js"></script>
+    <script src="anime.min.js"></script>
+    <script src="premium.js"></script>
 </body>
 </html>
