@@ -502,10 +502,17 @@ async def upload_file(file: UploadFile = File(...), user: str = Depends(get_curr
             filename=safe_filename, size=size, status=status, record_id=record_id,
         )
 
+        # parsed_chars = UTF-8 byte length of the extracted text (== the cache
+        # file on disk). It's what actually feeds the model context, so the
+        # frontend uses it (≈ chars) for the context-window usage estimate —
+        # unlike `size`, which is the raw upload and can be wildly different
+        # (a 10 MB PDF may parse to little text; an OCR'd image to a lot).
+        parsed_chars = os.path.getsize(cache_path)
         return {
             "filename": safe_filename,
             "size": size,
-            "status": status
+            "status": status,
+            "parsed_chars": parsed_chars
         }
     except Exception as e:
         logger.exception("upload failed: %s", safe_filename)
@@ -598,10 +605,11 @@ async def admin_list_users(admin: str = Depends(get_current_admin)):
         ]
         formatted_exports = [
             {
-                "name": k, 
-                "format": v.get("format", ""), 
+                "name": k,
+                "format": v.get("format", ""),
                 "instructions": v.get("instructions", ""),
                 "template_filename": v.get("template_filename"),
+                "template_original_name": v.get("template_original_name"),
                 "updated_at": v.get("updated_at")
             }
             for k, v in sorted(export_presets.items())
