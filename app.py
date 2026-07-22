@@ -571,12 +571,17 @@ def list_files(user: str = Depends(get_current_user)):
                     with open(cache_path, "r", encoding="utf-8") as f:
                         prefix = f.read(200)
                     status = "error" if is_error_content(prefix) else "parsed"
+                    # Cheap O(1) stat, not a full read — this is the extracted
+                    # text size that feeds the model context (see upload_file).
+                    parsed_chars = os.path.getsize(cache_path)
                 else:
                     status = "pending"
+                    parsed_chars = 0
                 files.append({
                     "filename": name,
                     "size": os.path.getsize(filepath),
-                    "status": status
+                    "status": status,
+                    "parsed_chars": parsed_chars
                 })
     return files
 

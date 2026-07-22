@@ -465,3 +465,401 @@ Reworked the sign-in hero wordmark only — the rest of the app is untouched.
 - **More glass**: the command bar was strengthened (72% surface, `blur(26px) saturate(170%)`, specular inset edge), and panels/output/file-list picked up a whisper of translucency (88% + `blur(16px)`) so the drafting grid reads faintly through them. 88% was chosen deliberately — it keeps body text within a hair of the solid-surface contrast rather than trading legibility for effect.
 
 **Verification:** the loop was confirmed by sampling the live DOM every 50ms — observed `"S"→"Si"→"Sif"→"Sift"→"Sift."→"Sift"→…→""→"S"→…` i.e. type, delete AND retype across multiple cycles. White-header contrast re-checked: header text 19.8:1, muted 7.0:1, wordmark `ft.` 6.4:1 on white — all AA. Full render of login/dashboard/export/light: 0 unexpected console errors, 0 failed requests. CSS/markup/motion-layer only — `app.py` and `script.js` still have zero diff, so the export pipelines are untouched.
+
+---
+
+### July 22, 2026 — Finish Pass: the details that read expensive
+
+**Files:** [static/style.css](file:///Users/karangarg/Desktop/file%20parsing/static/style.css), [static/index.html](file:///Users/karangarg/Desktop/file%20parsing/static/index.html), [static/admin.html](file:///Users/karangarg/Desktop/file%20parsing/static/admin.html), [static/script.js](file:///Users/karangarg/Desktop/file%20parsing/static/script.js), [DESIGN.md](file:///Users/karangarg/Desktop/file%20parsing/DESIGN.md)
+
+A meticulous craft pass **inside** the existing BLACKFORGE (Arc) system — no redesign, no DOM changes, every value routed through a token and the one-channel law held.
+
+- **Real AA fix (verified, not cosmetic).** Light-mode `--color-text-faint` was `#697380` = **4.06:1** on the `#E9ECF0` canvas fill — and that token *is* the input-placeholder colour (real content: "Describe the information you need…") plus the login corner marks. Darkened to `#5E6773` (**4.84:1** on canvas, 5.73:1 on white), still clearly the faint tier. All 18 measured foreground/background pairs now pass AA (was 2 failing).
+- **One-channel-law violation removed from `script.js`.** The process/export status note set `p.style.color` to a hardcoded `#dc2626` (a **red** — a banned second saturated colour) / `#2563eb` (an off-system blue). Now `var(--color-danger)` / `var(--color-primary)`, so the note is arc-blue in both themes and the "Error:"-prefixed text carries the distinction, not a hue. **This is the only logic-adjacent line touched; the export pipelines are structurally untouched** (no endpoint, no flow, no other JS behaviour changed — verified by rendering a populated run with a completion note).
+- **Composed idle state.** The large empty report surface was a blank void; it now centres a grayscale **reticle "instrument face"** (a bordered square with crop-ticks + centre dot, echoing the panel brackets and viewport crop marks) above the awaiting-text. Done purely in CSS via `.output-body:has(> .output-placeholder)`, so it disengages the instant real output streams in — verified left-aligned in the populated render, centred only when idle.
+- **The expensive micro-details.** Themed `::selection` (arc tint, never the OS blue); arc `caret-color` on every text field; `accent-color` + `color-scheme` (light/dark) so native controls and scrollbars follow the theme and the first paint no longer flashes white; `html` painted the theme colour immediately; `<meta name="color-scheme">` + `theme-color` on both pages.
+- **Type rendering.** `text-wrap: balance` on headings/titles/wordmark, `text-wrap: pretty` on sentence-case prose (kills orphans), `font-variant-numeric: tabular-nums` on every numeric mono surface (counts, sizes, labels) so figures never jitter.
+- **Focus completeness.** The theme toggle, preset toggle, export/admin tabs and template-browse button — previously on the UA default — now get the same crisp 1px arc outline the buttons/inputs already used.
+- **Dead-code + doc hygiene.** Removed a fully-overridden round-thumb scrollbar block, an overridden panel-header row-hover, and the overridden green/amber/red status-badge variants (a second-colour regression); deleted a stale terracotta colour-reference comment table and the "terracotta glows" note; fixed an invalid `justify-content: justify;`. Brace balance re-checked (404/404).
+
+**Verification:** headless-Chrome renders of login, empty dashboard, and a fully-populated working run (file rows with tabular sizes, streamed markdown + table, live-panel reticle, completion note) in **both** themes — all correct, empty-state centring toggles correctly, ERROR is the only arc element in the ledger. WCAG script: 18/18 pairs AA. `python3 test_backend.py` → PASS (Ollama 200, parser round-trip SUCCESS). Frontend-only apart from the single token-colour line in `script.js`.
+
+---
+
+### July 22, 2026 (later) — Context-window gauge, phase seams, semantic colour layer
+
+**Files:** [app.py](file:///Users/karangarg/Desktop/file%20parsing/app.py), [static/index.html](file:///Users/karangarg/Desktop/file%20parsing/static/index.html), [static/script.js](file:///Users/karangarg/Desktop/file%20parsing/static/script.js), [static/style.css](file:///Users/karangarg/Desktop/file%20parsing/static/style.css), [DESIGN.md](file:///Users/karangarg/Desktop/file%20parsing/DESIGN.md)
+
+Three user-requested features that together **evolve the strict one-channel law** into
+"arc blue = primary + a narrow, restrained semantic layer (red/amber)". DESIGN.md §1/§2/§6
+updated so the doc matches the code.
+
+- **Context-window usage gauge.** After parsing, the file panel shows a bar + token count
+  + percent of the model's context window (counted against **1M** per the user's call, not
+  Ollama's listed 512K). Backend: `/api/upload` and `/api/files` now return `parsed_chars`
+  (the extracted-text size that actually feeds the model context — an O(1) `getsize` of the
+  cache file, deliberately *not* the raw upload `size`, which is unrelated). Frontend:
+  `updateContextGauge()` sums `parsed_chars`, estimates tokens (~4 chars/token), and renders
+  bar/number/percent. **Zones per spec:** arc `<75%` → amber `75–89%` → red `≥90%`, with 1px
+  notches on the track marking the thresholds. Hooked into `renderFileList()`, the single
+  point every file add/remove/load funnels through. Labelled an estimate (title tooltip).
+- **Phase seams.** A thin **arc** line now marks the border between phases: under the Intake
+  panel (a `box-shadow` line) and down the gap between the input column and the Export column
+  (a 1px pseudo-element on `.right-column`). *Bug caught in render:* the first attempt coloured
+  the seam via `.left-column{background:arc}`, which bled arc-blue **through** the 88%-translucent
+  glass panels and tinted the whole left column — switched to line-drawing (shadow/pseudo) so
+  nothing bleeds.
+- **Semantic button/badge colours.** New AA-verified pastel tokens in both themes:
+  `--color-danger` red (`#B23B30` / `#F0857A`), `--color-warn` amber (`#8C6510` / `#E8B45C`)
+  plus `-bg`/`-hover`/`-fill`. Applied: **Delete/Remove → red**, **Cancel → amber**, delete-preset
+  trash icons ignite red, status badges go **parsed = neutral / parsing = amber / error = red**.
+  `--color-danger` was previously aliased to the arc; repurposing it means the error status note
+  in `script.js` (already token-driven) now correctly renders red — comment updated. Primary
+  actions (Run/Sign-in/Export) stay arc blue; secondary buttons stay neutral.
+
+**Verification:** live HTTP check via a throwaway account (removed after, its data + 2 activity-log
+lines cleaned) — `/api/upload` and `/api/files` both return `parsed_chars` (2100 for a 2100-char
+file, exact). Headless-Chrome renders in both themes of all three zones: **ok** (light, 34%, arc
+bar + blue percent), **warn** (dark, 81%, amber), **danger** (dark, 95%, red) — bar/notches/readout
+all correct, phase seams clean with no column bleed, Delete red / Cancel amber / badges neutral-amber-red.
+WCAG: danger 5.90:1(L)/7.62:1(D), amber 5.27:1(L)/10.16:1(D), arc percent 6.39:1(L)/5.83:1(D) — all AA.
+CSS braces 426/426; `app.py` parses; server healthy. The Ollama-burning `verify_integration.py` was
+**not** run — this change doesn't touch the process/export flow, and the added API field is fully
+covered by the upload+list live check above (conserving the shared weekly quota, per the documented
+gotcha).
+
+---
+
+### July 22, 2026 (later still) — Fix: preset dropdowns opened invisibly (glass vs. fixed-positioning)
+
+**Files:** [static/script.js](file:///Users/karangarg/Desktop/file%20parsing/static/script.js), [static/style.css](file:///Users/karangarg/Desktop/file%20parsing/static/style.css)
+
+**Bug (user-reported):** the analysis-query preset dropdown and the export-modal preset
+dropdowns opened but showed nothing — the menu was invisible.
+
+**Reproduced** by faithfully replaying `openPresetMenu()` in a headless render: the toggle
+lit its open state, but the menu (with items) rendered nowhere.
+
+**Mechanism (verified):** the menus are `position:fixed`, positioned from
+`getBoundingClientRect()` (viewport coords). But `.panel` and `.modal-box-wide` carry
+`backdrop-filter` (the glass). `backdrop-filter` establishes a **containing block for
+fixed-positioned descendants**, so the viewport coordinates resolved against the *panel/modal*
+instead of the viewport, placing the menu far off and letting the panel's `overflow:hidden`
+clip it away. This was **pre-existing** — the panel glass shipped in the last commit (`ccd23cd`,
+the BLACKFORGE redesign) and stayed latent until a preset dropdown was actually opened; not
+caused by the gauge/semantic work. (The CSS comment that claimed `position:fixed` alone lets the
+menu "escape .panel's overflow" was wrong for exactly this reason — corrected.)
+
+**Fix:** portal the menu to `<body>` at open time (`openPresetMenu` / `openExportPresetMenu`),
+so no filtered ancestor is its containing block and the viewport coords are correct. The `.open`
+state stays on the (non-moving) dropdown container, now referenced by id rather than
+`menu.closest()` (which breaks once the menu is portaled out). Added `z-index:2600` on
+`.preset-dropdown-menu` so the export menus, which open from inside the export modal (overlay
+z-2000, confirm dialog z-2500), sit above it. Updated the main outside-click check to also
+exclude the portaled menu (the export one already did).
+
+**Verification:** re-ran the reproduction with the portal applied — **both** now render correctly:
+the analysis preset menu drops below its toggle over the app; the export preset menu appears above
+the open export modal, items and active-highlight intact. `node --check static/script.js` clean;
+CSS braces 427/427. Frontend-only; no backend, no export-pipeline logic touched.
+
+---
+
+### July 22, 2026 (later still) — Full data wipe + exhaustive QA pass (5 bugs found & fixed)
+
+**Files:** [app.py](file:///Users/karangarg/Desktop/file%20parsing/app.py), [static/script.js](file:///Users/karangarg/Desktop/file%20parsing/static/script.js)
+
+**Wipe:** emptied every per-user + audit data root (uploads / parsed_cache / presets /
+export_templates / export_presets / audit_uploads / audit_analysis / audit_exports) and
+truncated `logs/activity.jsonl` back to the fresh empty state; removed loose `server.log`.
+
+**QA method:** a real click-through of every button/dropdown/flow driven by Playwright
+against the **system Chrome** (the browser extension was unavailable) on the live server,
+capturing every uncaught JS error + every ≥400 response, plus a parallel Sonnet subagent
+doing a static code audit. Two disposable accounts (`_qa_admin`, `_qa_user`) added for the
+run and removed after; all test artifacts re-wiped.
+
+**Test-methodology lesson (recorded so it isn't re-hit):** the first runs showed ~11
+"failures" that were almost all a *test* bug, not app bugs — `wait_for_selector('#x.hidden')`
+defaults to `state='visible'`, but a `.hidden` element is `display:none`, so it can never
+match. Re-running with `state='hidden'` for close-waits turned 9 of those into passes.
+Ollama also works (direct `enhance-prompt` → 200 in 7.8s); the earlier Ollama "timeouts"
+were the same broken spinner-hidden wait under parallel-subagent load.
+
+**5 real bugs found (1 runtime-reproduced, 4 code-confirmed) and fixed:**
+- **P1 — `Copy` silently failed on the real LAN deployment.** `navigator.clipboard` is
+  `undefined` on a non-secure (`http://` LAN) origin, so `writeText()` threw *synchronously*
+  before the promise → `.catch()` never ran. Fixed: guard + `execCommand` textarea fallback.
+- **P1 — session-expiry (401) relogin left the previous session's report on screen and
+  exportable.** Only explicit logout reset state; the automatic `apiFetch`→`showLoginOverlay`
+  path did not. Fixed: extracted `resetAppState()`, called from `showLoginOverlay()` (covers
+  every 401 path) and reused in logout. Runtime-verified: after a forced mid-session 401 the
+  stale report is cleared and Export is disabled.
+- **P2 — Escape closed the whole export modal from under a stacked confirm/name dialog.**
+  Fixed: the Escape handler now also requires `#modal-overlay` to be hidden. Runtime-verified
+  (the "Escape closes ONLY stacked dialog" check flipped FAIL→PASS).
+- **P2 — admin panel showed/downloaded export templates under their internal UUID.**
+  `admin_list_users` omitted `template_original_name` (the user-facing endpoint returns it).
+  Fixed: added the field to the admin export dict.
+- **P2 — per-tab export-button spinners were dead markup** (`export-from-modal-spinner-*`
+  never toggled). Fixed: `runSkillExport` now shows/hides the spinner for the active format.
+
+**Verification:** modal cluster 11/12 (the 1 "fail" is an over-strict label-timing assertion —
+the preset saves, confirmed by screenshot); behavioral fixes 2/2; `test_backend.py` PASS;
+`node --check` clean; CSS 427/427; app.py parses. Throwaway accounts removed (login → 401),
+all data re-wiped to empty. **Clean areas (no bugs):** DOM id/class wiring, all frontend↔backend
+field contracts, SSE error handling, theme toggle, gauge, both dropdown regressions, admin
+tabs, non-admin denial.
+
+---
+
+### July 22, 2026 (final) — Docs page rewritten onto the Arc system + linked from sign-in
+
+**Files:** [static/docs.html](file:///Users/karangarg/Desktop/file%20parsing/static/docs.html), [static/index.html](file:///Users/karangarg/Desktop/file%20parsing/static/index.html), [static/style.css](file:///Users/karangarg/Desktop/file%20parsing/static/style.css), [DESIGN.md](file:///Users/karangarg/Desktop/file%20parsing/DESIGN.md)
+
+- **`static/docs.html` fully rewritten.** The old page was a stale *"warm schoolyard
+  notebook"* theme (cream paper, marker-orange, bubblegum-pink stickers, DM Serif Display +
+  Inter, last touched 2026-07-15), it was **orphaned** — nothing in the app linked to it —
+  and it predated auth-era work entirely (zero mentions of the context gauge,
+  `parsed_chars`, or the semantic colour layer). Rewritten on the **Arc system**: same
+  tokens/type/geometry as the app, Times-italic wordmark, mono kickers, hairline structure,
+  dark by default, sharing the app's `theme` localStorage key. 17 sections with a sticky
+  sidebar: overview, architecture, auth, per-user isolation, all three request flows, the
+  context window + gauge, **both** export pipelines, audit/admin, deployment, the complete
+  API surface (every route, grouped), security model, limitations, module map.
+- **Now fully offline.** The old page pulled **Google Fonts and Mermaid from CDNs**, which
+  contradicted the offline-by-design stance the rest of the app holds (vendored
+  `marked`/`purify`/fonts). Both dropped: it uses the vendored Satoshi/JetBrains Mono
+  woff2, and the flow/layer diagrams are **hand-built in CSS** rather than Mermaid — offline,
+  no heavy dependency, and a much better match for the design vocabulary.
+- **Sign-in link.** A `Documentation` link now sits as a fifth corner readout, bottom-right,
+  just above `minimax-m3 // cloud`. Deliberately a real focusable `<a>` placed *outside*
+  `.login-marks` — that container is `aria-hidden`, so a focusable child there would be
+  unreachable to screen readers.
+- **Admin-link underline removed.** The header "Admin Panel" (and admin's "Back to App") are
+  anchors styled as `.btn`, which never reset `text-decoration` — so they rendered with the
+  browser's default underline. Fixed once at the root `.btn` rule.
+- **DESIGN.md §7 corrected.** It still described the docs page as carrying a claude.ai
+  palette with Source Serif 4 + Inter and being "not migrated to the Arc system" — all now
+  false. Replaced with an accurate section (Arc tokens, offline/no-CDN, CSS diagrams,
+  semantic colour usage).
+
+**Verification:** rendered both themes — 17 `h2[id]` sections matching 17 nav links, theme
+toggle flips correctly, **0 external requests** (offline claim verified by capturing every
+request), 0 page errors, 0 ≥400 responses. Sign-in link present/visible with the right href
+and measured **not** to overlap the existing corner readout (docs link y=950.7, mark y=965.3).
+`getComputedStyle(#admin-panel-link).textDecorationLine === "none"`. README.md deliberately
+left untouched.
+
+---
+
+### July 22, 2026 (final +1) — Docs: 8 SVG diagrams, motion layer, scroll rail, deep rewrite
+
+**Files:** [static/docs.html](file:///Users/karangarg/Desktop/file%20parsing/static/docs.html), [DESIGN.md](file:///Users/karangarg/Desktop/file%20parsing/DESIGN.md)
+
+The previous rewrite was correct but too spare — no diagrams, no motion, and too shallow.
+Rebuilt at full depth.
+
+- **Eight hand-authored inline SVG diagrams** (layer architecture, network + trust boundary,
+  login/session lifecycle, per-user isolation, upload pipeline, analysis/SSE flow, export
+  decision + both pipelines, audit data flow). Inline SVG rather than Mermaid because it
+  themes from the same CSS variables (flips light/dark for free), it can be **animated**, and
+  it adds no dependency. Semantic fills throughout: arc for the happy path, amber for external
+  or caution, red for the danger paths; a dashed `.zone` marks the trust boundary.
+- **Motion layer restored** (vanilla JS, no library): an **animated scroll-progress rail** — a
+  fixed left-edge SVG line using `pathLength="1"` so progress is simply
+  `strokeDashoffset = 1 - p`, with a travelling dot — plus section reveals, **diagram draw-on**
+  (each `.draw` path measured with `getTotalLength()`, then animated to offset 0 on intersect,
+  staggered), nav **scroll-spy**, and marching-dash "live data" connectors on the network and
+  analysis figures. All scroll handlers rAF-throttled and passive.
+- **Progressive enhancement kept strict.** The pre-reveal hidden state sits behind a
+  `html.js-anim` class that JS adds only when it runs, so no-JS shows finished content rather
+  than a blank page; `prefers-reduced-motion` adds `html.reduce`, skipping reveals/draw-on and
+  hiding the rail entirely.
+- **Content depth roughly doubled** — 19 sections now, adding: a glossary, "what it is not",
+  a per-layer responsibility table, session properties and failure/expiry paths, a full
+  **format-support matrix** (including the macOS-only conversions and `.ppt`), the upload
+  response shape and sentinel/failure semantics, a **RAG vs full-context comparison table**,
+  an explicit "what citations do and don't guarantee", the gauge formula, per-pipeline export
+  stage lists, audit design rationale, account-management steps, an expanded API reference with
+  request/response notes, and a new **troubleshooting table**.
+- **DESIGN.md §7 updated** to describe the SVG diagrams and the motion layer accurately (it
+  previously said the diagrams were plain CSS).
+
+**Verification:** 8 diagrams all render with real geometry; 19 sections matched by 19 nav links;
+scroll rail measured moving `strokeDashoffset 1 → 0` and dot `cy 0 → 100`; 19/19 sections
+revealed; 41 diagram paths animated to offset 0; scroll-spy tracked the active section;
+**0 external requests** (offline verified by capturing every request) and **0 page errors**.
+Reduced-motion context re-checked: first reveal element computed `opacity: 1` (content visible,
+not hidden) and the rail `display: none`.
+
+---
+
+### July 22, 2026 (final +2) — Docs: chapter rail + two real animation bugs fixed
+
+**Files:** [static/docs.html](file:///Users/karangarg/Desktop/file%20parsing/static/docs.html), [DESIGN.md](file:///Users/karangarg/Desktop/file%20parsing/DESIGN.md)
+
+Two of these were genuine bugs, not taste:
+
+- **BUG — the scroll-rail dot was a squashed ellipse.** The rail was an SVG with
+  `viewBox="0 0 6 100"` and `preserveAspectRatio="none"`, stretched to 6px × 100vh. That
+  scales x and y by wildly different factors, so the `<circle>` rendered as a flat ellipse.
+  That is why it read as unprofessional. **Fixed by rebuilding the rail in HTML/CSS**, where
+  an 11px circle is 11×11 at any viewport height (measured).
+- **BUG — the "live data" dashes never marched.** The CSS put `stroke-dasharray:6 6` on
+  `.pulse`, but the draw-on animation writes an **inline** `stroke-dasharray = pathLength`,
+  and inline always outranks the stylesheet — so the dash pattern was overwritten with one
+  enormous dash and nothing visibly moved. **Fixed with an explicit handoff**: after the
+  connector finishes drawing, the inline dasharray/dashoffset are cleared and a `.marching`
+  class takes over. Verified by computed style: now `6px, 6px` instead of the path length.
+- **Rail redesigned as a chapter timeline** (as requested): one continuous line, one circle
+  per `h2` chapter generated from the document, each positioned at the scroll fraction where
+  its chapter reaches the top. Circles fill as you pass them, the current chapter gets a
+  ring, and each is a real link with a hover label — so the rail is navigation, not
+  decoration. Chapter offsets are measured with `getBoundingClientRect().top + pageYOffset`
+  rather than `offsetTop`, which would have been relative to the positioned `.wrap`.
+- **Diagram animation properly choreographed.** Previously only the connectors animated and
+  the boxes/text popped in. Now: shapes fade (staggered) → text follows → connectors draw →
+  live connectors start marching.
+- **Flash-of-unanimated-content removed.** The `js-anim` pre-state moved into a pre-paint
+  `<head>` script, with a **2.5s safety timeout** that strips the class if the motion script
+  never sets `data-motion-ready` — so a script error can never leave the page blank.
+- Layout gutter widened (3rem) so the rail never collides with the sidebar; header aligned to
+  match; rail hidden below 900px.
+
+**Verification:** 19 chapters → 19 rail circles (exact match); circle measured **11×11 px
+(round)**; fill `scaleY(0)` at top → `scaleY(1)` at bottom; 0 passed at top → 19 passed at
+bottom with `current` correctly tracking ("Module map"); diagram shapes and text both reach
+`opacity: 1`, connectors reach `strokeDashoffset: 0`, and every `.pulse` gains `.marching`
+with computed dasharray `6px, 6px`. `data-motion-ready` set. **0 external requests, 0 page
+errors.**
+
+---
+
+### July 22, 2026 (final +3) — Fix: diagram arrowheads were black (invisible on dark)
+
+**Files:** [static/docs.html](file:///Users/karangarg/Desktop/file%20parsing/static/docs.html)
+
+**Bug (user-reported):** every arrowhead in the diagrams was black, so on the dark theme —
+the default — the arrows were invisible against the near-black background.
+
+**Mechanism (reproduced):** the arrowhead fills were declared as `.dgm .ah{fill:…}`, i.e.
+scoped to descendants of a diagram. But the `<marker>` definitions live in a **shared
+`<defs>` svg at the top of `<body>`**, outside every `.dgm`. So the selector matched
+**nothing** (measured: `document.querySelectorAll('.dgm .ah').length === 0`), the marker
+paths inherited no fill, and SVG's default fill is **black**. It went unnoticed because
+black arrows read fine on the light theme, which is where the earlier screenshots were
+checked; the connector lines themselves were always correct because `.conn` *is* inside
+`.dgm`.
+
+**Fix:** un-scope the rule to a plain `.ah` / `.ah.acc` / `.ah.dgr`. Marker content inherits
+custom properties from its own position in the DOM (a child of `body`), so the tokens still
+flip correctly with the theme.
+
+**Verification:** computed fills before — all three markers `rgb(0,0,0)`. After —
+dark: `rgb(48,58,71)` (`--line-2`), `rgb(59,140,255)` (arc), `rgb(240,133,122)` (danger);
+light: `rgb(191,198,206)`, `rgb(11,87,208)`, `rgb(178,59,48)`. Confirmed visually on the dark
+network diagram: all five arrowheads now render, and the marching-dash connectors are visible.
+
+---
+
+### July 22, 2026 (final +4) — Fix: tables striped by the drafting grid; hairlines invisible in light
+
+**Files:** [static/docs.html](file:///Users/karangarg/Desktop/file%20parsing/static/docs.html)
+
+Two user-reported issues, both reproduced before fixing.
+
+- **"Module map is broken."** Not broken markup — the table was fully present (10 rows,
+  920×504, revealed). The `.tw` table wrapper had **no background**, so the fixed
+  drafting-grid pseudo-element (`body::before`) showed straight through the transparent
+  rows, striping every table with stray vertical lines. Nearly invisible on dark
+  (grid alpha .035), obvious on light (.05 over `#E9ECF0`) — which is why it read as a
+  broken table. **Fixed:** `.tw{background:var(--panel)}`, giving tables an opaque surface.
+  The grid still shows on the page background, as intended.
+- **"In light theme some stuff is not visible."** `--line`/`--line-2` are tuned for borders
+  on a white *panel*; several hairlines are drawn on the *canvas* instead — the rail track,
+  the dashed trust-boundary `.zone`, the diagram `.conn` connectors and the arrowheads. On
+  the light canvas `#D3D8DE` on `#E9ECF0` is **1.21:1**, i.e. effectively invisible (it was
+  fine on dark, which is why it was missed). **Fixed** with a dedicated `--rule` token —
+  light `#A8B2BF`, dark `#3A4553` — applied to exactly those canvas-drawn hairlines, plus
+  the rail nodes (now `--panel` fill with a `--rule` border so they read as hollow dots).
+
+**Verification:** `.tw` background now opaque in both themes (dark `rgb(11,15,22)`, light
+`rgb(255,255,255)`); rail track, `.zone`, `.conn` and the arrowheads all resolve to `--rule`
+(dark `rgb(58,69,83)`, light `rgb(168,178,191)`). Light hairline contrast on canvas improved
+**1.21:1 → 1.81:1**, bringing it in line with dark's 2.07:1 so both themes carry similar
+weight. Confirmed visually: module-map table is clean with no stripes, and the light network
+diagram's dashed boundary, connectors and arrowheads are all clearly visible. 0 page errors.
+
+---
+
+### July 22, 2026 (final +5) — Fix: last chapter could never highlight in the nav
+
+**Files:** [static/docs.html](file:///Users/karangarg/Desktop/file%20parsing/static/docs.html)
+
+**Bug (user-reported):** reading the final chapter ("Module map") while the sidebar stayed
+highlighted on the previous one ("Troubleshooting").
+
+**Mechanism (reproduced):** the scroll-spy picked the last chapter whose top had scrolled
+above a 96px reading line. At maximum scroll `#modules`' top measured **122px** — still
+below the line — and `atBottom` was already true, so the page could not scroll any further.
+The final chapter was therefore **structurally unreachable**: whenever the content after a
+chapter is shorter than the viewport, that chapter can never activate. A second, quieter bug
+sat next to it — the rail and the nav used *different* algorithms (scroll-fraction vs
+element rect), so they actively disagreed: the rail read "Module map" while the nav read
+"Troubleshooting".
+
+**Fix:** (1) a bottom clamp — at the end of the document the last chapter is current, full
+stop; (2) **unified** rail and nav onto one `currentIndex()` and one `sync()`, both driven
+from the same nav-link/target list, so node *i* and link *i* are guaranteed to be the same
+chapter and the two can never diverge again.
+
+**Note on the verification itself:** the first walk-through reported 19/19 mismatches, which
+was a **flawed test**, not a regression — `html{scroll-behavior:smooth}` makes
+`scrollIntoView()` animate, so the assertions were sampling mid-flight. Re-run with instant
+scrolling and a settle delay.
+
+**Verification:** walked all 19 chapters — **0 nav mismatches**, nav and rail pointing at the
+same chapter at every stop. Bottom of page: nav `Module map`, rail `Module map`, agree.
+Top of page: `What Sift is`. 0 page errors.
+
+---
+
+### July 23, 2026 — Brand mark: animated SVG favicon + header logo
+
+**Files:** `static/favicon.svg` (new), [static/index.html](file:///Users/karangarg/Desktop/file%20parsing/static/index.html), [static/admin.html](file:///Users/karangarg/Desktop/file%20parsing/static/admin.html), [static/docs.html](file:///Users/karangarg/Desktop/file%20parsing/static/docs.html), [static/style.css](file:///Users/karangarg/Desktop/file%20parsing/static/style.css)
+
+- **New mark — a sieve.** Three descending bars (24/16/8 units wide) with a particle
+  falling through them: the literal meaning of the product name, drawn in the system's flat
+  geometry (square caps, no radius, single arc-blue channel). Replaces the generic
+  document glyph that sat next to the wordmark in the app and admin headers.
+- **One mark, two deliveries.** `static/favicon.svg` is the standalone file (SMIL-animated,
+  with a `prefers-color-scheme` swap: `#3B8CFF` on dark chrome, `#0B57D0` on light). The
+  header uses the identical geometry inline so it inherits `currentColor` from
+  `.logo-icon` — themes with the arc for free — and animates via CSS.
+- **Optical centring fix caught in review.** First cut placed the bars at y 11/18/25,
+  reserving the top third for the particle — which left the glyph visibly bottom-heavy in
+  the box. Moved to 9/16/23 so the stack's midpoint is the viewBox centre. Also nudged the
+  particle's start from `cy=1` to `cy=3` so `r=2.4` never clips flat against the top edge
+  (that first frame is what statically-rendered favicons display).
+- **Reduced motion handled deliberately.** The particle animation is opt-**in** via
+  `@media (prefers-reduced-motion: no-preference)`. Opt-out would have been wrong: the
+  global reduced-motion block collapses animations to 0.001ms and holds their *end* state,
+  which is `opacity:0` — the particle would simply have vanished. It now rests visibly at
+  the top instead.
+- Favicon wired on all three pages as `type="image/svg+xml"` with the existing `Icon.png`
+  retained as the fallback link.
+
+**Verification:** `/static/favicon.svg` serves 200 as `image/svg+xml` and parses as valid
+XML; rendered at 16/24/32/64/128px on both dark and light — legible and correctly centred at
+every size. Header mark: present, 22×22, bars and dot both `rgb(59,140,255)` (arc), **1
+running CSS animation**, and the dot measured moving `y 20.63 → 29.11` over 700ms. Reduced
+motion: 0 animations, dot `opacity: 1` (visible, not vanished). All three pages parse; CSS
+440/440; `script.js` OK; `test_backend.py` PASS; 0 page errors.
+
+**Known limitation (not verifiable headlessly):** browsers largely do **not** animate SVG
+favicons in the tab strip — Chrome and Safari rasterise a single static frame; Firefox
+historically animates. So the tab shows a crisp static mark in Chrome. Genuinely animating
+the tab icon requires a JS canvas loop that rewrites the `<link href>` per frame, which was
+not done (it burns a timer permanently and reads as gimmicky for a work tool). The **header**
+mark animates everywhere.

@@ -74,11 +74,15 @@ components:
 **Creative North Star: "The Plasma Arc"**
 
 Sift is a document-cutting instrument, not a friendly SaaS app. The system is built on
-**one law**: relentless cold-black grayscale, broken by a **single electric channel** —
-arc blue. No second saturated colour is permitted to exist anywhere (no status green, no
-warning amber, no second accent). Hardness comes from *restriction*, not decoration: the
-arc reads as intentional and load-bearing precisely because everything around it is
-silent.
+**one primary channel**: relentless cold-black grayscale, broken by arc blue. Arc blue
+is the only channel used for *identity and action* — primary buttons, active/live state,
+focus, links, the wordmark's `ft.`. On top of that sits a **narrow semantic layer**:
+pastel **red** = destructive / error, pastel **amber** = caution. That layer is
+deliberately restrained — muted, AA-verified, and used *only* where a signal is genuinely
+semantic (a Delete button, an error badge, the context gauge crossing a threshold), never
+as decoration. Green is still avoided: "done" states stay neutral grey. Hardness still
+comes from *restriction* — the arc reads as load-bearing because everything non-semantic
+around it is silent.
 
 Dark is the **default** theme and where the identity lives. Light is a cold, equally hard
 inversion — never a warm-cream retreat.
@@ -97,13 +101,37 @@ See the front-matter for exact tokens. Dark is canonical.
 - **Arc Hot** (`#6FB8FF`): hover — *hotter = whiter/cyaner*, mirroring a real arc.
 - **Arc ink** (`#04101F`): the dark ink that sits on an arc-blue fill.
 - Light theme uses a deeper **`#0B57D0`** with white ink so it stays AA on white.
+- The channel extends to the OS chrome: **text selection**, the **text caret**, and the native `accent-color` are all the arc — the browser's default selection blue never appears. `color-scheme` is set per theme so scrollbars and native controls follow, and there is no white first-paint flash.
 
 ### Neutral (cold)
 - Canvas `#05070B` → Panel `#0B0F16` → Elevated `#141A23`. Depth is these steps plus hairlines, never a shadow.
 - Ink `#EEF2F7`, secondary `#8C97A5`, faint `#7C8794`. Borders `#1C232D` / `#303A47`.
 
-### Named Rules
-**The One-Channel Rule.** If you are about to introduce a second saturated colour — a green "success", a red "error", a second brand accent — don't. Route it through the arc or through the grey ramp. The moment a second colour appears, the discipline collapses into generic dark-mode SaaS.
+### The semantic layer (red / amber)
+Arc blue stays the **primary** channel (identity + action). A small, disciplined
+semantic set is layered on top:
+
+| Role | Light | Dark | Where |
+| --- | --- | --- | --- |
+| `--color-danger` (red) | `#B23B30` | `#F0857A` | Delete/Remove buttons, error badge, error status notes |
+| `--color-warn` (amber) | `#8C6510` | `#E8B45C` | Cancel button, "parsing" badge, gauge caution zone |
+| `--color-warn-fill` (bar) | `#E0A83C` | `#E8B45C` | the gauge fill in the caution zone (fill, not text) |
+
+Each ships a matching `-bg` tint and (danger) a `-hover`. All AA-verified on their
+surfaces (danger 5.9:1 / amber 5.3:1 on light panel; higher on dark). **The rule that
+survives:** no *decorative* second colour, no green, no third brand accent. Colour that
+isn't the arc must earn its place by being genuinely semantic (destructive / caution /
+error). The moment red or amber shows up as decoration, the discipline is broken.
+
+### Context-window gauge & phase seams
+- **Context gauge** (file panel): an estimate (~4 chars/token) of how full the model's
+  **1M-token** window is. Bar + token count + percent, updated on every file add/remove.
+  Zones follow the semantic layer: **arc** (<75%) → **amber** (75–89%) → **red** (≥90%),
+  with 1px notches marking the thresholds on the track. It's an awareness signal, not a
+  billing meter — labelled as an estimate.
+- **Phase seams**: a thin **arc** line marks the border between each phase — under the
+  Intake panel (a `box-shadow` line, so it never bleeds through the translucent glass)
+  and down the gap between the input column and the Export column (a 1px pseudo-element).
 
 ## 3. Typography
 
@@ -169,6 +197,9 @@ Square, 1px hairline, no shadow. Header carries a mono index (`01 / INTAKE`) abo
 ### Inputs
 Square (1px radius), canvas-coloured fill, hairline border, hard arc focus outline. Labels are uppercase mono.
 
+### Empty & idle states
+An empty surface is composed, never a void. The idle report panel centres a grayscale **reticle "instrument face"** — a bordered square with edge crop-ticks and a centre dot, echoing the panel targeting brackets and the viewport crop marks — above the awaiting-text. It is grayscale by the one-channel law (idle ≠ live; only a working surface earns the arc) and CSS-only (`:has(> .output-placeholder)`), so it disappears the instant real output streams in.
+
 ## 6. Do's and Don'ts
 
 ### Do:
@@ -177,82 +208,67 @@ Square (1px radius), canvas-coloured fill, hairline border, hard arc focus outli
 - **Do** build structure from 1px hairlines and surface steps.
 
 ### Don't:
-- **Don't** introduce a second saturated colour, ever.
+- **Don't** introduce colour as *decoration*. Arc = primary; red/amber only where a signal is genuinely destructive/caution/error. No green, no third accent.
 - **Don't** use a radius ≥4px, a soft drop shadow, or a display weight under 600.
 - **Don't** let the neutrals drift warm — warm greys under a blue accent read muddy.
 - **Don't** use spring/bounce/elastic motion. Machined decel (`cubic-bezier(0.2,0,0,1)`, 120–200ms) only.
 
-## 7. Docs page (`static/docs.html`) — claude.ai-exact palette
+## 7. Docs page (`static/docs.html`)
 
-The docs page is a standalone, self-contained reference (architecture, request flows,
-API surface) with its own light/dark theme toggle (system-preference default,
-persisted to `localStorage` under `sift-docs-theme`). It is visually independent from
-the rest of the app: **sections 1–6 above describe the main app's BLACKFORGE (Arc)
-system — dark by default** — and are unaffected by anything below;
-`static/index.html`, `static/style.css`, and `static/admin.html` use those tokens
-exactly as documented. The docs page alone carries a second, separate token set,
-mapped to claude.ai's visual language rather than Sift's. **It has not been migrated
-to the Arc system** and is the one surface still on the old warm palette.
+The docs page is a standalone technical reference (architecture, request flows, API
+surface, security model) served at `/static/docs.html` and linked from the sign-in
+screen as a corner readout.
 
-### Tokens
+**It is on the Arc system** — same tokens, type and geometry as the app, so it reads as
+the same product. It carries its own copy of the tokens rather than importing
+`style.css`, because it needs none of the app's component CSS (panels, modals, ledger)
+and everything it does need (prose, sidebar, tables, diagrams) the app doesn't have.
+Dark is the default, and the theme toggle writes the **same `localStorage` key
+(`theme`) as the app**, so a preference set in one carries to the other.
 
-Light (`:root`):
+### Fully offline — no CDN
+The page loads the **vendored** `fonts/Satoshi-*.woff2` and `fonts/JetBrainsMono-*.woff2`
+and nothing else off-origin. It previously pulled Google Fonts and Mermaid from CDNs,
+contradicting the offline-by-design stance the rest of the app holds (vendored
+`marked`/`purify`/fonts); both were removed. **Verified: zero external requests.**
 
-| Role | Value |
-| --- | --- |
-| Page background | `#FAF9F5` |
-| Raised surface (cards, sidebar) | `#F0EEE6` |
-| Subtle surface (hover states) | `#F5F4EF` |
-| Border (hairline) | `rgba(20,20,19,0.12)` |
-| Border (strong) | `rgba(20,20,19,0.22)` |
-| Text | `#141413` |
-| Text secondary | `#6E6E6C` |
-| Text faded | `#91918D` |
-| Accent (terracotta) | `#D97757` |
-| Accent hover | `#C6613F` |
-| Danger | `#BF4D43` |
-| Accent-on (text on accent) | `#FFFFFF` |
+### Diagrams are inline SVG, not Mermaid
+The eight figures are hand-authored inline `<svg>` using the Arc vocabulary — 1px
+hairlines, square corners, mono indices in arc blue, semantic fills (`.box.acc` arc,
+`.box.wrn` amber, `.box.dgr` red) and a dashed `.zone` for trust boundaries. Inline SVG
+is chosen over Mermaid for three reasons: it themes from the same CSS variables (so it
+flips with light/dark for free), it can be **animated** (each `.draw` path is measured
+with `getTotalLength()` and drawn in on scroll), and it costs no dependency. A shared
+`<defs>` block at the top of the body holds the arrowhead markers.
 
-Dark (`html[data-theme="dark"]`):
+### Motion layer
+Vanilla JS, no library. Four behaviours, all driven by one rAF-throttled passive scroll
+listener:
 
-| Role | Value |
-| --- | --- |
-| Page background | `#262624` |
-| Raised surface | `#30302E` |
-| Subtle/elevated surface | `#3D3D3B` |
-| Border (hairline) | `rgba(255,255,255,0.12)` |
-| Border (strong) | `rgba(255,255,255,0.22)` |
-| Text | `#F5F4EF` |
-| Text secondary | `#A6A39A` |
-| Text faded | `#7C7A72` |
-| Accent (terracotta, same as light) | `#D97757` |
-| Accent hover (lighter, for dark) | `#E08B6F` |
-| Danger | `#E5766A` |
-| Accent-on | `#FFFFFF` |
+1. **Chapter rail** — a fixed left-edge line with one circle per `h2` chapter, generated
+   from the document itself. The fill is a 1px div scaled with `transform: scaleY(p)`;
+   each circle sits at the scroll fraction where its chapter reaches the top, and gains
+   `.passed` (filled) / `.current` (filled + ring). The circles are real links, so the
+   rail doubles as navigation. Built in **HTML/CSS, not SVG** — a stretched
+   `preserveAspectRatio="none"` viewBox turns circles into ellipses, which is exactly
+   what made the first attempt look wrong. Chapter positions are measured with
+   `getBoundingClientRect().top + pageYOffset`, never `offsetTop`, because `.wrap` is
+   positioned and would otherwise skew every circle.
+2. **Section reveals** — opacity + 14px rise on intersect.
+3. **Diagram choreography** — shapes fade, text follows, connectors draw via
+   `stroke-dashoffset`, then the "live" connectors hand off to a marching-dash loop.
+   The handoff **must clear the inline dasharray** the draw-on wrote, or the CSS dash
+   pattern is outranked and nothing marches (the original bug).
+4. **Nav scroll-spy.**
 
-Both `:root` and the dark override set `color-scheme` (`light` / `dark`) so native
-scrollbars and form controls follow. `@media print` re-declares the light values on
-both roots so a printed page is always light regardless of the active toggle state.
-Accent usage follows claude.ai's own restraint (roughly a ≤10% rule): links, the
-sidebar brand's italic initial, hero highlights, callout accents, sequence-diagram
-numbers, and the theme-toggle hover — not large fills or backgrounds. Radii: 12px for
-cards/containers, 8px for buttons/controls/nav links, fully rounded for pills/badges.
-Shadows are flat by default; only true floating elements (the fullscreen diagram
-overlay, the scroll-to-top button, a hovered feature card) get
-`0 4px 16px rgba(0,0,0,0.08)` (light) / `0 4px 16px rgba(0,0,0,0.4)` (dark).
+**Progressive enhancement is the rule.** The pre-hidden state lives behind `html.js-anim`,
+added by a pre-paint script in `<head>` (so revealed elements never flash in at full
+opacity first). That script also arms a **2.5s safety timeout**: if the motion script
+never sets `data-motion-ready`, the class is removed and everything becomes visible — so a
+script error can never leave the page blank. `prefers-reduced-motion` sets `html.reduce`
+instead, which skips reveals and draw-on entirely and hides the rail.
 
-### Typography
-
-claude.ai's own display/UI faces (Copernicus and Styrene B) are proprietary and not
-available to ship here — the docs page uses the closest free equivalents instead:
-**Source Serif 4** (a variable serif with an optical-size axis, weights 400/600 plus a
-400 italic cut) for display headings, paired with **Inter** (400/500/600) for body and
-UI text, `Georgia` as the declared serif fallback (claude.ai's own fallback choice) and
-a system `ui-monospace` stack for code. Headings use the serif at weight 600 with
-normal letter-spacing — calm, not tightly tracked.
-
-### Scope
-
-This theme system exists **only** in `static/docs.html` — its own token block, its own
-toggle button, its own Mermaid theme-variable pair. It does not touch, and is not
-touched by, the main app's palette in sections 1–6, which remains light-only.
+### Semantic colour
+The page uses the same semantic layer as the app: **arc** for guidance callouts and
+`GET` badges, **amber** for caution (`POST`, quota/limit warnings), **red** for genuine
+danger (`DELETE`, the "runs generated code" and no-TLS warnings). Nothing else.

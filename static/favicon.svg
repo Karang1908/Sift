@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="Sift">
+  <title>Sift</title>
+  <!-- The Sift mark: a sieve. Three descending bars with a particle falling
+       through them. Square caps and flat geometry to match the app's design
+       system (0–2px radius vocabulary, hairline structure, one arc-blue channel).
+       Colours track the browser's colour scheme so the mark reads on both a
+       light and a dark tab strip. -->
+  <style>
+    .bar { stroke: #3B8CFF; stroke-width: 3.4; stroke-linecap: butt; }
+    .dot { fill: #3B8CFF; }
+    @media (prefers-color-scheme: light) {
+      .bar { stroke: #0B57D0; }
+      .dot { fill: #0B57D0; }
+    }
+  </style>
+
+  <!-- Bars are centred on the box (stack spans y 9–23, midpoint 16 = viewBox
+       centre) so the glyph is optically balanced. The particle's travel space
+       must not push the mark low. -->
+  <line class="bar" x1="4"  y1="9"  x2="28" y2="9"/>
+  <line class="bar" x1="8"  y1="16" x2="24" y2="16"/>
+  <line class="bar" x1="12" y1="23" x2="20" y2="23"/>
+
+  <!-- Starts at 3 (not 1) so the particle is never clipped flat by the top of
+       the viewBox; browsers that render the favicon statically show this frame. -->
+  <circle class="dot" cx="16" cy="3" r="2.4">
+    <animate attributeName="cy" values="3;30" dur="2.2s" repeatCount="indefinite"
+             calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.6 1"/>
+    <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.16;0.82;1"
+             dur="2.2s" repeatCount="indefinite"/>
+  </circle>
+</svg>
