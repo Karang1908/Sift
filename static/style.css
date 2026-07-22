@@ -26,13 +26,18 @@
     --font-body:'Satoshi',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
     --font-mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;
 
+    /* Native form controls / selection track the one channel; scrollbars &
+       first-paint follow the theme so there's no white flash on load. */
+    color-scheme: light;
+    accent-color: var(--color-primary);
+
     --color-bg:#E9ECF0;
     --color-panel-bg:#FFFFFF;
     --color-panel-header-bg:#F2F5F8;
     --color-surface-2:#F2F5F8;
     --color-text-main:#070A0F;
     --color-text-muted:#515A64;
-    --color-text-faint:#697380;
+    --color-text-faint:#5E6773;   /* AA on the #E9ECF0 canvas fill (4.84:1) — this is the input placeholder + login-mark color */
     --color-border:#D3D8DE;
     --color-border-hover:#BFC6CE;
     --color-primary:#0B57D0;
@@ -42,8 +47,15 @@
     --color-primary-light:rgba(11,87,208,0.08);
     --color-on-primary:#FFFFFF;
     --color-focus:#0B57D0;
-    --color-danger:#0B57D0;
-    --color-danger-bg:rgba(11,87,208,0.08);
+    /* Semantic layer (added deliberately — see DESIGN.md §2). Arc blue stays the
+       PRIMARY channel; red = destructive/error, amber = caution. Pastel, muted,
+       AA-verified — reserved for genuinely semantic signals, never decoration. */
+    --color-danger:#B23B30;              /* red text/border — AA 5.90:1 on panel */
+    --color-danger-hover:#8F2E24;
+    --color-danger-bg:rgba(178,59,48,0.09);
+    --color-warn:#8C6510;                /* amber text/border — AA 5.27:1 on panel */
+    --color-warn-fill:#E0A83C;           /* brighter amber for the gauge bar (fill, not text) */
+    --color-warn-bg:rgba(224,168,60,0.14);
     --color-success:#515A64;
     --color-header-bg:#FFFFFF;
     --color-header-text:#070A0F;
@@ -78,6 +90,7 @@
 
 /* ── DARK: BLACKFORGE. The default; where the identity lives. ───────── */
 html.dark {
+    color-scheme: dark;
     --color-bg:#05070B;
     --color-panel-bg:#0B0F16;
     --color-panel-header-bg:#141A23;
@@ -94,8 +107,14 @@ html.dark {
     --color-primary-light:rgba(59,140,255,0.10);
     --color-on-primary:#04101F;   /* dark ink on flame — max contrast */
     --color-focus:#3B8CFF;
-    --color-danger:#6FB8FF;
-    --color-danger-bg:rgba(59,140,255,0.10);
+    /* Semantic layer (dark) — same law as light: arc = primary, red = destructive,
+       amber = caution. Lighter pastels so they clear AA on the near-black panel. */
+    --color-danger:#F0857A;              /* red — AA 7.62:1 on panel */
+    --color-danger-hover:#F6A79E;
+    --color-danger-bg:rgba(240,133,122,0.13);
+    --color-warn:#E8B45C;                /* amber — AA 10.16:1 on panel */
+    --color-warn-fill:#E8B45C;
+    --color-warn-bg:rgba(232,180,92,0.13);
     --color-success:#8C97A5;
     --color-header-bg:#03050A;
     --color-header-text:#EEF2F7;
@@ -115,6 +134,7 @@ html.dark {
 html, body {
     height: 100vh;
     overflow: hidden;
+    background-color: var(--color-bg);   /* paint the theme immediately — no white flash before body renders */
 }
 
 body {
@@ -146,7 +166,6 @@ body {
     max-width: 1600px;
     margin: 0 auto;
     display: flex;
-    justify-content: justify;
     justify-content: space-between;
     align-items: center;
     height: 100%;
@@ -625,25 +644,9 @@ body {
     background-color: currentColor;
 }
 
-/* Tinted over the current surface so both themes read correctly (the token
-   text colors flip in dark; the low-alpha fill works on either). */
-.status-badge.parsed {
-    background-color: rgba(74, 124, 89, 0.13);
-    color: var(--color-success);
-    border: 1px solid rgba(74, 124, 89, 0.28);
-}
-
-.status-badge.pending {
-    background-color: rgba(176, 124, 42, 0.14);
-    color: #9a6a1c;
-    border: 1px solid rgba(176, 124, 42, 0.30);
-}
-
-.status-badge.error {
-    background-color: var(--color-danger-bg);
-    color: var(--color-danger);
-    border: 1px solid rgba(192, 57, 43, 0.30);
-}
+/* Status-badge colors are defined once, in the component layer below, as the
+   grayscale-by-law set (only failure earns the arc). The earlier green/amber/red
+   variants were a second-saturated-colour regression and have been removed. */
 
 /* Buttons */
 .btn {
@@ -657,6 +660,9 @@ body {
     letter-spacing: -0.01em;
     border-radius: var(--radius-md);
     cursor: pointer;
+    /* Some buttons are anchors (header "Admin Panel", admin's "Back to App") —
+       without this they render with the browser's default link underline. */
+    text-decoration: none;
     border: 1px solid transparent;
     transition: background-color var(--dur-fast) var(--ease-out),
                 border-color var(--dur-fast) var(--ease-out),
@@ -867,8 +873,12 @@ textarea:focus {
     color: var(--color-text-muted);
 }
 
-/* position: fixed (coordinates set by JS from the toggle's bounding rect) so
-   the menu escapes .panel's overflow:hidden instead of being clipped. */
+/* position: fixed (coordinates set by JS from the toggle's bounding rect). NOTE:
+   position:fixed ALONE is not enough here — the glass panels/modal use
+   backdrop-filter, which makes a fixed descendant resolve against that ancestor
+   (not the viewport) and get clipped by its overflow. So openPresetMenu() /
+   openExportPresetMenu() also PORTAL the menu to <body> before positioning. See
+   the z-index override near the end of this file. */
 .preset-dropdown-menu {
     position: fixed;
     max-height: 220px;
@@ -1452,14 +1462,6 @@ textarea:focus {
     white-space: nowrap;
 }
 
-/* ══════════════════════════════════════════════════════════════════════
-   ──────────────────────────────────────────────────────────────────────
-   Canvas:   #1a1815   Panels:   #22201c   Elevated: #2a2723
-   Border:   #33302a   Border-2: #3d3932   Border-3: #4b473f
-   Text-1:   #e8e6e3   Text-2:   #b0aba2   Text-3:   #6d6961
-   Accent:   #c15f3c   Accent-2: #d87757   Accent-3: #e89b76
-   ══════════════════════════════════════════════════════════════════════ */
-
 /* ── Base ─────────────────────────────────────────────────────────────── */
 
 /* ── Header ───────────────────────────────────────────────────────────── */
@@ -1495,9 +1497,9 @@ textarea:focus {
 }
 
 /* ── Login Screen ─────────────────────────────────────────────────────── */
-/* The login hero (ambient glow bg, card, badge, tagline, error) is fully
-   token-driven and adapts to dark via the token flip — no overrides needed.
-   Deepen the canvas a touch so the terracotta glows read richer on dark. */
+/* The login hero (ambient glow bg, card, tagline, error) is fully token-driven
+   and adapts to dark via the token flip — the dark canvas deepens so the single
+   arc orb reads richer against the cold black. */
 
 /* ── Panels & Panel Headers ───────────────────────────────────────────── */
 
@@ -1561,24 +1563,14 @@ textarea:focus {
 /* ── Scrollbars ───────────────────────────────────────────────────────── */
 
 /* ══════════════════════════════════════════════════════════════════════
-   PREMIUM POLISH — scrollbars, row hover, reduced-motion
+   REDUCED MOTION
+   Scrollbars and file-row hover are defined once, in the component layer
+   below (square thumb, arc left-edge on row hover) — the earlier round-thumb
+   scrollbar and panel-header row-hover here were fully overridden and removed.
    ══════════════════════════════════════════════════════════════════════ */
 
-/* Thin, themed scrollbars (token-driven; the html.dark block above refines
-   the track/thumb further). */
-::-webkit-scrollbar { width: 9px; height: 9px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb {
-    background: var(--color-border-hover);
-    border-radius: var(--radius-full);
-    border: 2px solid var(--color-panel-bg);
-}
-::-webkit-scrollbar-thumb:hover { background: var(--color-text-faint); }
-* { scrollbar-width: thin; scrollbar-color: var(--color-border-hover) transparent; }
-
-/* File-row hover (light mode had none; dark is handled above). */
-.file-table tbody tr:hover td { background-color: var(--color-panel-header-bg); }
-.file-table tbody tr td { transition: background-color var(--dur-fast) var(--ease-out); }
+/* File-row cells transition their hover edge smoothly. */
+.file-table tbody tr td { transition: background-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out); }
 
 /* Reduced-motion: neutralize every animation/transition and the ambient
    login drift. Content stays fully visible; premium.js also short-circuits. */
@@ -1792,6 +1784,15 @@ html.dark .login-overlay{background:#03050A;}
 .login-marks .lm{position:absolute;font-family:var(--font-mono);font-size:8.5px;font-weight:500;letter-spacing:.2em;
   text-transform:uppercase;color:var(--color-text-faint);}
 .login-marks .tl{top:0;left:0}.login-marks .tr{top:0;right:0}.login-marks .bl{bottom:0;left:0}.login-marks .br{bottom:0;right:0}
+/* Docs link — reads as a fifth corner readout, stacked just above the bottom-right
+   mark. Same mono treatment as .lm, but a real focusable link (see index.html). */
+.login-doc-link{position:fixed;right:22px;bottom:calc(22px + 1.6em);z-index:3;
+  font-family:var(--font-mono);font-size:8.5px;font-weight:500;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--color-text-faint);text-decoration:none;
+  border-bottom:1px solid transparent;
+  transition:color var(--dur-fast) var(--ease-out),border-color var(--dur-fast) var(--ease-out);}
+.login-doc-link:hover{color:var(--color-primary);border-bottom-color:var(--color-primary);}
+.login-doc-link:focus-visible{outline:1px solid var(--color-primary);outline-offset:3px;}
 
 .login-box{background:var(--color-panel-bg);border:1px solid var(--color-border-hover);border-radius:var(--radius-md);
   box-shadow:none;width:100%;max-width:420px;padding:1.9rem 1.7rem;}
@@ -1873,3 +1874,151 @@ html.dark .login-overlay{background:#03050A;}
    Times treatment belongs to the wordmark itself, never to a suffix. */
 .logo h1 .wm-sub{font-family:var(--font-mono);font-style:normal;font-weight:500;font-size:.62rem;
   letter-spacing:.22em;text-transform:uppercase;color:var(--color-header-muted);vertical-align:.35em;margin-left:.15rem;}
+
+/* ══════════════════════════════════════════════════════════════════════
+   FINISH PASS — the details that read as expensive
+   Selection, caret, focus, empty state, type rendering, theme glide. Every
+   value routes through a token and stays inside the one-channel law.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* — Text selection is the arc, never the OS default blue. — */
+::selection{background:color-mix(in srgb,var(--color-primary) 30%,transparent);color:var(--color-text-main);}
+
+/* — The typing caret is the arc. — */
+textarea,.modal-input,input[type="text"],input[type="password"]{caret-color:var(--color-primary);}
+
+/* — Keyboard focus is a crisp arc hairline everywhere, never a browser halo.
+     (Buttons/inputs already do this in the component layer; these are the
+     controls that were still on the UA default.) — */
+#theme-toggle-btn:focus-visible,
+.preset-dropdown-toggle:focus-visible,
+.export-tab:focus-visible,
+.admin-tab:focus-visible,
+.export-template-browse-btn:focus-visible,
+.browse-link:focus-visible{outline:1px solid var(--color-primary);outline-offset:2px;}
+
+/* — Type rendering. Headings balance; sentence-case prose sheds orphans;
+     every number is tabular so counts and sizes never jitter. — */
+.panel-title,.modal-title,.forge-wordmark,.output-header,
+.output-body h1,.output-body h2,.output-body h3{text-wrap:balance;}
+.output-body p,.upload-title,.file-limits,.modal-message,
+.output-placeholder,.empty-row td,.forge-tagline{text-wrap:pretty;}
+.progress-bar-label,.progress-status,.model-badge,.status-badge,
+.header-username,.login-marks .lm{font-variant-numeric:tabular-nums;}
+
+/* — The large empty report surface is a composed idle state, not a void:
+     a centred instrument face over the drafting grid. Only when the sole
+     child is the placeholder; the moment real output streams in it clears. — */
+.output-body:has(> .output-placeholder){
+  display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;}
+.output-body:has(> .output-placeholder) .output-placeholder{
+  display:flex;flex-direction:column;align-items:center;gap:1rem;max-width:38ch;
+  color:var(--color-text-faint);}
+.output-body:has(> .output-placeholder) .output-placeholder::before{
+  content:"";width:42px;height:42px;border:1px solid var(--color-border-hover);
+  background:
+    radial-gradient(circle at 50% 50%,var(--color-text-faint) 0 1.5px,transparent 2.5px),
+    linear-gradient(var(--color-border-hover),var(--color-border-hover)) 50% 0/1px 9px no-repeat,
+    linear-gradient(var(--color-border-hover),var(--color-border-hover)) 50% 100%/1px 9px no-repeat,
+    linear-gradient(var(--color-border-hover),var(--color-border-hover)) 0 50%/9px 1px no-repeat,
+    linear-gradient(var(--color-border-hover),var(--color-border-hover)) 100% 50%/9px 1px no-repeat;}
+
+/* — Scroll surfaces reserve their gutter so overflowing content never nudges
+     the layout sideways (matters on the shipped Windows/Linux build, where
+     scrollbars take real width). — */
+.output-body,.file-list-container,.admin-analysis-content{scrollbar-gutter:stable;}
+
+/* — Toggling the theme glides the surfaces instead of snapping them.
+     Neutralised under prefers-reduced-motion by the global block above. — */
+.panel,.output-container,.file-list-container,.upload-zone{
+  transition:background-color var(--dur) var(--ease-out),border-color var(--dur) var(--ease-out);}
+
+/* ══════════════════════════════════════════════════════════════════════
+   SEMANTIC LAYER — context gauge · phase seams · destructive/caution colour
+   A deliberate relaxation of the strict one-channel law (see DESIGN.md §2):
+   arc blue stays PRIMARY; red = destructive/error, amber = caution. Pastel,
+   AA-verified, and reserved for genuinely semantic signals only.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* — Context-window usage gauge (file panel). Awareness of the 1M-token limit. — */
+.context-meter{flex-shrink:0;margin-top:.75rem;padding-top:.7rem;border-top:1px solid var(--color-border);
+  display:flex;flex-direction:column;gap:.45rem;}
+.context-meter-head{display:flex;justify-content:space-between;align-items:baseline;gap:.75rem;}
+.context-meter-label{font-family:var(--font-mono);font-size:9px;font-weight:500;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--color-text-faint);white-space:nowrap;}
+.context-meter-readout{font-family:var(--font-mono);font-size:10px;letter-spacing:.04em;
+  font-variant-numeric:tabular-nums;color:var(--color-text-muted);white-space:nowrap;}
+#context-meter-percent{font-weight:700;color:var(--color-primary);}
+.context-meter-track{position:relative;height:4px;background:var(--color-border);overflow:hidden;}
+.context-meter-fill{height:100%;width:0;background:var(--color-primary);
+  transition:width var(--dur) var(--ease-out),background-color var(--dur-fast) var(--ease-out);}
+/* threshold notches at 75% and 90% — the zone boundaries, drawn over the fill */
+.context-meter-track::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:
+    linear-gradient(var(--color-panel-bg),var(--color-panel-bg)) 75% 0/1px 100% no-repeat,
+    linear-gradient(var(--color-panel-bg),var(--color-panel-bg)) 90% 0/1px 100% no-repeat;}
+.context-meter[data-zone="warn"] .context-meter-fill{background:var(--color-warn-fill);}
+.context-meter[data-zone="warn"] #context-meter-percent{color:var(--color-warn);}
+.context-meter[data-zone="danger"] .context-meter-fill{background:var(--color-danger);}
+.context-meter[data-zone="danger"] #context-meter-percent{color:var(--color-danger);}
+
+/* — Phase seams: a thin arc line marks the border between each phase. Drawn as
+     lines (box-shadow / a 1px pseudo), NOT a column background — a background
+     bleeds arc-blue through the translucent glass panels and tints the column. — */
+/* horizontal seam between Intake (01) and Analyze (02): arc line under the file panel */
+.file-panel{box-shadow:0 1px 0 var(--color-primary);}
+/* vertical seam between the input phases (left) and the Export phase (right) */
+.right-column{position:relative;}
+.right-column::before{content:"";position:absolute;top:0;bottom:0;left:-1px;width:1px;
+  background:var(--color-primary);pointer-events:none;z-index:3;}
+
+/* — Destructive = red, caution = amber. Pastel tints, deepen on hover. — */
+.btn-danger{background:var(--color-danger-bg);
+  border-color:color-mix(in srgb,var(--color-danger) 42%,transparent);color:var(--color-danger);
+  font-family:var(--font-mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;}
+.btn-danger:hover:not(:disabled){background:color-mix(in srgb,var(--color-danger) 15%,transparent);
+  border-color:var(--color-danger);color:var(--color-danger-hover);box-shadow:none;}
+/* trash / delete-preset icons ignite red instead of arc */
+#delete-preset-btn:hover:not(:disabled),
+[id^="export-delete-preset-btn-"]:hover:not(:disabled){border-color:var(--color-danger);color:var(--color-danger);}
+/* Cancel a running action = caution amber (overrides the secondary arc-hover) */
+#cancel-btn{background:var(--color-warn-bg);
+  border-color:color-mix(in srgb,var(--color-warn) 42%,transparent);color:var(--color-warn);}
+#cancel-btn:hover:not(:disabled){background:color-mix(in srgb,var(--color-warn) 14%,transparent);
+  border-color:var(--color-warn);color:var(--color-warn);box-shadow:none;}
+
+/* — Status badges pick up the same semantics: pending = amber, error = red,
+     parsed = neutral (done, no colour needed). — */
+.status-badge.pending{color:var(--color-warn);border-color:color-mix(in srgb,var(--color-warn) 50%,transparent);}
+.status-badge.error{color:var(--color-danger);border-color:color-mix(in srgb,var(--color-danger) 55%,transparent);}
+
+/* — Preset dropdown menus portal to <body> at open time (script.js) to escape
+     the glass panels'/modal's backdrop-filter containing block, which otherwise
+     clips them. The export menus open from inside the export modal, so at body
+     level they must outrank it (modal overlay 2000, confirm dialog 2500). — */
+.preset-dropdown-menu{z-index:2600;}
+
+/* ── BRAND MARK ──────────────────────────────────────────────────────
+   A sieve: three descending bars with a particle sifting through them —
+   the literal meaning of the product name, in the system's flat geometry
+   (square caps, no radius). Identical to favicon.svg. Strokes use
+   currentColor so the mark inherits the arc from .logo-icon and flips
+   with the theme for free. */
+.logo-mark{width:22px;height:22px;display:block;overflow:visible;}
+.logo-mark .lm-bar{stroke:currentColor;stroke-width:3.4;stroke-linecap:butt;}
+.logo-mark .lm-dot{fill:currentColor;}
+/* Motion is opt-IN via no-preference. If it were opt-out, the global
+   reduced-motion block (which collapses animations to 0.001ms and holds
+   their END state) would freeze the particle at opacity 0 and the dot
+   would simply vanish. This way it rests, visible, at the top instead. */
+@media (prefers-reduced-motion: no-preference){
+  .logo-mark .lm-dot{animation:lm-sift 2.4s cubic-bezier(.4,0,.6,1) infinite;}
+}
+/* Travels in viewBox units: dot is authored at cy=2, so this carries it from
+   y=1 down to y=30 — through all three bars and out the bottom. */
+@keyframes lm-sift{
+  0%{transform:translateY(-1px);opacity:0}
+  16%{opacity:1}
+  82%{opacity:1}
+  100%{transform:translateY(28px);opacity:0}
+}

@@ -4,6 +4,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileInput = document.getElementById('file-input');
     const fileListBody = document.getElementById('file-list-body');
     const emptyRow = document.getElementById('empty-row');
+    const contextMeter = document.getElementById('context-meter');
+    const contextMeterFill = document.getElementById('context-meter-fill');
+    const contextMeterTokens = document.getElementById('context-meter-tokens');
+    const contextMeterPercent = document.getElementById('context-meter-percent');
 
     const promptInput = document.getElementById('prompt-input');
     const enhanceBtn = document.getElementById('enhance-btn');
@@ -345,12 +349,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const state = exportState[fmt];
         const toggle = document.getElementById(`export-preset-dropdown-toggle-${fmt}`);
         const menu = document.getElementById(`export-preset-dropdown-menu-${fmt}`);
+        // Portal to <body>: the export modal's glass (backdrop-filter) box would
+        // otherwise be this fixed menu's containing block and clip it (same bug
+        // as the main preset dropdown — see openPresetMenu). The .open state goes
+        // on the dropdown container (by id), since the menu no longer sits inside it.
+        if (menu.parentElement !== document.body) document.body.appendChild(menu);
         const rect = toggle.getBoundingClientRect();
         menu.style.top = `${rect.bottom + 4}px`;
         menu.style.left = `${rect.left}px`;
         menu.style.minWidth = `${rect.width}px`;
         menu.classList.remove('hidden');
-        menu.closest('.preset-dropdown').classList.add('open');
+        const container = document.getElementById(`export-preset-dropdown-${fmt}`);
+        if (container) container.classList.add('open');
         state.menuOpen = true;
     }
 
@@ -359,7 +369,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const menu = document.getElementById(`export-preset-dropdown-menu-${fmt}`);
         if (!menu) return;
         menu.classList.add('hidden');
-        menu.closest('.preset-dropdown').classList.remove('open');
+        const container = document.getElementById(`export-preset-dropdown-${fmt}`);
+        if (container) container.classList.remove('open');
         state.menuOpen = false;
     }
 
@@ -583,7 +594,41 @@ document.addEventListener('DOMContentLoaded', () => {
         return response;
     }
 
+    // Wipe all in-memory + on-screen session state. Shared by explicit logout
+    // AND the automatic 401 path (via showLoginOverlay), so a re-login — same or
+    // different user — never shows a flash of, or lets you export, the previous
+    // session's report. Before this, only explicit logout reset anything; a 6h
+    // session timeout mid-analysis left the stale report on screen and exportable.
+    function resetAppState() {
+        uploadedFiles = [];
+        savedPresets = [];
+        accumulatedOutput = '';
+        promptInput.value = '';
+        for (const fmt of EXPORT_FORMATS) {
+            exportState[fmt].instructions = '';
+            exportState[fmt].templateFilename = null;
+            exportState[fmt].templateOriginalName = null;
+            exportState[fmt].presets = [];
+            exportState[fmt].currentPresetName = '';
+            exportState[fmt].menuOpen = false;
+            exportState[fmt].loaded = false;
+            updateExportTemplateDisplay(fmt);
+            const textarea = document.getElementById(`export-instructions-${fmt}`);
+            if (textarea) textarea.value = '';
+        }
+        currentPresetName = '';
+        outputBody.innerHTML = '<div class="output-placeholder">AI analysis output will appear here...</div>';
+        fileListBody.querySelectorAll('tr:not(#empty-row)').forEach(r => r.remove());
+        if (emptyRow) emptyRow.classList.remove('hidden');
+        if (modalOverlay) modalOverlay.classList.add('hidden');
+        if (exportInstructionsOverlay) exportInstructionsOverlay.classList.add('hidden');
+        updateRunButtonState();
+        updateEnhanceButtonState();
+        updateExportButtonsState();
+    }
+
     function showLoginOverlay(message) {
+        resetAppState();
         loginOverlay.classList.remove('hidden');
         appMain.classList.add('hidden');
         headerUser.classList.add('hidden');
@@ -691,40 +736,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('Logout error:', error);
         }
-        // Clear in-memory app state so a re-login (possibly as a different
-        // user) never shows a flash of the previous session's data.
-        uploadedFiles = [];
-        savedPresets = [];
-        accumulatedOutput = '';
-        promptInput.value = '';
-        
-        // Reset export modal state per format
-        for (const fmt of EXPORT_FORMATS) {
-            exportState[fmt].instructions = '';
-            exportState[fmt].templateFilename = null;
-            exportState[fmt].templateOriginalName = null;
-            exportState[fmt].presets = [];
-            exportState[fmt].currentPresetName = '';
-            exportState[fmt].menuOpen = false;
-            exportState[fmt].loaded = false;
-            updateExportTemplateDisplay(fmt);
-            const textarea = document.getElementById(`export-instructions-${fmt}`);
-            if (textarea) textarea.value = '';
-        }
-        currentPresetName = '';
-        
-        // Reset DOM elements and buttons
-        outputBody.innerHTML = '<div class="output-placeholder">AI analysis output will appear here...</div>';
-        const rows = fileListBody.querySelectorAll('tr:not(#empty-row)');
-        rows.forEach(r => r.remove());
-        const emptyRow = document.getElementById('empty-row');
-        if (emptyRow) emptyRow.classList.remove('hidden');
-        if (modalOverlay) modalOverlay.classList.add('hidden');
-        if (exportInstructionsOverlay) exportInstructionsOverlay.classList.add('hidden');
-        updateRunButtonState();
-        updateEnhanceButtonState();
-        updateExportButtonsState();
-        
+        // Full state reset (in-memory + DOM) now lives in resetAppState(),
+        // called by showLoginOverlay() and shared with the automatic 401 path.
         showLoginOverlay();
     });
 
@@ -772,7 +785,7 @@ document.addEventListener('DOMContentLoaded', () => {
         presetMenuOpen ? closePresetMenu() : openPresetMenu();
     });
     document.addEventListener('click', (e) => {
-        if (presetMenuOpen && !presetDropdown.contains(e.target)) closePresetMenu();
+        if (presetMenuOpen && !presetDropdown.contains(e.target) && !presetDropdownMenu.contains(e.target)) closePresetMenu();
         for (const f of EXPORT_FORMATS) {
             const toggle = document.getElementById(`export-preset-dropdown-toggle-${f}`);
             const menu = document.getElementById(`export-preset-dropdown-menu-${f}`);
@@ -841,7 +854,28 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Context-window usage gauge. Estimate only (~4 chars/token) against a
+    // 1,000,000-token window — an awareness signal, not a billing meter. Based
+    // on parsed_chars (the extracted text that actually feeds the model), summed
+    // across the current user's files. Zones: arc (<75%) / amber (75-89%) / red (>=90%).
+    const CONTEXT_LIMIT_TOKENS = 1000000;
+    const CHARS_PER_TOKEN = 4;
+    function updateContextGauge() {
+        if (!contextMeter) return;
+        const chars = uploadedFiles.reduce((sum, f) => sum + (f.parsed_chars || 0), 0);
+        const tokens = Math.round(chars / CHARS_PER_TOKEN);
+        const pctRaw = (tokens / CONTEXT_LIMIT_TOKENS) * 100;
+        const pct = Math.min(100, pctRaw);
+        contextMeterTokens.textContent = tokens.toLocaleString('en-US');
+        contextMeterPercent.textContent =
+            tokens === 0 ? '0%' : (pctRaw < 1 ? '<1%' : Math.round(pct) + '%');
+        // keep a sliver of fill visible once there's any usage at all
+        contextMeterFill.style.width = (tokens > 0 ? Math.max(1.5, pct) : 0) + '%';
+        contextMeter.dataset.zone = pct >= 90 ? 'danger' : pct >= 75 ? 'warn' : 'ok';
+    }
+
     function renderFileList() {
+        updateContextGauge();
         // Clear existing dynamic rows
         const rows = fileListBody.querySelectorAll('tr:not(#empty-row)');
         rows.forEach(r => r.remove());
@@ -931,6 +965,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function openPresetMenu() {
+        // Portal the menu to <body> before positioning. The glass panels use
+        // backdrop-filter, which makes a position:fixed descendant resolve
+        // against the PANEL (not the viewport) and then get clipped by the
+        // panel's overflow:hidden — so a menu left inside the panel opens
+        // invisibly. At <body> the viewport coords from getBoundingClientRect
+        // are correct. (.open stays on presetDropdown, which does not move.)
+        if (presetDropdownMenu.parentElement !== document.body) {
+            document.body.appendChild(presetDropdownMenu);
+        }
         const rect = presetDropdownToggle.getBoundingClientRect();
         presetDropdownMenu.style.top = `${rect.bottom + 4}px`;
         presetDropdownMenu.style.left = `${rect.left}px`;
@@ -1292,9 +1335,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function showOutputMessage(msg, isError = false) {
         if (msg && msg.includes('Session expired')) return;
         const p = document.createElement('p');
-        p.style.color = isError ? '#dc2626' : '#2563eb';
+        // Route through semantic tokens (never a hardcoded hex): errors take the
+        // danger token (red), success/info takes the arc. Both flip correctly per theme.
+        p.style.color = isError ? 'var(--color-danger)' : 'var(--color-primary)';
         p.style.margin = '0.5rem 0';
-        p.style.fontWeight = '500';
+        p.style.fontWeight = '600';
         p.textContent = msg;
 
         const placeholder = outputBody.querySelector('.output-placeholder');
@@ -1308,18 +1353,43 @@ document.addEventListener('DOMContentLoaded', () => {
         const textToCopy = accumulatedOutput || outputBody.innerText;
         if (!textToCopy) return;
 
-        navigator.clipboard.writeText(textToCopy)
-            .then(() => {
-                const origText = progressStatus.textContent;
-                progressStatus.textContent = "Copied output to clipboard!";
-                setTimeout(() => {
-                    progressStatus.textContent = origText;
-                }, 2000);
-            })
-            .catch(err => {
-                console.error("Failed to copy text: ", err);
-                showOutputMessage("[SYSTEM ERROR] Failed to copy output to clipboard.", true);
-            });
+        const onOk = () => {
+            const origText = progressStatus.textContent;
+            progressStatus.textContent = "Copied output to clipboard!";
+            setTimeout(() => { progressStatus.textContent = origText; }, 2000);
+        };
+        const onFail = (err) => {
+            console.error("Failed to copy text: ", err);
+            showOutputMessage("[SYSTEM ERROR] Failed to copy output to clipboard.", true);
+        };
+
+        // navigator.clipboard is undefined outside a secure context (this app
+        // is documented to run over plain http on a LAN — see CLAUDE.md), where
+        // it would throw synchronously and skip .catch(). Guard, and fall back
+        // to the legacy execCommand path so Copy still works on the real deployment.
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(textToCopy).then(onOk).catch(() => fallbackCopy(textToCopy, onOk, onFail));
+        } else {
+            fallbackCopy(textToCopy, onOk, onFail);
+        }
+    }
+
+    function fallbackCopy(text, onOk, onFail) {
+        try {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.setAttribute('readonly', '');
+            ta.style.position = 'fixed';
+            ta.style.top = '-1000px';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            const ok = document.execCommand('copy');
+            document.body.removeChild(ta);
+            ok ? onOk() : onFail(new Error('execCommand copy returned false'));
+        } catch (err) {
+            onFail(err);
+        }
     }
 
     function exportToMarkdown() {
@@ -1360,6 +1430,11 @@ document.addEventListener('DOMContentLoaded', () => {
         exportWordBtn.disabled = true;
         document.querySelectorAll('.export-from-modal-btn').forEach(b => { b.disabled = true; });
         button.disabled = true;
+        // Show the in-button spinner for this format (matches every other async
+        // action's feedback; previously this markup existed but was never toggled).
+        const modalSpinner = (button && button.dataset && button.dataset.format)
+            ? document.getElementById(`export-from-modal-spinner-${button.dataset.format}`) : null;
+        if (modalSpinner) modalSpinner.classList.remove('hidden');
 
         progressStatus.textContent = `AI is designing your ${label}...`;
         exportProgress.trickleTo(15);
@@ -1479,6 +1554,7 @@ document.addEventListener('DOMContentLoaded', () => {
             exportExcelBtn.disabled = false;
             exportWordBtn.disabled = false;
             if (button) button.disabled = false;
+            if (modalSpinner) modalSpinner.classList.add('hidden');
             updateExportButtonsState();
         }
     }
@@ -1508,9 +1584,14 @@ document.addEventListener('DOMContentLoaded', () => {
     exportInstructionsOverlay.addEventListener('click', (e) => {
         if (e.target === exportInstructionsOverlay) closeExportModal();
     });
-    // Escape key closes the modal.
+    // Escape key closes the modal — but NOT when a confirm/name dialog
+    // (#modal-overlay) is stacked on top of it (opened from the save/delete
+    // preset buttons inside this modal). Escape should close only that top
+    // dialog, whose own handler (showModal's onKeydown) does so.
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && !exportInstructionsOverlay.classList.contains('hidden')) {
+        if (e.key === 'Escape'
+            && !exportInstructionsOverlay.classList.contains('hidden')
+            && modalOverlay.classList.contains('hidden')) {
             closeExportModal();
         }
     });

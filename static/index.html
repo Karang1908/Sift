@@ -3,7 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Dark-default: theme the browser chrome + kill the white first-paint flash. -->
+    <meta name="color-scheme" content="dark light">
+    <meta name="theme-color" content="#03050A">
     <title>Sift</title>
+    <!-- SVG mark first (crisp at every size, theme-aware, animated where the
+         browser allows it); PNG kept as the fallback for older browsers. -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="icon" type="image/png" href="Icon.png">
     <link rel="stylesheet" href="style.css">
     <!-- Marked.js (vendored locally, pinned 15.0.12) for Markdown rendering
@@ -31,7 +37,15 @@
         <div class="header-container">
             <div class="logo">
                 <span class="logo-icon">
-                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    <!-- The Sift mark: a sieve — three descending bars with a particle
+                         sifting through. Same mark as favicon.svg; inline so it animates
+                         and inherits currentColor from .logo-icon. -->
+                    <svg class="logo-mark" viewBox="0 0 32 32" role="img" aria-label="Sift">
+                        <line class="lm-bar" x1="4"  y1="9"  x2="28" y2="9"/>
+                        <line class="lm-bar" x1="8"  y1="16" x2="24" y2="16"/>
+                        <line class="lm-bar" x1="12" y1="23" x2="20" y2="23"/>
+                        <circle class="lm-dot" cx="16" cy="3" r="2.4"/>
+                    </svg>
                 </span>
                 <h1><span class="wm-a">Si</span><span class="wm-b">ft.</span></h1>
             </div>
@@ -90,6 +104,21 @@
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+
+                    <!-- Context-window usage gauge. Estimate (~4 chars/token) of how
+                         much of the model's 1M-token window the parsed documents fill.
+                         Zones: arc (<75%) -> amber (75-89%) -> red (>=90%). Updated by
+                         updateContextGauge() on every file add/remove/load. -->
+                    <div class="context-meter" id="context-meter" data-zone="ok"
+                         title="Estimated context-window usage (~4 chars per token) against a 1,000,000-token window">
+                        <div class="context-meter-head">
+                            <span class="context-meter-label">Context window</span>
+                            <span class="context-meter-readout"><span id="context-meter-tokens">0</span> / 1M tokens · <span id="context-meter-percent">0%</span></span>
+                        </div>
+                        <div class="context-meter-track">
+                            <div class="context-meter-fill" id="context-meter-fill"></div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -210,6 +239,10 @@
             <span class="lm bl">Authorized access only</span>
             <span class="lm br">minimax-m3 // cloud</span>
         </div>
+        <!-- Docs link. A real focusable <a>, deliberately NOT inside .login-marks
+             (that container is aria-hidden, so a focusable child there would be
+             unreachable to screen readers). Styled as a corner readout. -->
+        <a class="login-doc-link" href="/static/docs.html" target="_blank" rel="noopener">Documentation</a>
         <div class="login-forge">
             <div class="forge-hero">
                 <!-- Full text is authored here so it renders without JS; the
