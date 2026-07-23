@@ -863,3 +863,36 @@ historically animates. So the tab shows a crisp static mark in Chrome. Genuinely
 the tab icon requires a JS canvas loop that rewrites the `<link href>` per frame, which was
 not done (it burns a timer permanently and reads as gimmicky for a work tool). The **header**
 mark animates everywhere.
+
+---
+
+### July 23, 2026 — Export AI-generation timeout 180s → 300s (5 min)
+
+**Files:** [app.py](file:///Users/karangarg/Desktop/file%20parsing/app.py)
+
+**Why:** the deployment test found the script-pipeline PDF/Word exports intermittently
+falling back to deterministic formatting with an empty-message *"Error connecting to
+Ollama"*. Diagnosed as a **timeout, not a network blip**: `minimax-m3:cloud`'s export code
+generation currently runs ~178–185s, straddling the old `httpx.AsyncClient(timeout=180.0)`
+cap. Two consecutive PDF attempts measured 178.6s (just made it → AI-authored file) and
+180.2s (missed by 0.2s → fallback).
+
+**Change:** both export-generation model-call timeouts raised to **300.0s**:
+- `_generate_ai_export()` — the script pipeline (PDF/Excel/Word code generation).
+- `_generate_field_mapping()` — the clone pipeline (template field-mapping JSON).
+
+The enhance (120s) and process (unbounded-read streaming) timeouts are unrelated and
+unchanged.
+
+**Verification (live, real Ollama):** re-ran a PDF export under the new cap →
+`prompt → generate → validate → execute → done` (**AI path, no fallback**) in **287.7s** —
+a run that would have fallen back under the old 180s cap now completes via the AI path. (The
+validation script reported 0 bytes because it read the wrong SSE key; the real terminal
+field is `file_b64` — `verify_integration.py` reads it correctly and already proved
+export-pdf returns valid `%PDF` bytes. App produces the file correctly; that was a
+test-script bug.) `app.py` parses; server reloaded healthy.
+
+**Trade-off (noted, not changed):** `_generate_ai_export` still retries twice
+(`max_attempts=2`), so a genuinely-failing export can now take up to ~600s before falling
+back. Acceptable for better AI-authored output; drop `max_attempts` to 1 if faster failure
+is preferred.

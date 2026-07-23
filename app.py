@@ -1072,7 +1072,9 @@ async def _generate_field_mapping(template_schema: str, markdown_text: str, inst
                 else f"Retrying field mapping (attempt {attempt + 1}/{max_attempts})...",
             )
         try:
-            async with httpx.AsyncClient(timeout=180.0) as client:
+            # 5 min: minimax-m3:cloud's export-generation latency runs ~180s and
+            # straddled the old 180s cap, causing intermittent timeout-fallbacks.
+            async with httpx.AsyncClient(timeout=300.0) as client:
                 response = await client.post(
                     OLLAMA_URL,
                     json={"model": MODEL_NAME, "messages": messages, "stream": False},
@@ -2343,7 +2345,10 @@ async def _generate_ai_export(markdown_text: str, fmt: ExportFormat, max_attempt
                 progress_cb("generate", f"Retrying (attempt {attempt + 1}/{max_attempts})...")
 
         try:
-            async with httpx.AsyncClient(timeout=180.0) as client:
+            # 5 min: minimax-m3:cloud's export-script generation runs ~180s and
+            # straddled the old 180s cap, causing intermittent timeout-fallbacks
+            # (esp. PDF/Word). See the deployment-test finding in LOG.md.
+            async with httpx.AsyncClient(timeout=300.0) as client:
                 response = await client.post(
                     OLLAMA_URL,
                     json={"model": MODEL_NAME, "messages": messages, "stream": False},
